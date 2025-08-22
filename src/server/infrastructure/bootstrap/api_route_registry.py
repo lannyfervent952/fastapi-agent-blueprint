@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 from fastapi import FastAPI
 
-from src.server.application.routers.api import health_check_router
+from src.core.application.routers.api import docs_router, health_check_router
 from src.server.application.routers.api.user import users_router
 
 
 def register_api_routes(app: FastAPI):
-    app.include_router(router=health_check_router.router, prefix="/v1", tags=["status"])
+    app.include_router(router=health_check_router.router, tags=["status"])
+    app.include_router(router=docs_router.router, tags=["docs"])
     app.include_router(router=users_router.router, prefix="/v1", tags=["유저"])

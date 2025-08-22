@@ -24,7 +24,7 @@ def create_app():
     global container
     container = create_container()
 
-    app = FastAPI(root_path="/api", docs_url="/docs")
+    app = FastAPI(root_path="/api", docs_url="/docs-swagger", redoc_url="/docs-redoc")
     app.add_middleware(ExceptionMiddleware)
     app.add_middleware(
         CORSMiddleware,
