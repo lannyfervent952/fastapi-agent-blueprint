@@ -3,7 +3,7 @@ import importlib
 import os
 import pkgutil
 
-import src.core.infrastructure.database.models as models_module
+import src._core.infrastructure.database.models as models_module
 
 
 def create_folder_if_not_exists(folder_path: str):

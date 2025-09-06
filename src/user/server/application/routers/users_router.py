@@ -6,14 +6,14 @@ from typing import List
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends, Query
 
-from src.core.application.dtos.base_request import IdListDto
-from src.core.application.dtos.base_response import SuccessResponse
-from src.core.application.dtos.user.users_dto import (
+from src._core.application.dtos.base_request import IdListDto
+from src._core.application.dtos.base_response import SuccessResponse
+from src._core.application.dtos.user.users_dto import (
     CoreCreateUsersRequest,
     CoreUpdateUsersRequest,
     CoreUsersResponse,
 )
-from src.core.common.dto_utils import dtos_to_entities, entities_to_dtos
+from src._core.common.dto_utils import dtos_to_entities, entities_to_dtos
 from src.user.domain.entities.users_entity import (
     CoreCreateUsersEntity,
     CoreUpdateUsersEntity,

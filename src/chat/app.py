@@ -2,7 +2,7 @@
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.core.middleware.exception_middleware import ExceptionMiddleware
+from src._core.middleware.exception_middleware import ExceptionMiddleware
 
 
 def create_app():

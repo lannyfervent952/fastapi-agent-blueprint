@@ -2,9 +2,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.core.application.routers.api import docs_router, health_check_router
-from src.core.infrastructure.di.core_container import CoreContainer
-from src.core.middleware.exception_middleware import ExceptionMiddleware
+from src._core.application.routers.api import docs_router, health_check_router
+from src._core.infrastructure.di.core_container import CoreContainer
+from src._core.middleware.exception_middleware import ExceptionMiddleware
 from src.user.server.infrastructure.bootstrap.user_bootstrap import (
     bootstrap_user_domain,
 )

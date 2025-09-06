@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from src.core.application.use_cases.base_use_case import BaseUseCase
+from src._core.application.use_cases.base_use_case import BaseUseCase
 from src.user.domain.entities.users_entity import (
     CoreCreateUsersEntity,
     CoreUpdateUsersEntity,

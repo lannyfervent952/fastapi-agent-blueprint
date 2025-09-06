@@ -2,7 +2,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.core.middleware.exception_middleware import ExceptionMiddleware
+from src._core.middleware.exception_middleware import ExceptionMiddleware
 from src.user.infrastructure.di.user_container import UserContainer
 from src.user.server.infrastructure.bootstrap.user_bootstrap import (
     bootstrap_user_domain,
@@ -11,7 +11,7 @@ from src.user.server.infrastructure.bootstrap.user_bootstrap import (
 
 def create_container():
     """User 도메인 전용 DI 컨테이너"""
-    from src.core.infrastructure.di.core_container import CoreContainer
+    from src._core.infrastructure.di.core_container import CoreContainer
 
     core_container = CoreContainer()
     container = UserContainer(core_container=core_container)

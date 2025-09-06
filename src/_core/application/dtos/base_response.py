@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from typing import Generic, Optional, Type, TypeVar
 
-from src.core.application.dtos.base_config import ApiConfig
-from src.core.domain.entities.entity import Entity
+from src._core.application.dtos.base_config import ApiConfig
+from src._core.domain.entities.entity import Entity
 
 
 class PaginationInfo(ApiConfig):

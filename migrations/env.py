@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 
 from migrations.env_utils import create_folder_if_not_exists, load_models
-from src.core.infrastructure.database.database import Base, create_sync_dsn
+from src._core.infrastructure.database.database import Base, create_sync_dsn
 
 # Alembic 설정 파일 로드
 config = context.config

@@ -3,11 +3,11 @@ from boto3 import client
 from dependency_injector import containers, providers
 from minio import Minio
 
-from src.core.application.messaging.rabbitmq_publisher import RabbitMQPublisher
-from src.core.domain.services.minio_service import MinioService
-from src.core.domain.services.s3_service import S3Service
-from src.core.infrastructure.database.database import Database
-from src.core.infrastructure.messaging.rabbitmq_manager import RabbitMQManager
+from src._core.application.messaging.rabbitmq_publisher import RabbitMQPublisher
+from src._core.domain.services.minio_service import MinioService
+from src._core.domain.services.s3_service import S3Service
+from src._core.infrastructure.database.database import Database
+from src._core.infrastructure.messaging.rabbitmq_manager import RabbitMQManager
 
 
 class CoreContainer(containers.DeclarativeContainer):
