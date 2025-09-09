@@ -6,8 +6,8 @@ from minio import Minio
 from src._core.domain.services.minio_service import MinioService
 from src._core.domain.services.s3_service import S3Service
 from src._core.infrastructure.database.database import Database
-from src._core.infrastructure.messaging.celery_manager import CeleryManager
 from src._core.infrastructure.messaging.celery_factory import create_celery_app
+from src._core.infrastructure.messaging.celery_manager import CeleryManager
 
 
 class CoreContainer(containers.DeclarativeContainer):
