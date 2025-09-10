@@ -13,6 +13,8 @@ minio:
   secret_key: ${MINIO_SECRET_KEY}
   bucket_name: ${MINIO_BUCKET_NAME}
 
-rabbitmq:
-  host: ${RABBITMQ_HOST}
-  port: ${RABBITMQ_PORT}
+aws:
+  region: ${AWS_SQS_REGION}
+  access_key: ${AWS_SQS_ACCESS_KEY}
+  secret_key: ${AWS_SQS_SECRET_KEY}
+  sqs_queue: ${AWS_SQS_QUEUE}
