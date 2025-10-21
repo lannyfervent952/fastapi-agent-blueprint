@@ -1,13 +1,14 @@
-from boto3 import client
 from dependency_injector import containers, providers
 from minio import Minio
 
+from src._core.domain.services.file_storage_service import FileStorageService
 from src._core.domain.services.minio_service import MinioService
-from src._core.domain.services.s3_service import S3Service
 from src._core.infrastructure.database.database import Database
 from src._core.infrastructure.http.http_client import HttpClient
 from src._core.infrastructure.messaging.celery_factory import create_celery_app
 from src._core.infrastructure.messaging.celery_manager import CeleryManager
+from src._core.infrastructure.storage.s3_client import S3Client
+from src._core.infrastructure.storage.s3_storage import S3Storage
 
 
 class CoreContainer(containers.DeclarativeContainer):
@@ -49,25 +50,28 @@ class CoreContainer(containers.DeclarativeContainer):
         secure=False,  # HTTPS가 아닌 경우 False 설정
     )
 
-    s3_client = providers.Singleton(
-        client,
-        service_name="s3",
-        aws_access_key_id=config.s3.access_key,
-        aws_secret_access_key=config.s3.secret_key,
-        region_name=config.s3.region,
-    )
-
-    # Storage Services
     minio_service = providers.Factory(
         MinioService,
         minio_client=minio_client,
         bucket_name=config.minio.bucket_name,
     )
 
-    s3_service = providers.Factory(
-        S3Service,
+    s3_client = providers.Singleton(
+        S3Client,
+        aws_access_key_id=config.s3.access_key,
+        aws_secret_access_key=config.s3.secret_key,
+        region_name=config.s3.region,
+    )
+
+    s3_storage = providers.Factory(
+        S3Storage,
         s3_client=s3_client,
         bucket_name=config.s3.bucket_name,
+    )
+
+    file_storage_service = providers.Factory(
+        FileStorageService,
+        s3_storage=s3_storage,
     )
 
     #########################################################
