@@ -150,31 +150,31 @@ fastapi-layered-architecture/
 │   ├── user/                    # 👤 User 도메인 (완전한 구현 예시)
 │   │   ├── domain/
 │   │   │   ├── entities/
-│   │   │   │   └── users_entity.py      # User Entity
+│   │   │   │   └── user_entity.py      # User Entity
 │   │   │   └── services/
-│   │   │       └── users_service.py     # User Service
+│   │   │       └── user_service.py     # User Service
 │   │   ├── application/
 │   │   │   └── use_cases/
-│   │   │       └── users_use_case.py    # User UseCase
+│   │   │       └── user_use_case.py    # User UseCase
 │   │   ├── infrastructure/
 │   │   │   ├── database/
 │   │   │   │   └── models/
-│   │   │   │       └── users_model.py   # SQLAlchemy Model
+│   │   │   │       └── user_model.py   # SQLAlchemy Model
 │   │   │   ├── repositories/
-│   │   │   │   └── users_repository.py  # User Repository
+│   │   │   │   └── user_repository.py  # User Repository
 │   │   │   └── di/
 │   │   │       └── user_container.py    # User DI Container
 │   │   ├── interface/          # Interface Layer (Adapters)
 │   │   │   ├── server/         # REST Server
 │   │   │   │   ├── routers/
-│   │   │   │   │   └── users_router.py
+│   │   │   │   │   └── user_router.py
 │   │   │   │   ├── dtos/
-│   │   │   │   │   └── users_dto.py  # Request/Response DTO
+│   │   │   │   │   └── user_dto.py  # Request/Response DTO
 │   │   │   │   └── bootstrap/
 │   │   │   │       └── user_bootstrap.py
 │   │   │   ├── admin/          # SQLAdmin Views
 │   │   │   │   └── views/
-│   │   │   │       └── users_view.py
+│   │   │   │       └── user_view.py
 │   │   │   └── consumer/       # Celery Consumers
 │   │   │       └── tasks/
 │   │   └── app.py              # User 마이크로서비스 진입점
@@ -217,42 +217,42 @@ BaseUseCase[CreateEntity, ReturnEntity, UpdateEntity]
 **구현 예시 (User 도메인)**:
 ```python
 # Repository
-class UsersRepository(
-    BaseRepository[CoreCreateUsersEntity, CoreUsersEntity, CoreUpdateUsersEntity]
+class UserRepository(
+    BaseRepository[CoreCreateUserEntity, CoreUserEntity, CoreUpdateUserEntity]
 ):
     def __init__(self, database: Database):
         super().__init__(
             database=database,
-            model=UsersModel,  # SQLAlchemy Model
-            create_entity=CoreCreateUsersEntity,
-            return_entity=CoreUsersEntity,
-            update_entity=CoreUpdateUsersEntity,
+            model=UserModel,  # SQLAlchemy Model
+            create_entity=CoreCreateUserEntity,
+            return_entity=CoreUserEntity,
+            update_entity=CoreUpdateUserEntity,
         )
     # 추가 메서드만 구현하면 됨 (기본 CRUD는 자동)
 
 # Service
-class UsersService(
-    BaseService[CoreCreateUsersEntity, CoreUsersEntity, CoreUpdateUsersEntity]
+class UserService(
+    BaseService[CoreCreateUserEntity, CoreUserEntity, CoreUpdateUserEntity]
 ):
-    def __init__(self, users_repository: UsersRepository):
+    def __init__(self, user_repository: UserRepository):
         super().__init__(
-            base_repository=users_repository,
-            create_entity=CoreCreateUsersEntity,
-            return_entity=CoreUsersEntity,
-            update_entity=CoreUpdateUsersEntity,
+            base_repository=user_repository,
+            create_entity=CoreCreateUserEntity,
+            return_entity=CoreUserEntity,
+            update_entity=CoreUpdateUserEntity,
         )
     # 비즈니스 로직 추가
 
 # UseCase
-class UsersUseCase(
-    BaseUseCase[CoreCreateUsersEntity, CoreUsersEntity, CoreUpdateUsersEntity]
+class UserUseCase(
+    BaseUseCase[CoreCreateUserEntity, CoreUserEntity, CoreUpdateUserEntity]
 ):
-    def __init__(self, users_service: UsersService):
+    def __init__(self, user_service: UserService):
         super().__init__(
-            base_service=users_service,
-            create_entity=CoreCreateUsersEntity,
-            return_entity=CoreUsersEntity,
-            update_entity=CoreUpdateUsersEntity,
+            base_service=user_service,
+            create_entity=CoreCreateUserEntity,
+            return_entity=CoreUserEntity,
+            update_entity=CoreUpdateUserEntity,
         )
     # 애플리케이션 로직 조율
 ```
@@ -278,9 +278,9 @@ ServerContainer (통합)
     │   ├── S3Service (AWS S3)
     │   └── CeleryManager (메시징)
     └── UserContainer (도메인별)
-        ├── UsersRepository
-        ├── UsersService
-        └── UsersUseCase
+        ├── UserRepository
+        ├── UserService
+        └── UserUseCase
 ```
 
 **Router에서 의존성 주입 사용**:
@@ -288,9 +288,9 @@ ServerContainer (통합)
 @router.post("/user")
 @inject  # dependency-injector 데코레이터
 async def create_user(
-    create_data: CoreCreateUsersRequest,
-    user_use_case: UsersUseCase = Depends(
-        Provide[UserContainer.users_use_case]  # 자동 주입
+    create_data: CoreCreateUserRequest,
+    user_use_case: UserUseCase = Depends(
+        Provide[UserContainer.user_use_case]  # 자동 주입
     ),
 ):
     # 모든 의존성이 자동으로 해결됨
@@ -536,10 +536,10 @@ pre-commit run --hook-stage manual bandit
 | Method | Endpoint | 설명 |
 |--------|----------|------|
 | `POST` | `/api/v1/user` | 사용자 생성 |
-| `POST` | `/api/v1/users` | 복수 사용자 생성 |
-| `GET` | `/api/v1/users?page=1&pageSize=10` | 사용자 목록 (페이지네이션) |
+| `POST` | `/api/v1/user` | 복수 사용자 생성 |
+| `GET` | `/api/v1/user?page=1&pageSize=10` | 사용자 목록 (페이지네이션) |
 | `GET` | `/api/v1/user/{user_id}` | 특정 사용자 조회 |
-| `POST` | `/api/v1/users/by-ids` | ID 목록으로 조회 |
+| `POST` | `/api/v1/user/by-ids` | ID 목록으로 조회 |
 | `PUT` | `/api/v1/user/{user_id}` | 사용자 정보 수정 |
 | `DELETE` | `/api/v1/user/{user_id}` | 사용자 삭제 |
 
@@ -936,7 +936,7 @@ API Gateway (Port 8000)
 # Repository 테스트 (Mock Database)
 async def test_create_user():
     mock_db = Mock(spec=Database)
-    repo = UsersRepository(database=mock_db)
+    repo = UserRepository(database=mock_db)
     # ...
 ```
 

@@ -5,8 +5,8 @@ from sqladmin import Admin
 
 from src._core.infrastructure.database.database import Database
 from src.user.infrastructure.di.user_container import UserContainer
-from src.user.interface.admin.views.users_view import UsersView
-from src.user.interface.server.routers import users_router
+from src.user.interface.admin.views.user_view import UserView
+from src.user.interface.server.routers import user_router
 
 
 def create_user_container(user_container: UserContainer):
@@ -16,13 +16,13 @@ def create_user_container(user_container: UserContainer):
 
 def setup_user_routes(app: FastAPI):
     """User 도메인 라우터 등록"""
-    app.include_router(router=users_router.router, prefix="/v1", tags=["사용자"])
+    app.include_router(router=user_router.router, prefix="/v1", tags=["사용자"])
 
 
 def setup_user_admin(app: FastAPI, database: Database):
     """User 도메인 관리자 뷰 등록"""
     admin = Admin(app=app, engine=database.engine)
-    admin.add_view(UsersView)
+    admin.add_view(UserView)
     return admin
 
 

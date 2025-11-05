@@ -5,7 +5,7 @@ from pydantic import Field
 from src._core.domain.entities.entity import Entity
 
 
-class CoreUsersEntity(Entity):
+class CoreUserEntity(Entity):
     id: int = Field(..., description="유저 고유 식별자")
     username: str = Field(..., description="유저 아이디")
     full_name: str = Field(..., description="유저 이름")
@@ -15,14 +15,14 @@ class CoreUsersEntity(Entity):
     updated_at: datetime = Field(..., description="유저 수정 시간")
 
 
-class CoreCreateUsersEntity(Entity):
+class CoreCreateUserEntity(Entity):
     username: str = Field(..., description="유저 아이디")
     full_name: str = Field(..., description="유저 이름")
     email: str = Field(..., description="유저 이메일")
     password: str = Field(..., description="유저 비밀번호")
 
 
-class CoreUpdateUsersEntity(Entity):
+class CoreUpdateUserEntity(Entity):
     username: str = Field(..., description="유저 아이디")
     full_name: str = Field(..., description="유저 이름")
     email: str = Field(..., description="유저 이메일")

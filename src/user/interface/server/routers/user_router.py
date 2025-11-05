@@ -4,16 +4,16 @@ from fastapi import APIRouter, Depends, Query
 from src._core.application.dtos.base_request import IdListDto
 from src._core.application.dtos.base_response import SuccessResponse
 from src._core.common.dto_utils import dtos_to_entities, entities_to_dtos
-from src.user.application.use_cases.users_use_case import UsersUseCase
-from src.user.domain.entities.users_entity import (
-    CoreCreateUsersEntity,
-    CoreUpdateUsersEntity,
+from src.user.application.use_cases.user_use_case import UserUseCase
+from src.user.domain.entities.user_entity import (
+    CoreCreateUserEntity,
+    CoreUpdateUserEntity,
 )
 from src.user.infrastructure.di.user_container import UserContainer
-from src.user.interface.server.dtos.users_dto import (
-    CoreCreateUsersRequest,
-    CoreUpdateUsersRequest,
-    CoreUsersResponse,
+from src.user.interface.server.dtos.user_dto import (
+    CoreCreateUserRequest,
+    CoreUpdateUserRequest,
+    CoreUserResponse,
 )
 
 router = APIRouter()
@@ -25,18 +25,18 @@ router = APIRouter()
 @router.post(
     "/user",
     summary="유저 생성",
-    response_model=SuccessResponse[CoreUsersResponse],
+    response_model=SuccessResponse[CoreUserResponse],
     response_model_exclude={"pagination"},
 )
 @inject
 async def create_user(
-    create_data: CoreCreateUsersRequest,
-    user_use_case: UsersUseCase = Depends(Provide[UserContainer.users_use_case]),
-) -> SuccessResponse[CoreUsersResponse]:
+    create_data: CoreCreateUserRequest,
+    user_use_case: UserUseCase = Depends(Provide[UserContainer.user_use_case]),
+) -> SuccessResponse[CoreUserResponse]:
     data = await user_use_case.create_data(
-        create_data=create_data.to_entity(CoreCreateUsersEntity)
+        create_data=create_data.to_entity(CoreCreateUserEntity)
     )
-    return SuccessResponse(data=CoreUsersResponse.from_entity(data))
+    return SuccessResponse(data=CoreUserResponse.from_entity(data))
 
 
 # ==========================================================================================
@@ -45,17 +45,17 @@ async def create_user(
 @router.post(
     "/users",
     summary="유저 생성 (복수)",
-    response_model=SuccessResponse[list[CoreUsersResponse]],
+    response_model=SuccessResponse[list[CoreUserResponse]],
     response_model_exclude={"pagination"},
 )
 @inject
 async def create_users(
-    create_datas: list[CoreCreateUsersRequest],
-    user_use_case: UsersUseCase = Depends(Provide[UserContainer.users_use_case]),
-) -> SuccessResponse[list[CoreUsersResponse]]:
-    entities = dtos_to_entities(create_datas, CoreCreateUsersEntity)
+    create_datas: list[CoreCreateUserRequest],
+    user_use_case: UserUseCase = Depends(Provide[UserContainer.user_use_case]),
+) -> SuccessResponse[list[CoreUserResponse]]:
+    entities = dtos_to_entities(create_datas, CoreCreateUserEntity)
     datas = await user_use_case.create_datas(create_datas=entities)
-    return SuccessResponse(data=entities_to_dtos(datas, CoreUsersResponse))
+    return SuccessResponse(data=entities_to_dtos(datas, CoreUserResponse))
 
 
 # ==========================================================================================
@@ -64,17 +64,17 @@ async def create_users(
 @router.get(
     "/users",
     summary="유저 정보 모두 조회",
-    response_model=SuccessResponse[list[CoreUsersResponse]],
+    response_model=SuccessResponse[list[CoreUserResponse]],
 )
 @inject
-async def get_users(
+async def get_user(
     page: int = 1,
     page_size: int = Query(10, alias="pageSize"),
-    user_use_case: UsersUseCase = Depends(Provide[UserContainer.users_use_case]),
-) -> SuccessResponse[list[CoreUsersResponse]]:
+    user_use_case: UserUseCase = Depends(Provide[UserContainer.user_use_case]),
+) -> SuccessResponse[list[CoreUserResponse]]:
     datas, pagination = await user_use_case.get_datas(page=page, page_size=page_size)
     return SuccessResponse(
-        data=entities_to_dtos(datas, CoreUsersResponse), pagination=pagination
+        data=entities_to_dtos(datas, CoreUserResponse), pagination=pagination
     )
 
 
@@ -84,35 +84,35 @@ async def get_users(
 @router.get(
     "/user/{user_id}",
     summary="유저 정보 조회",
-    response_model=SuccessResponse[CoreUsersResponse],
+    response_model=SuccessResponse[CoreUserResponse],
     response_model_exclude_none=True,
     response_model_exclude={"pagination"},
 )
 @inject
 async def get_user_by_user_id(
     user_id: int,
-    user_use_case: UsersUseCase = Depends(Provide[UserContainer.users_use_case]),
-) -> SuccessResponse[CoreUsersResponse]:
+    user_use_case: UserUseCase = Depends(Provide[UserContainer.user_use_case]),
+) -> SuccessResponse[CoreUserResponse]:
     data = await user_use_case.get_data_by_data_id(data_id=user_id)
-    return SuccessResponse(data=CoreUsersResponse.from_entity(data))
+    return SuccessResponse(data=CoreUserResponse.from_entity(data))
 
 
 # ==========================================================================================
 
 
 @router.post(
-    "/users/by-ids",
+    "/user/by-ids",
     summary="ID 리스트로 유저 여러 명 조회",
-    response_model=SuccessResponse[list[CoreUsersResponse]],
+    response_model=SuccessResponse[list[CoreUserResponse]],
     response_model_exclude={"pagination"},
 )
 @inject
-async def get_users_by_ids(
+async def get_user_by_ids(
     payload: IdListDto,
-    user_use_case: UsersUseCase = Depends(Provide[UserContainer.users_use_case]),
-) -> SuccessResponse[list[CoreUsersResponse]]:
+    user_use_case: UserUseCase = Depends(Provide[UserContainer.user_use_case]),
+) -> SuccessResponse[list[CoreUserResponse]]:
     datas = await user_use_case.get_datas_by_data_ids(payload=payload)
-    return SuccessResponse(data=entities_to_dtos(datas, CoreUsersResponse))
+    return SuccessResponse(data=entities_to_dtos(datas, CoreUserResponse))
 
 
 # ==========================================================================================
@@ -121,19 +121,19 @@ async def get_users_by_ids(
 @router.put(
     "/user/{user_id}",
     summary="유저 수정",
-    response_model=SuccessResponse[CoreUsersResponse],
+    response_model=SuccessResponse[CoreUserResponse],
     response_model_exclude={"pagination"},
 )
 @inject
 async def update_user_by_user_id(
     user_id: int,
-    update_data: CoreUpdateUsersRequest,
-    user_use_case: UsersUseCase = Depends(Provide[UserContainer.users_use_case]),
-) -> SuccessResponse[CoreUsersResponse]:
+    update_data: CoreUpdateUserRequest,
+    user_use_case: UserUseCase = Depends(Provide[UserContainer.user_use_case]),
+) -> SuccessResponse[CoreUserResponse]:
     data = await user_use_case.update_data_by_data_id(
-        data_id=user_id, update_data=update_data.to_entity(CoreUpdateUsersEntity)
+        data_id=user_id, update_data=update_data.to_entity(CoreUpdateUserEntity)
     )
-    return SuccessResponse(data=CoreUsersResponse.from_entity(data))
+    return SuccessResponse(data=CoreUserResponse.from_entity(data))
 
 
 # ==========================================================================================
@@ -148,7 +148,7 @@ async def update_user_by_user_id(
 @inject
 async def delete_user_by_user_id(
     user_id: int,
-    users_use_case: UsersUseCase = Depends(Provide[UserContainer.users_use_case]),
+    user_use_case: UserUseCase = Depends(Provide[UserContainer.user_use_case]),
 ) -> SuccessResponse:
-    success = await users_use_case.delete_data_by_data_id(data_id=user_id)
+    success = await user_use_case.delete_data_by_data_id(data_id=user_id)
     return SuccessResponse(success=success)
