@@ -98,6 +98,7 @@ class Database:
             autocommit=False,
         )
 
+    # TODO : HTTPException -> BaseCustomException 으로 변경 필요
     @asynccontextmanager
     async def session(self) -> AsyncGenerator[AsyncSession, None]:
         session = None
