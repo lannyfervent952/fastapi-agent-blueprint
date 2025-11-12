@@ -1,24 +1,24 @@
 from dependency_injector import containers, providers
 
-from src.user.application.use_cases.users_use_case import UsersUseCase
-from src.user.domain.services.users_service import UsersService
-from src.user.infrastructure.repositories.users_repository import UsersRepository
+from src.user.application.use_cases.user_use_case import UserUseCase
+from src.user.domain.services.user_service import UserService
+from src.user.infrastructure.repositories.user_repository import UserRepository
 
 
 class UserContainer(containers.DeclarativeContainer):
     core_container = providers.DependenciesContainer()
 
-    users_repository = providers.Singleton(
-        UsersRepository,
+    user_repository = providers.Singleton(
+        UserRepository,
         database=core_container.database,
     )
 
-    users_service = providers.Factory(
-        UsersService,
-        users_repository=users_repository,
+    user_service = providers.Factory(
+        UserService,
+        user_repository=user_repository,
     )
 
-    users_use_case = providers.Factory(
-        UsersUseCase,
-        users_service=users_service,
+    user_use_case = providers.Factory(
+        UserUseCase,
+        user_service=user_service,
     )
