@@ -1,5 +1,6 @@
 from dependency_injector import containers, providers
 
+from src._core.infrastructure.database.config import DatabaseConfig
 from src._core.infrastructure.database.database import Database
 from src._core.infrastructure.http.http_client import HttpClient
 from src._core.infrastructure.messaging.celery_factory import create_celery_app
@@ -16,14 +17,19 @@ class CoreContainer(containers.DeclarativeContainer):
     # Database
     #########################################################
 
+    db_config = providers.Factory(
+        DatabaseConfig.from_env,
+        env=config.env,
+    )
+
     database = providers.Singleton(
         Database,
-        env=config.env,
         database_user=config.database.user,
         database_password=config.database.password,
         database_host=config.database.host,
         database_port=config.database.port,
         database_name=config.database.name,
+        config=db_config,
     )
 
     #########################################################
