@@ -1,7 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from src._core.application.dtos.base_response import ErrorResponse
 from src._core.application.routers.api import docs_router, health_check_router
+from src._core.config import settings
 from src._core.infrastructure.di.core_container import CoreContainer
 from src._core.middleware.exception_middleware import ExceptionMiddleware
 from src.user.infrastructure.di.user_container import UserContainer
@@ -25,8 +27,16 @@ def create_app():
         description="사용자 관리 마이크로서비스",
         version="1.0.0",
         root_path="/api",
-        docs_url="/docs-swagger",
-        redoc_url="/docs-redoc",
+        docs_url=settings.docs_url,
+        redoc_url=settings.redoc_url,
+        openapi_url=settings.openapi_url,
+        responses={
+            400: {"model": ErrorResponse, "description": "잘못된 요청"},
+            401: {"model": ErrorResponse, "description": "인증 필요 또는 토큰 불일치"},
+            403: {"model": ErrorResponse, "description": "권한 없음"},
+            404: {"model": ErrorResponse, "description": "해당 리소스 없음"},
+            500: {"model": ErrorResponse, "description": "서버 오류"},
+        },
     )
 
     # 미들웨어 설정
