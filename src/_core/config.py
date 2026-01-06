@@ -58,6 +58,9 @@ class Settings(BaseSettings):
         default=None, validation_alias="AWS_SQS_SECRET_KEY"
     )
     aws_sqs_queue: str | None = Field(default=None, validation_alias="AWS_SQS_QUEUE")
+    aws_sqs_url: str | None = Field(default=None, validation_alias="AWS_SQS_URL")
+
+    # ----------------------------------------------------------------
 
     @property
     def is_dev(self) -> bool:
