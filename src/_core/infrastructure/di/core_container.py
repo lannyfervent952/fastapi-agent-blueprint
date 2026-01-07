@@ -6,6 +6,8 @@ from src._core.infrastructure.database.database import Database
 from src._core.infrastructure.http.http_client import HttpClient
 from src._core.infrastructure.storage.object_storage import ObjectStorage
 from src._core.infrastructure.storage.object_storage_client import ObjectStorageClient
+from src._core.infrastructure.taskiq.broker import CustomSQSBroker
+from src._core.infrastructure.taskiq.manager import TaskiqManager
 
 
 class CoreContainer(containers.DeclarativeContainer):
@@ -61,4 +63,21 @@ class CoreContainer(containers.DeclarativeContainer):
         ObjectStorage,
         storage_client=s3_client,
         bucket_name=settings.s3_bucket_name,
+    )
+
+    #########################################################
+    # Message Queue (Taskiq)
+    #########################################################
+
+    broker = providers.Singleton(
+        CustomSQSBroker,
+        queue_url=settings.aws_sqs_url,
+        aws_region=settings.aws_sqs_region,
+        aws_access_key_id=settings.aws_sqs_access_key,
+        aws_secret_access_key=settings.aws_sqs_secret_key,
+    )
+
+    taskiq_manager = providers.Singleton(
+        TaskiqManager,
+        broker=broker,
     )
