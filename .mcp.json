@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "serena": {
+      "command": "uvx",
+      "args": ["serena"],
+      "env": {
+        "SERENA_PROJECT_DIR": "."
+      }
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"]
+    }
+  }
+}
