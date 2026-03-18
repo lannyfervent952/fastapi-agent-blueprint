@@ -1,6 +1,10 @@
 # 보안 감사 체크리스트 상세
 
 > **분류**: `[항상]` = 항상 검사 | `[해당 시]` = 해당 기능 사용 시만 검사 (미사용 시 [SKIP])
+>
+> **조건부 검사 자동 판별**: `[해당 시]` 항목의 활성 여부는
+> `.claude/skills/_shared/project-dna.md` §8 "활성 기능" 테이블로 사전 판별한다.
+> §8에서 "미구현"인 기능의 `[해당 시]` 항목은 Grep 없이 즉시 [SKIP] 처리한다.
 
 ## 1. Injection 방지 (Injection Prevention)
 각 대상 Python 파일에 대해 Grep으로 검사:
@@ -25,7 +29,7 @@
 
 ### Template Injection
 - [ ] [해당 시][MEDIUM] Jinja2 사용 시 `autoescape=True` 설정
-  - 탐지 조건: `from jinja2` 또는 `Environment(` import 존재 시만 검사
+  - 탐지 조건: `from jinja2` 또는 `Environment(` import 존재 시 검사 (project-dna.md §8에 미등록 — Grep으로 직접 확인)
   - Grep: `Environment\(` → autoescape 설정 확인
 
 ## 2. 인증/인가 (Authentication & Authorization)
@@ -43,13 +47,13 @@ router 파일 및 설정 파일에서 검사:
   - Grep: `(password|secret|api_key|token)\s*=\s*["'][^"']{3,}["']`
   - 제외: Field(), os.environ, settings., getenv, 테스트 파일
 - [ ] [해당 시][HIGH] JWT 설정 확인
-  - 탐지 조건: `jwt`/`jose`/`python-jose` import 존재 시만 검사
+  - 탐지 조건: **project-dna.md §8** "JWT/Authentication" 상태 확인 → "미구현"이면 [SKIP]
   - Grep: `algorithm.*=.*HS256` → RS256 권장 여부 확인
   - Grep: `exp.*timedelta` → 만료 시간 적절성 확인
 
 ### RBAC
 - [ ] [해당 시][MEDIUM] 역할 기반 접근 제어 확인
-  - 탐지 조건: `role`/`permission`/`is_admin` 관련 코드 존재 시만 검사
+  - 탐지 조건: **project-dna.md §8** "RBAC/Permissions" 상태 확인 → "미구현"이면 [SKIP]
   - router에서 role check dependency 사용 여부
 
 ## 3. 데이터 보호 (Data Protection)
@@ -87,10 +91,10 @@ Request DTO 및 router 파일에서 검사:
 
 ### 파일 업로드
 - [ ] [해당 시][HIGH] 파일 업로드 시 크기 제한 설정
-  - 탐지 조건: `UploadFile` import 존재 시만 검사
+  - 탐지 조건: **project-dna.md §8** "File Upload (UploadFile)" 상태 확인 → "미구현"이면 [SKIP]
   - Grep: `UploadFile` 사용 시 크기 검증 로직 확인
 - [ ] [해당 시][HIGH] 파일 확장자/MIME 타입 검증
-  - 탐지 조건: `UploadFile` import 존재 시만 검사
+  - 탐지 조건: **project-dna.md §8** "File Upload (UploadFile)" 상태 확인 → "미구현"이면 [SKIP]
   - Grep: `content_type` 또는 `filename` 검증 확인
 
 ### Path Traversal
@@ -140,11 +144,11 @@ Request DTO 및 router 파일에서 검사:
 
 ### Rate Limiting
 - [ ] [해당 시][MEDIUM] Rate limiting 미들웨어 설정 여부
-  - 탐지 조건: API 엔드포인트 10개 이상 또는 인증 구현 완료 시 검사
+  - 탐지 조건: **project-dna.md §8** "Rate Limiting (slowapi)" 상태 확인 → "미구현"이면 [SKIP]
   - Grep: `RateLimitMiddleware|slowapi|throttle|rate_limit`
   - 미설정 시: [SKIP] + "엔드포인트 확장 시 slowapi 도입 권장"
 
 ### 요청 크기 제한
 - [ ] [해당 시][MEDIUM] 요청 본문 크기 제한 설정 여부
-  - 탐지 조건: 파일 업로드 또는 대용량 데이터 입력 기능 존재 시 검사
+  - 탐지 조건: **project-dna.md §8** "File Upload (UploadFile)" 상태 확인 → "미구현"이면 [SKIP]
   - Grep: `max_content_length|body_limit|RequestSizeLimitMiddleware`

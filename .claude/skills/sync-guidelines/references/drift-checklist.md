@@ -41,3 +41,24 @@ Serena 메모리를 읽고 현재 코드와 대조:
 - [ ] **`architecture_conventions`**: DO/DON'T 규칙이 CLAUDE.md 및 실제 코드와 일치하는지
 - [ ] **`refactoring_status`**: 현재 진행 상황이 정확한지
 - [ ] **`project_overview`**: 기술 스택, 엔트리 포인트 등이 최신인지
+
+## 4. project-dna.md ↔ 코드 일치 확인
+
+`.claude/skills/_shared/project-dna.md`의 각 섹션을 실제 코드와 대조:
+
+- [ ] **레이어 구조**: project-dna.md §1의 디렉토리 구조가 `src/user/` 실제 구조와 일치하는지
+  - `find src/user/ -type f -name "*.py"` 결과와 대조
+- [ ] **Base class 경로**: §2의 모든 import 경로가 실제 파일 위치와 일치하는지
+  - 각 경로에 대해 해당 모듈에서 클래스 import 가능 확인
+- [ ] **Generic 타입**: §3의 시그니처가 현재 Base class 정의와 일치하는지
+  - `BaseRepositoryProtocol`, `BaseRepository`, `SuccessResponse` 클래스 정의 확인
+- [ ] **CRUD 메서드**: §4의 `BaseRepositoryProtocol` 메서드 목록이 최신인지
+  - Serena `get_symbols_overview` → 메서드 목록 비교
+- [ ] **DI 패턴**: §5의 Singleton/Factory 매핑이 현재 `UserContainer` 코드와 일치하는지
+- [ ] **변환 패턴**: §6의 `model_validate`/`model_dump` 사용법이 현재와 일치하는지
+- [ ] **보안 도구**: §7의 도구 목록이 `pyproject.toml`과 `.pre-commit-config.yaml`과 일치하는지
+  - 특히 bandit skip 목록, flake8 ignore 목록 확인
+- [ ] **활성 기능**: §8의 기능 상태가 최신인지
+  - Grep으로 `jwt`, `UploadFile`, `RBAC`, `slowapi` 등 import 존재 여부 확인
+- [ ] **상속 체인**: §2의 BaseRequest/BaseResponse 부모 클래스가 정확한지
+  - `ApiConfig` → `BaseModel` 체인 확인

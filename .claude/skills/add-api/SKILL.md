@@ -43,22 +43,11 @@ description: |
 
 ### 5. Router
 - `src/{name}/interface/server/routers/{name}_router.py`에 엔드포인트 추가
-- 패턴:
-  ```python
-  @router.{method}("/{path}", summary="설명", response_model=SuccessResponse[{Name}Response])
-  @inject
-  async def endpoint_name(
-      ...,
-      {name}_use_case: {Name}UseCase = Depends(Provide[{Name}Container.{name}_use_case]),
-  ) -> SuccessResponse[{Name}Response]:
-      data = await {name}_use_case.method(...)
-      return SuccessResponse(data={Name}Response(**data.model_dump(exclude={...})))
-  ```
+- Router 패턴: **project-dna.md §9** 참조
+- 변환 패턴: **project-dna.md §6** 참조
 
-## 변환 규칙 (CLAUDE.md)
-- Request → Service: `entity=item` 직접 전달 (필드 동일 시)
-- Request → 별도 DTO: `CreateNameDTO(**item.model_dump(), extra_field=...)` (필드 다를 시)
-- DTO → Response: `{Name}Response(**data.model_dump(exclude={...}))` (인라인)
+## 변환 규칙
+변환 패턴은 **project-dna.md §6** 참조. import 경로는 **project-dna.md §2** 참조.
 
 ## 완료 후 검증
 1. pre-commit 실행

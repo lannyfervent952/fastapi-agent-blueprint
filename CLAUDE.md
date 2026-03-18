@@ -31,7 +31,7 @@
 - `/security-review {domain|file|all}` — OWASP 기반 코드 보안 감사
 - `/test-domain {domain} [generate|run]` — 테스트 생성 또는 실행
 - `/fix-bug {description}` — 구조화된 버그 수정 워크플로우
-- `/sync-guidelines` — 설계 변경 후 가이드라인 동기화 점검
+- `/sync-guidelines` — 설계 변경 후 가이드라인 동기화 + project-dna.md 재생성
 
 ## 도구 선택 기준
 

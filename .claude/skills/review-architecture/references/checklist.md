@@ -1,5 +1,7 @@
 # 아키텍처 감사 체크리스트 상세
 
+> 기대 패턴의 상세 정의는 `.claude/skills/_shared/project-dna.md`를 참조한다.
+
 ## 1. 레이어 의존성 규칙
 각 도메인의 Python 파일에 대해 Grep으로 검사:
 
@@ -27,7 +29,7 @@ interface/server/dtos/ 파일에서 검사:
 - [ ] Router에서 `model_dump(exclude={...})`로 민감 필드 제외
 
 ## 4. DI Container 정확성
-infrastructure/di/ 파일에서 검사:
+infrastructure/di/ 파일에서 검사 (기대 패턴: **project-dna.md §5** 참조):
 
 - [ ] Container가 `containers.DeclarativeContainer` 상속
 - [ ] `core_container = providers.DependenciesContainer()` 선언

@@ -21,6 +21,8 @@ description: |
 - Protocol은 provider의 `domain/protocols/`에 위치 (domain 레이어 간 의존은 허용)
 - 실제 구현체 연결은 DI Container에서만 수행
 - consumer의 `domain/` 폴더에 provider의 `infrastructure/` import 절대 금지
+- DI Container 패턴: **project-dna.md §5** 참조
+- Base class import 경로: **project-dna.md §2** 참조
 
 ## 구현 순서
 

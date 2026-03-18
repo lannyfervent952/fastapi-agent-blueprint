@@ -45,8 +45,31 @@ description: |
 3. 사용자 승인 후 해당 파일을 업데이트한다
 4. 업데이트 완료 후 다시 점검하여 모든 항목이 [OK]인지 확인한다
 
+## Phase 4: project-dna.md 재생성
+
+DRIFT가 발견되거나 사용자가 요청하면 `.claude/skills/_shared/project-dna.md`를 재생성한다.
+
+### 재생성 절차
+1. `src/user/`를 레퍼런스 도메인으로 Serena `get_symbols_overview`로 스캔
+2. `src/_core/` Base 클래스 시그니처 추출:
+   - import 경로 (모든 Base class의 실제 파일 위치)
+   - Generic 파라미터 (TypeVar 바운드, 클래스 정의)
+   - `__init__` 시그니처 (BaseRepository 등)
+   - 메서드 목록 (BaseRepositoryProtocol)
+3. DI 패턴 추출: 각 Container의 `providers.Singleton` / `providers.Factory` 매핑 확인
+4. 보안 도구 스캔: `pyproject.toml`과 `.pre-commit-config.yaml`에서 활성 도구 목록 추출
+5. 활성 기능 스캔: 코드베이스에서 `jwt`, `UploadFile`, `RBAC`, `slowapi`, `websocket` import 존재 여부 확인
+6. `.claude/skills/_shared/project-dna.md` 파일을 최신 정보로 재생성 (날짜 갱신)
+7. 각 Skill의 references/ 파일과 project-dna.md 비교 → 불일치 항목 보고
+8. Serena `architecture_conventions` 메모리 업데이트 (변경사항 반영)
+
+### 재생성 후 검증
+- project-dna.md의 모든 import 경로가 실제 파일과 일치하는지 `Grep`으로 확인
+- 생성된 Generic 시그니처가 소스 코드 정의와 일치하는지 비교
+
 ## 언제 실행해야 하는가
 - 아키텍처 리팩토링 후
 - Base class나 공통 모듈 변경 후
 - 새로운 패턴이나 컨벤션 도입 후
+- project-dna.md 갱신일 2주 이상 경과 시
 - 주기적 점검 (2주에 1회 권장)

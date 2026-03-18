@@ -56,6 +56,8 @@ async def {task_name}_task(
 - 태스크 함수는 thin adapter: `**kwargs` 받아서 DTO 변환 후 UseCase 호출만
 - 비즈니스 로직은 반드시 UseCase/Service에 위치
 - Model 객체가 태스크에 노출되면 안 됨
+- DI 패턴: **project-dna.md §5** 참조
+- 변환 패턴: **project-dna.md §6** 참조
 
 ## 완료 후 검증
 1. pre-commit 실행
