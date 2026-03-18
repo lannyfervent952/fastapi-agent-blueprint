@@ -164,8 +164,32 @@ class {Name}Container(containers.DeclarativeContainer):
 | Repository | `providers.Singleton` |
 | Service | `providers.Factory` |
 | UseCase | `providers.Factory` |
-| Container | `containers.DeclarativeContainer` |
+| 도메인 Container | `containers.DeclarativeContainer` |
 | 외부 Container 참조 | `providers.DependenciesContainer()` |
+| App Container (Server/Worker) | `containers.DynamicContainer` (팩토리 함수) |
+| 도메인 자동 발견 | `src._core.infrastructure.discovery.discover_domains()` |
+| Container 동적 로드 | `src._core.infrastructure.discovery.load_domain_container()` |
+
+### App-level Container (자동 발견)
+
+도메인 Container는 `DeclarativeContainer`를 사용하지만,
+Server/Worker의 App-level Container는 `DynamicContainer` + 팩토리 함수를 사용한다.
+`discover_domains()`가 `src/*/` 하위 유효 도메인을 자동 탐지하여 등록하므로,
+**새 도메인 추가 시 App-level container/bootstrap 파일 수정이 불필요하다.**
+
+```python
+# src/_apps/server/di/container.py
+from src._core.infrastructure.discovery import discover_domains, load_domain_container
+
+def create_server_container() -> containers.DynamicContainer:
+    container = containers.DynamicContainer()
+    container.core_container = providers.Container(CoreContainer)
+    for domain in discover_domains():
+        cls = load_domain_container(domain)
+        setattr(container, f"{domain}_container",
+                providers.Container(cls, core_container=container.core_container))
+    return container
+```
 
 ## §6. 변환 패턴
 

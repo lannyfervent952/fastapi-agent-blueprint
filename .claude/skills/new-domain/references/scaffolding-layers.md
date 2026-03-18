@@ -86,16 +86,21 @@
     - `**kwargs` → `{Name}DTO.model_validate(kwargs)`
 20. `src/{name}/interface/worker/bootstrap/{name}_bootstrap.py`
     - `wire(modules=[{name}_test_task])`
+    - 함수명: `bootstrap_{name}_domain` (server와 통일된 컨벤션)
 
-## Layer 5: 앱 와이어링
+## Layer 5: 앱 와이어링 (자동 — 수동 등록 불필요)
 
-21. `src/_apps/server/di/container.py`에 추가:
-    - `{name}_container = providers.Container({Name}Container, core_container=core_container)`
-22. `src/_apps/server/bootstrap.py`에 추가:
-    - `from src.{name}.interface.server.bootstrap.{name}_bootstrap import bootstrap_{name}_domain`
-    - `bootstrap_{name}_domain(app=app, database=..., {name}_container=server_container.{name}_container)`
+> `src/_core/infrastructure/discovery.py`의 `discover_domains()`가
+> `src/{name}/infrastructure/di/{name}_container.py`를 자동 탐지한다.
+> Server/Worker의 `DynamicContainer` 팩토리 함수가 이를 동적으로 등록하므로,
+> `container.py`나 `bootstrap.py`를 수정할 필요 없다.
+>
+> 자동 발견 조건:
+> - `src/{name}/__init__.py` 존재
+> - `src/{name}/infrastructure/di/{name}_container.py` 존재
+> - 디렉토리명이 `_` 또는 `.`으로 시작하지 않음
 
-## Layer 6: 테스트
+## Layer 5 (이전 Layer 6): 테스트
 
 23. `tests/factories/{name}_factory.py` — `make_{name}_dto()`, `make_create_{name}_request()`
 24. `tests/unit/{name}/domain/test_{name}_service.py` — MockRepository + CRUD 테스트

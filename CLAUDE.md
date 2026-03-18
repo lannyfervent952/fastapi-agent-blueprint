@@ -32,6 +32,13 @@
 - `/test-domain {domain} [generate|run]` — 테스트 생성 또는 실행
 - `/fix-bug {description}` — 구조화된 버그 수정 워크플로우
 - `/sync-guidelines` — 설계 변경 후 가이드라인 동기화 + project-dna.md 재생성
+- `/migrate-domain {generate|upgrade|downgrade|status}` — Alembic 마이그레이션 관리
+
+## 도메인 자동 발견
+- `src/_core/infrastructure/discovery.py`의 `discover_domains()`가 도메인을 자동 탐지
+- Server/Worker의 App-level Container는 `DynamicContainer` + 팩토리 함수 사용
+- **새 도메인 추가 시 `container.py`, `bootstrap.py` 수정 불필요** (자동 등록)
+- 도메인 Container 자체는 `DeclarativeContainer` 유지
 
 ## 도구 선택 기준
 
