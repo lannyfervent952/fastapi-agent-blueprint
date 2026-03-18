@@ -116,15 +116,15 @@ def __init__(
 
 | 메서드 | 시그니처 |
 |--------|---------|
-| insert_data | `(entity: CreateDTO) -> ReturnDTO` |
-| insert_datas | `(entities: list[CreateDTO]) -> list[ReturnDTO]` |
-| select_datas | `(page: int, page_size: int) -> list[ReturnDTO]` |
-| select_data_by_id | `(data_id: int) -> ReturnDTO` |
-| select_datas_by_ids | `(data_ids: list[int]) -> list[ReturnDTO]` |
-| select_datas_with_count | `(page: int, page_size: int) -> tuple[list[ReturnDTO], int]` |
-| update_data_by_data_id | `(data_id: int, entity: UpdateDTO) -> ReturnDTO` |
-| delete_data_by_data_id | `(data_id: int) -> bool` |
-| count_datas | `() -> int` |
+| insert_data | `async (entity: CreateDTO) -> ReturnDTO` |
+| insert_datas | `async (entities: list[CreateDTO]) -> list[ReturnDTO]` |
+| select_datas | `async (page: int, page_size: int) -> list[ReturnDTO]` |
+| select_data_by_id | `async (data_id: int) -> ReturnDTO` |
+| select_datas_by_ids | `async (data_ids: list[int]) -> list[ReturnDTO]` |
+| select_datas_with_count | `async (page: int, page_size: int) -> tuple[list[ReturnDTO], int]` |
+| update_data_by_data_id | `async (data_id: int, entity: UpdateDTO) -> ReturnDTO` |
+| delete_data_by_data_id | `async (data_id: int) -> bool` |
+| count_datas | `async () -> int` |
 
 ### Service 메서드 (Repository 위임 매핑)
 
@@ -214,7 +214,7 @@ def create_server_container() -> containers.DynamicContainer:
 - autoflake (미사용 import/변수 제거)
 - isort (--profile black)
 - black (python3.12)
-- flake8 + flake8-bugbear + flake8-comprehensions
+- flake8 + flake8-bugbear + flake8-comprehensions (--ignore=F841,E501,W503,E203,E402,F401,B008,B006,C901,SIM114,SIM910,SIM904,E704, --max-line-length=88, --max-complexity=20)
 - bandit (-ll, --skip=B113,B314,B413)
 
 ### Pre-commit (수동 - manual stage)

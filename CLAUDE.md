@@ -1,5 +1,9 @@
 # FastAPI Layered Architecture - Claude 작업 가이드
 
+## 프로젝트 스케일
+이 프로젝트는 도메인 10개 이상, 팀원 5명 이상의 엔터프라이즈급 서비스를 목표로 설계한다.
+모든 제안과 설계는 이 규모를 전제로 확장성, 유지보수성, 팀 협업을 고려해야 한다.
+
 ## 작업 전 필수 확인
 1. Serena `refactoring_status` 메모리로 현재 Phase 확인
 2. Serena `architecture_conventions` 메모리로 DO/DON'T 확인

@@ -47,7 +47,7 @@ Serena 메모리를 읽고 현재 코드와 대조:
 `.claude/skills/_shared/project-dna.md`의 각 섹션을 실제 코드와 대조:
 
 - [ ] **레이어 구조**: project-dna.md §1의 디렉토리 구조가 `src/user/` 실제 구조와 일치하는지
-  - `find src/user/ -type f -name "*.py"` 결과와 대조
+  - Serena `get_symbols_overview` 또는 Glob `src/user/**/*.py` 결과와 대조
 - [ ] **Base class 경로**: §2의 모든 import 경로가 실제 파일 위치와 일치하는지
   - 각 경로에 대해 해당 모듈에서 클래스 import 가능 확인
 - [ ] **Generic 타입**: §3의 시그니처가 현재 Base class 정의와 일치하는지

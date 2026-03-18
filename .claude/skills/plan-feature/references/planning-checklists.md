@@ -86,7 +86,8 @@
 | 아키텍처 검증 | `/review-architecture` | `{domain}` 또는 `all` | 20+ 항목 검사 |
 | 가이드라인 동기화 | `/sync-guidelines` | (없음) | 설계 변경 후 실행 |
 | 버그 수정 | `/fix-bug` | `"{description}"` | 재현→추적→수정→검증 |
-| **매핑 불가** 항목 | 수동 구현 | — | 외부 API 연동, 미들웨어, DB 마이그레이션 등 |
+| DB 마이그레이션 | `/migrate-domain` | `generate\|upgrade\|downgrade\|status` | autogenerate 후 수동 검토 필수 |
+| **매핑 불가** 항목 | 수동 구현 | — | 외부 API 연동, 미들웨어 등 |
 
 ## 4. 감독 수준 정의
 

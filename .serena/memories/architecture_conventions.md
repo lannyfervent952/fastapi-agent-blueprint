@@ -5,11 +5,13 @@
 
 ## 데이터 흐름
 ```
-Request(BaseRequest)
-→ UseCase → Service → Repository  (필드 동일 시 item 직접 전달)
-→ DTO.model_validate(model, from_attributes=True)
-→ Response(**dto.model_dump(exclude={'password'}))
+Request → UseCase → Service → Repository → Model
+                                         ↓
+                              DTO.model_validate(model, from_attributes=True)
+                                         ↓
+                              Response(**dto.model_dump(exclude={...}))
 ```
+> 변환 패턴 상세: CLAUDE.md "변환 패턴" 섹션 참조
 
 ## 객체 역할
 

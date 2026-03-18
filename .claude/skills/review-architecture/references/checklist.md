@@ -46,9 +46,10 @@ tests/ 디렉토리에서 검사:
 - [ ] `tests/integration/{name}/infrastructure/test_{name}_repository.py` 존재
 
 ## 6. Bootstrap 와이어링
-앱 레벨 파일에서 검사:
+앱 레벨 파일 및 자동 발견 메커니즘 검사:
 
 - [ ] `src/{name}/interface/server/bootstrap/{name}_bootstrap.py` 존재
-- [ ] `bootstrap_{name}_domain` 함수가 `src/_apps/server/bootstrap.py`에서 호출됨
-- [ ] `{Name}Container`가 `src/_apps/server/di/container.py`에 등록됨
+- [ ] `src/{name}/infrastructure/di/{name}_container.py` 존재 (자동 발견 조건)
+- [ ] `src/{name}/__init__.py` 존재 (자동 발견 조건)
 - [ ] `wire(packages=[...])` 호출이 올바른 패키지를 대상으로 함
+- [ ] **참고**: `discover_domains()`가 자동 탐지하므로 App-level `container.py`/`bootstrap.py` 수동 등록 불필요 (project-dna.md §5)

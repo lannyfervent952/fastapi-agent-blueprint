@@ -72,7 +72,7 @@ DTO, Response, 로그 파일에서 검사:
 - [ ] [해당 시][MEDIUM] 비밀번호 해싱 사용 (bcrypt, argon2 등)
   - 탐지 조건: password 필드 + DB 저장 로직 존재 시 검사
   - Grep: `(bcrypt|argon2|pbkdf2|hashlib)` 존재 확인
-  - ⚠️ 현재 프로젝트: UserModel에 password 평문 저장 — 프로덕션 배포 전 해싱 필수
+  - 해싱 라이브러리 미감지 시: [FAIL] + "password 해싱 미적용 — 프로덕션 배포 전 bcrypt/argon2 도입 필수"
 - [ ] [해당 시][LOW] DB 연결 SSL 설정 확인
   - 탐지 조건: production 환경 설정 존재 시 검사
   - config.py에서 `sslmode` 확인

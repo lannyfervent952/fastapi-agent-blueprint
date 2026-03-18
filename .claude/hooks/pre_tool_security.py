@@ -44,23 +44,45 @@ def check_security(data: dict) -> list[str]:
             "SQL injection 위험: .format() SQL 감지. parameterized query 사용 필요"
         )
 
-    # 2. 하드코딩된 시크릿 (Pydantic Field, 환경변수 패턴 제외)
-    secret_patterns = [
-        r'(?:password|passwd|pwd)\s*=\s*["\x27][^"\x27\s]{3,}["\x27]',
-        r'(?:secret|secret_key)\s*=\s*["\x27][^"\x27\s]{3,}["\x27]',
-        r'(?:api_key|apikey)\s*=\s*["\x27][^"\x27\s]{3,}["\x27]',
-        r'(?:private_key)\s*=\s*["\x27][^"\x27\s]{3,}["\x27]',
-    ]
-    for pat in secret_patterns:
-        if re.search(pat, content, re.IGNORECASE):
-            if not re.search(
-                r"(Field\s*\(|os\.environ|settings\.|getenv|validation_alias|\.env)",
-                content,
-            ):
-                errors.append(
-                    "하드코딩된 시크릿 감지. 환경변수(Settings) 또는 시크릿 매니저 사용 필요"
-                )
-                break
+    # 1c. text() + f-string (SQLAlchemy text with dynamic string)
+    if re.search(r'text\s*\(\s*f["\x27]', content):
+        errors.append(
+            'SQL injection 위험: text(f"...") 감지. text(:param) + bindparams 사용 필요'
+        )
+
+    # 1d. execute() + f-string 또는 .format()
+    if re.search(r'\.execute\s*\(\s*f["\x27]', content):
+        errors.append(
+            'SQL injection 위험: execute(f"...") 감지. parameterized query 사용 필요'
+        )
+    if re.search(r'\.execute\s*\(["\x27].*\.format\s*\(', content, re.IGNORECASE):
+        errors.append(
+            'SQL injection 위험: execute("...".format()) 감지. parameterized query 사용 필요'
+        )
+
+    # 2. 하드코딩된 시크릿 (Pydantic Field, 환경변수 패턴 제외, 테스트 파일 제외)
+    is_test_file = "/tests/" in path or path.endswith("_test.py")
+    if not is_test_file:
+        secret_patterns = [
+            r'(?:password|passwd|pwd)\s*=\s*["\x27][^"\x27\s]{3,}["\x27]',
+            r'(?:secret|secret_key)\s*=\s*["\x27][^"\x27\s]{3,}["\x27]',
+            r'(?:api_key|apikey)\s*=\s*["\x27][^"\x27\s]{3,}["\x27]',
+            r'(?:private_key)\s*=\s*["\x27][^"\x27\s]{3,}["\x27]',
+            r'(?:auth_token)\s*=\s*["\x27][^"\x27\s]{3,}["\x27]',
+            r'(?:encryption_key)\s*=\s*["\x27][^"\x27\s]{3,}["\x27]',
+            r'(?:credential)\s*=\s*["\x27][^"\x27\s]{3,}["\x27]',
+            r'(?:access_token)\s*=\s*["\x27][^"\x27\s]{3,}["\x27]',
+        ]
+        for pat in secret_patterns:
+            if re.search(pat, content, re.IGNORECASE):
+                if not re.search(
+                    r"(Field\s*\(|os\.environ|settings\.|getenv|validation_alias|\.env)",
+                    content,
+                ):
+                    errors.append(
+                        "하드코딩된 시크릿 감지. 환경변수(Settings) 또는 시크릿 매니저 사용 필요"
+                    )
+                    break
 
     # 3. Domain → Infrastructure import 금지
     if "/domain/" in path:
