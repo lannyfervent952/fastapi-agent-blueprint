@@ -31,7 +31,26 @@
 - `/fix-bug {description}` — 구조화된 버그 수정 워크플로우
 - `/sync-guidelines` — 설계 변경 후 가이드라인 동기화 점검
 
-## MCP 사용 지침
-- 코드 탐색: Serena 도구 우선 (`find_symbol`, `find_referencing_symbols`, `get_symbols_overview`)
-- 파일 전체 읽기: 심볼 탐색으로 충분하지 않을 때만
-- 라이브러리 문법: context7으로 최신 문서 확인 (SQLAlchemy 2.0, Pydantic 2.x, Taskiq 등)
+## 도구 선택 기준
+
+### 코드 탐색/읽기 (우선순위 순)
+1. **Serena 심볼 도구** (기본): `get_symbols_overview` → `find_symbol(include_body=True)`
+   - 파일 구조 파악, 특정 메서드 읽기, 클래스 계층 탐색
+   - 토큰 효율이 높아 대규모 코드베이스에서 필수
+2. **Grep/Glob** (보조): 파일 위치 찾기, 문자열 패턴 검색, 설정 파일 탐색
+3. **Read** (최후 수단): 비코드 파일, 설정 파일, 또는 심볼 탐색으로 불충분할 때만
+
+### 영향 범위 분석
+- 리팩토링/시그니처 변경 시: Serena `find_referencing_symbols` 우선
+- 단순 문자열 검색: Grep
+
+### 편집
+- 심볼 전체 교체 (메서드, 클래스): Serena `replace_symbol_body`
+- 부분 수정 (몇 줄 변경): Claude Code `Edit`
+- 새 코드 삽입: Serena `insert_before/after_symbol` 또는 `Edit`
+
+### 정형화된 작업
+- 도메인 생성/API 추가/테스트 등: Skills (`/new-domain`, `/add-api` 등)
+
+### 라이브러리 문서
+- context7으로 최신 문서 확인 (SQLAlchemy 2.0, Pydantic 2.x, Taskiq 등)
