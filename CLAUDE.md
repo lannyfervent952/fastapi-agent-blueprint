@@ -32,6 +32,11 @@
 - 제안 전 기존 4계층(CLAUDE.md / project-dna / Serena / auto-memory)에서 이미 커버되는지 검증한다
 - 기존 구조를 수정/삭제하는 제안은 새 구조의 이득이 명확할 때만 한다
 - 스킬 SKILL.md frontmatter 지원 속성: name, argument-hint, description, disable-model-invocation, compatibility (allowed-tools 미지원)
+- **코드 변경 시 관련 문서 동시 업데이트 필수** — 커밋 전에 아래 항목을 확인한다:
+  1. 변경한 패턴을 참조하는 Skills SKILL.md 및 references/
+  2. project-dna.md의 관련 섹션
+  3. Serena 메모리 (architecture_conventions 등)
+  4. 에이전트에 위임 시 변경 파일 목록을 명시적으로 전달
 
 ## 변환 패턴
 ### Write 방향 (Request → DB)

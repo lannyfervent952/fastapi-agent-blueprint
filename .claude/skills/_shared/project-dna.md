@@ -246,12 +246,8 @@ def create_server_container() -> containers.DynamicContainer:
 ### Pre-commit (자동 실행)
 
 - trailing-whitespace, end-of-file-fixer, check-yaml/json/toml
-- pyupgrade (--py312-plus)
-- autoflake (미사용 import/변수 제거)
-- isort (--profile black)
-- black (python3.12)
-- flake8 + flake8-bugbear + flake8-comprehensions (--ignore=F841,E501,W503,E203,E402,F401,B008,B006,C901,SIM114,SIM910,SIM904,E704, --max-line-length=88, --max-complexity=20)
-- bandit (-ll, --skip=B113,B314,B413)
+- ruff check --fix (E, W, F, UP, I, B, C4, SIM, S 규칙 통합 — pyupgrade, autoflake, isort, flake8, bandit 대체)
+- ruff format (Black 호환 포맷팅)
 
 ### Pre-commit (수동 - manual stage)
 

@@ -15,8 +15,8 @@ description: |
 ## 분석
 
 1. 도메인명과 태스크 목적 파악
-2. 해당 도메인의 UseCase에 필요한 메서드가 있는지 확인
-3. 없으면 `/add-api` 절차의 1~3단계(Repository → Service → UseCase)를 먼저 수행
+2. 해당 도메인의 Service에 필요한 메서드가 있는지 확인
+3. 없으면 `/add-api` 절차의 1~2단계(Repository → Service)를 먼저 수행
 
 ## 레퍼런스
 - `src/user/interface/worker/tasks/user_test_task.py` — 태스크 패턴
@@ -31,19 +31,19 @@ description: |
 ```python
 from dependency_injector.wiring import Provide, inject
 from src._apps.worker.broker import broker
-from src.{name}.application.use_cases.{name}_use_case import {Name}UseCase
-from src.{name}.domain.dtos.{name}_dto import {Name}DTO
 from src._core.config import settings
+from src.{name}.domain.dtos.{name}_dto import {Name}DTO
+from src.{name}.domain.services.{name}_service import {Name}Service
 from src.{name}.infrastructure.di.{name}_container import {Name}Container
 
 @broker.task(task_name=f"{settings.task_name_prefix}.{name}.{task_name}")
 @inject
 async def {task_name}_task(
-    {name}_use_case: {Name}UseCase = Provide[{Name}Container.{name}_use_case],
+    {name}_service: {Name}Service = Provide[{Name}Container.{name}_service],
     **kwargs,
 ) -> None:
     dto = {Name}DTO.model_validate(kwargs)
-    await {name}_use_case.{method}(dto=dto)
+    await {name}_service.{method}(dto=dto)
 ```
 
 ### 2. 워커 부트스트랩 업데이트
@@ -51,13 +51,13 @@ async def {task_name}_task(
 - 새 태스크 모듈을 import
 - `wire(modules=[..., {task_name}_task])` 에 추가
 
-### 3. UseCase 메서드 확인/추가
-- 태스크가 호출할 UseCase 메서드가 있는지 확인
-- 없으면 UseCase → Service → Repository 순으로 추가
+### 3. Service 메서드 확인/추가
+- 태스크가 호출할 Service 메서드가 있는지 확인
+- 없으면 Service에 메서드 추가 (필요 시 Repository도)
 
 ## 핵심 규칙
-- 태스크 함수는 thin adapter: `**kwargs` 받아서 DTO 변환 후 UseCase 호출만
-- 비즈니스 로직은 반드시 UseCase/Service에 위치
+- 태스크 함수는 thin adapter: `**kwargs` 받아서 DTO 변환 후 Service 호출만
+- 비즈니스 로직은 반드시 Service에 위치
 - Model 객체가 태스크에 노출되면 안 됨
 - DI 패턴: **project-dna.md §5** 참조
 - 변환 패턴: **project-dna.md §6** 참조
