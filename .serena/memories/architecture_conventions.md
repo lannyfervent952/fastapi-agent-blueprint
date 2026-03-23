@@ -27,7 +27,7 @@
 ### API Schema (Interface DTO)
 - 위치: `src/{domain}/interface/server/dtos/{domain}_dto.py`
 - `BaseRequest` / `BaseResponse` 상속
-- 명시적 필드 선언 (다중상속 금지)
+- 명시적 필드 선언
 - 민감 필드 의도적 제외 (Response)
 - Request는 필드가 동일한 경우 레이어 DTO 역할도 겸함
 

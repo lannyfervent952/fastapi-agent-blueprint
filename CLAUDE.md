@@ -10,11 +10,9 @@
 
 ## 절대 금지 규칙
 - Domain 레이어에서 Infrastructure import 금지
-- 다중상속 패턴 금지: `class Response(BaseResponse, Entity)`
-- `to_entity()`, `from_entity()` 메서드 사용 금지
 - Model 객체를 Repository 밖으로 노출 금지
 - Mapper 클래스 별도 생성 금지 (인라인 변환으로 충분)
-- Entity 용어 사용 금지 (DTO로 통일)
+- Entity 패턴 미사용 — DTO로 통일 (배경: [ADR 004](docs/history/004-dto-entity-responsibility.md))
 
 ## 계층 구조 (3-Tier 하이브리드)
 - 기본: Router → Service(BaseService 상속) → Repository(BaseRepository 상속)
@@ -66,6 +64,7 @@
 - `/fix-bug {description}` — 구조화된 버그 수정 워크플로우
 - `/sync-guidelines` — 설계 변경 후 가이드라인 동기화 + project-dna.md 재생성
 - `/migrate-domain {generate|upgrade|downgrade|status}` — Alembic 마이그레이션 관리
+- `/onboard` — 신규 인력 대화형 온보딩 (프로젝트 구조 → 규칙 → 워크플로우)
 
 ## 도메인 자동 발견
 - `src/_core/infrastructure/discovery.py`의 `discover_domains()`가 도메인을 자동 탐지

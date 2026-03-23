@@ -14,9 +14,8 @@
 ## 2. 변환 패턴 준수
 전체 도메인 파일에서 검사:
 
-- [ ] `to_entity(` 메서드 호출 없음
-- [ ] `from_entity(` 메서드 호출 없음
 - [ ] `class.*Mapper` 클래스 정의 없음
+- [ ] Entity 패턴 잔존 없음 (`to_entity(`, `from_entity(`, `Entity` 클래스 정의)
 - [ ] Repository 메서드 반환값이 DTO 타입 (Model 객체 노출 없음)
 - [ ] Model → DTO 변환이 `model_validate(..., from_attributes=True)` 사용
 
