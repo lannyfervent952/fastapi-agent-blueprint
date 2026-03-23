@@ -88,7 +88,8 @@
     - `from sqladmin import ModelView`
     - `class {Name}View(ModelView, model={Name}Model)`
 20. `src/{name}/interface/worker/tasks/{name}_test_task.py`
-    - `@broker.task(task_name="{project-name}.{name}.test")`
+    - `@broker.task(task_name=f"{settings.task_name_prefix}.{name}.test")`
+    - `from src._core.config import settings` import 필요
     - `@inject` + `Provide[{Name}Container.{name}_use_case]`
     - `**kwargs` → `{Name}DTO.model_validate(kwargs)`
 21. `src/{name}/interface/worker/bootstrap/{name}_bootstrap.py`

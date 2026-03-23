@@ -13,6 +13,11 @@ class Settings(BaseSettings):
     # 환경 설정 (예: local, dev, stg, prod)
     env: str = Field("local", validation_alias=AliasChoices("ENV", "env"))
 
+    # Taskiq 태스크 이름 프리픽스 (예: "my-project.user.test")
+    task_name_prefix: str = Field(
+        default="my-project", validation_alias="TASK_NAME_PREFIX"
+    )
+
     # ----------------------------------------------------------------
     # Database
     # ----------------------------------------------------------------

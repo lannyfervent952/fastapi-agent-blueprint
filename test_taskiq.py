@@ -6,6 +6,7 @@ Taskiq Publisher 테스트 예제
 
 import asyncio
 
+from src._core.config import settings
 from src._core.infrastructure.di.core_container import CoreContainer
 
 
@@ -22,7 +23,7 @@ async def test_send_task():
 
     try:
         result = await taskiq_manager.send_task(
-            task_name="{project-name}.user.test",
+            task_name=f"{settings.task_name_prefix}.user.test",
             kwargs={"user_id": 123, "name": "John Doe", "email": "john@example.com"},
         )
         print("Task sent successfully!")
@@ -42,7 +43,7 @@ async def test_send_multiple_tasks():
     tasks = []
     for i in range(5):
         task = taskiq_manager.send_task(
-            task_name="{project-name}.user.test",
+            task_name=f"{settings.task_name_prefix}.user.test",
             kwargs={"user_id": i, "name": f"User {i}", "email": f"user{i}@example.com"},
         )
         tasks.append(task)

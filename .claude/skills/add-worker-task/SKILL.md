@@ -33,9 +33,10 @@ from dependency_injector.wiring import Provide, inject
 from src._apps.worker.broker import broker
 from src.{name}.application.use_cases.{name}_use_case import {Name}UseCase
 from src.{name}.domain.dtos.{name}_dto import {Name}DTO
+from src._core.config import settings
 from src.{name}.infrastructure.di.{name}_container import {Name}Container
 
-@broker.task(task_name="{project-name}.{name}.{task_name}")
+@broker.task(task_name=f"{settings.task_name_prefix}.{name}.{task_name}")
 @inject
 async def {task_name}_task(
     {name}_use_case: {Name}UseCase = Provide[{Name}Container.{name}_use_case],
