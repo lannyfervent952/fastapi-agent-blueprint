@@ -1,5 +1,5 @@
 # the name by which the project can be referenced within Serena
-project_name: "fastapi-layered-architecture"
+project_name: "fastapi-blueprint"
 
 
 # list of languages for which language servers are started; choose from:
@@ -123,15 +123,16 @@ default_modes:
 # initial prompt for the project. It will always be given to the LLM upon activating the project
 # (contrary to the memories, which are loaded on demand).
 initial_prompt: |
-  이 프로젝트는 FastAPI DDD 기반 모듈형 레이어드 아키텍처입니다.
-  현재 Entity → DTO 리팩토링 작업 중입니다 (AIDD_PLAN.md 참고).
+  이 프로젝트는 DDD 기반 모듈형 레이어드 아키텍처 FastAPI 백엔드 템플릿입니다.
+  3-Tier 하이브리드: Router → Service(BaseService) → Repository(BaseRepository), UseCase는 선택적.
 
   핵심 규칙:
   - Domain 레이어에서 Infrastructure import 금지
-  - 다중상속 패턴(class Response(BaseResponse, Entity)) 사용 금지
+  - 다중상속 패턴(class Response(BaseResponse, DTO)) 사용 금지
   - to_entity(), from_entity() 메서드 사용 금지
   - Model 객체는 Repository 밖으로 노출 금지
   - 변환은 인라인으로: model_dump(), model_validate()
+  - Entity 용어 사용 금지 (DTO로 통일)
 
   작업 전 refactoring_status 메모리를 확인하세요.
 

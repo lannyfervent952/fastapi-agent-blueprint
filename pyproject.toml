@@ -1,5 +1,5 @@
 [project]
-name = "fastapi-layered-architecture"
+name = "fastapi-blueprint"
 version = "0.1.0"
 description = "This is layered architecture for fastapi"
 readme = "README.md"
