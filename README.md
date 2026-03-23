@@ -290,6 +290,57 @@ src/
 
 ---
 
+## AI Pair Programming (AIDD)
+
+이 프로젝트는 **AIDD(AI-Driven Development)** 방법론을 적용하여 Claude Code와 페어 프로그래밍이 가능합니다.
+
+### 내장 Skills
+
+| 명령어 | 기능 |
+|--------|------|
+| `/new-domain {name}` | 도메인 전체 스캐폴딩 자동 생성 |
+| `/add-api {description}` | 기존 도메인에 API 엔드포인트 추가 |
+| `/add-worker-task {domain} {task}` | 비동기 Taskiq 태스크 추가 |
+| `/add-cross-domain from:{a} to:{b}` | 도메인 간 의존성 연결 |
+| `/review-architecture {domain}` | 아키텍처 컴플라이언스 감사 |
+| `/security-review {domain}` | OWASP 기반 보안 감사 |
+| `/test-domain {domain}` | 테스트 생성/실행 |
+| `/fix-bug {description}` | 구조화된 버그 수정 |
+| `/plan-feature {description}` | 기능 구현 계획 수립 |
+| `/sync-guidelines` | 설계 변경 후 문서 동기화 점검 |
+
+### MCP 서버 설정
+
+AIDD 기능을 사용하려면 다음 MCP 서버가 필요합니다:
+
+**Serena** — 심볼릭 코드 탐색/편집 (LSP 수준의 rename, reference 분석)
+```json
+{
+  "mcpServers": {
+    "serena": {
+      "command": "uvx",
+      "args": ["--from", "serena-mcp", "serena", "--project-root", "."]
+    }
+  }
+}
+```
+
+**context7** — 라이브러리 최신 문서 조회
+```json
+{
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"]
+    }
+  }
+}
+```
+
+> MCP 서버 없이도 프로젝트 자체는 정상 동작합니다. AIDD 기능(Skills)을 활용하려면 설정이 필요합니다.
+
+---
+
 ## Contributing
 
 ```bash
