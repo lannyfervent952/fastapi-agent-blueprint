@@ -17,7 +17,9 @@
 | [007](007-di-container-and-app-separation.md) | DI 컨테이너 계층화와 Interface별 앱 분리 | Accepted | Done | 2025-09~11 |
 | [008](008-deploy-env-separation.md) | 배포 환경 분리 및 설정 관리 | Accepted | Done | 2025-09 |
 | [009](009-async-external-clients.md) | 비동기 외부 클라이언트 표준화 | Accepted | Done | 2025-10 |
-| [010](010-code-quality-tools.md) | 코드 품질 도구 체계화 | Accepted | Done | 2025-10 |
+| [010](010-code-quality-tools.md) | 코드 품질 도구 체계화 | Superseded by 012 | Done | 2025-10 |
+| [011](011-3tier-hybrid-architecture.md) | 3-Tier 하이브리드 아키텍처 전환 | Accepted | Done | 2026-03-23 |
+| [012](012-ruff-migration.md) | pre-commit 린팅 도구 Ruff 통합 | Accepted | Done | 2026-03-23 |
 
 ## 미래 고려 사항 (Open Issues)
 
@@ -32,7 +34,6 @@
 | #29 | DB 환경별 분리 | enhancement, refactor |
 | #31 | message broker별 환경 분리 | enhancement, refactor |
 | #32 | 로깅 | enhancement |
-| #33 | 3 tier architecture로 변경 | refactor |
 | #35 | 데이터 CRUD 유효성 검사 추가 | - |
 | #36 | vector db 추가하기 | enhancement |
 | #45 | vercel 추가하기 | enhancement |
@@ -41,7 +42,6 @@
 | #51 | pydanticAI 도입 | enhancement |
 | #52 | alembic 개발 환경별 분리 | refactor |
 | #55 | error 발생시 slack, discord 알림 | enhancement |
-| #58 | ruff 추가 | - |
 
 ## 작성 가이드
 

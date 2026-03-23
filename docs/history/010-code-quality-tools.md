@@ -1,6 +1,6 @@
 # 010. 코드 품질 도구 체계화
 
-- 상태: Accepted
+- 상태: Superseded by [012](012-ruff-migration.md)
 - 날짜: 2025-10-15
 - 관련 이슈: #34, #41
 - 관련 PR: #42
