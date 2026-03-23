@@ -128,11 +128,9 @@ initial_prompt: |
 
   핵심 규칙:
   - Domain 레이어에서 Infrastructure import 금지
-  - 다중상속 패턴(class Response(BaseResponse, DTO)) 사용 금지
-  - to_entity(), from_entity() 메서드 사용 금지
   - Model 객체는 Repository 밖으로 노출 금지
-  - 변환은 인라인으로: model_dump(), model_validate()
-  - Entity 용어 사용 금지 (DTO로 통일)
+  - Mapper 클래스 별도 생성 금지 (인라인 변환으로 충분)
+  - Entity 패턴 미사용 — DTO로 통일 (배경: ADR 004)
 
   작업 전 refactoring_status 메모리를 확인하세요.
 

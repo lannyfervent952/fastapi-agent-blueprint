@@ -6,9 +6,8 @@ CLAUDE.md를 읽고 각 섹션을 실제 코드와 대조:
 
 - [ ] **절대 금지 규칙**: 실제로 위반 사례가 없는지 Grep으로 확인
   - `from src.*.infrastructure` in domain/ 파일
-  - `to_entity(` 또는 `from_entity(` 호출
   - `class.*Mapper` 정의
-  - Response/Request 다중상속 패턴
+  - Entity 패턴 잔존 (`to_entity(`, `from_entity(`, `class.*Entity`)
 - [ ] **변환 패턴**: CLAUDE.md에 기술된 4가지 패턴이 실제 코드에서 동일하게 사용되는지
   - Request → Service: `entity=item` 직접 전달
   - Model → DTO: `model_validate(model, from_attributes=True)`
@@ -33,6 +32,7 @@ CLAUDE.md를 읽고 각 섹션을 실제 코드와 대조:
 - [ ] **`/review-architecture`**: 체크항목이 현재 규칙을 모두 포함하는지
 - [ ] **`/test-domain`**: 테스트 패턴이 실제 테스트 코드와 일치하는지
 - [ ] **`/add-cross-domain`**: Protocol 기반 의존성 패턴이 현재와 일치하는지
+- [ ] **`/onboard`**: role-tracks.md의 추천 Skills 목록이 실제 스킬 목록과 일치하는지
 
 ## 3. Serena 메모리 ↔ 현재 상태 확인
 

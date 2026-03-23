@@ -25,8 +25,8 @@ description: |
 
 **카테고리 요약**:
 1. **레이어 의존성 규칙** — domain → infrastructure/interface import 위반
-2. **변환 패턴 준수** — to_entity/from_entity/Mapper 사용 여부
-3. **DTO/Response 무결성** — 다중상속, 민감 필드 노출
+2. **변환 패턴 준수** — Mapper 클래스, Entity 패턴 잔존 여부
+3. **DTO/Response 무결성** — 민감 필드 노출
 4. **DI Container 정확성** — Singleton/Factory 구분
 5. **테스트 커버리지** — 필수 테스트 파일 존재 여부
 6. **Bootstrap 와이어링** — 앱 레벨 등록 여부

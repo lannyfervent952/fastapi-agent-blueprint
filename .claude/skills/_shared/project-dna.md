@@ -256,9 +256,7 @@ def create_server_container() -> containers.DynamicContainer:
 ### 아키텍처 위반 검사 (자동 실행)
 
 - no-domain-infra-import: Domain에서 Infrastructure import 금지
-- no-entity-import: Entity import 금지 (DTO로 대체됨)
-- no-entity-methods: to_entity/from_entity 메서드 금지
-- no-multiple-inheritance-response: Response/Request 다중상속 금지
+- no-entity-pattern: Entity 패턴 미사용 — DTO로 통일 (배경: ADR 004)
 
 ### Claude Hook
 

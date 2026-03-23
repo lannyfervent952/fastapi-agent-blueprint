@@ -39,7 +39,7 @@ description: |
 ### 4. Interface DTO (필요한 경우)
 - `src/{name}/interface/server/dtos/{name}_dto.py`에 Request/Response 추가
 - Request는 `BaseRequest` 상속, Response는 `BaseResponse` 상속
-- **다중상속 금지**
+- **명시적 필드 선언** (BaseRequest/BaseResponse만 단일 상속)
 
 ### 5. Router
 - `src/{name}/interface/server/routers/{name}_router.py`에 엔드포인트 추가
