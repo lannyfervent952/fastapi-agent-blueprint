@@ -21,6 +21,7 @@
 | [011](011-3tier-hybrid-architecture.md) | 3-Tier 하이브리드 아키텍처 전환 | Accepted | Done | 2026-03-23 |
 | [012](012-ruff-migration.md) | pre-commit 린팅 도구 Ruff 통합 | Accepted | Done | 2026-03-23 |
 | [013](013-why-ioc-container.md) | 상속 대신 IoC Container를 선택한 이유 | Accepted | Done | 2026-03-23 |
+| [014](014-omc-vs-native-orchestration.md) | OMC vs 네이티브 오케스트레이션 의사결정 | Pending | In Progress | 2026-03-24 |
 
 ## 미래 고려 사항 (Open Issues)
 
