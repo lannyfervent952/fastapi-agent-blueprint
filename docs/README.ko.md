@@ -1,12 +1,47 @@
-# FastAPI Blueprint
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="assets/logo-light.png">
+    <img alt="FastAPI Blueprint" src="assets/logo-light.png" width="200">
+  </picture>
+</p>
 
-[![Python](https://img.shields.io/badge/Python-3.12.9+-blue.svg)](https://www.python.org/downloads/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-green.svg)](https://fastapi.tiangolo.com)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+<h1 align="center">FastAPI Blueprint</h1>
 
-**CRUD 반복을 끝내는 FastAPI 백엔드 청사진.**
-Base 클래스 상속 한 줄로 7개 CRUD 자동 제공. 새 도메인은 만들기만 하면 자동 등록.
+<p align="center">
+  <a href="https://github.com/Mr-DooSun/fastapi-blueprint/actions/workflows/ci.yml"><img src="https://github.com/Mr-DooSun/fastapi-blueprint/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/Python-3.12.9+-blue.svg" alt="Python"></a>
+  <a href="https://fastapi.tiangolo.com"><img src="https://img.shields.io/badge/FastAPI-0.115+-green.svg" alt="FastAPI"></a>
+  <a href="../LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License"></a>
+  <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" alt="Ruff"></a>
+</p>
+
+<p align="center">
+  <b>프로덕션 레디 FastAPI 백엔드 청사진.</b><br>
+  Base 클래스 상속 한 줄로 7개 CRUD 자동 제공. 새 도메인은 만들기만 하면 자동 등록.<br>
+  5명 이상의 개발자가 10개 이상의 도메인을 관리하는 팀을 위해 설계되었습니다.
+</p>
+
+<p align="center">
+  <a href="#빠른-시작">빠른 시작</a> · <a href="#아키텍처">아키텍처</a> · <a href="#ai-네이티브-개발-aidd">AI 네이티브 개발</a> · <a href="#비교">비교</a> · <a href="../README.md">English</a>
+</p>
+
+<!-- TODO: 데모 GIF 추가
+![Demo](assets/demo.gif)
+-->
+
+---
+
+## 주요 기능
+
+- **보일러플레이트 제로 CRUD** -- `BaseRepository[DTO]` + `BaseService[DTO]` 상속으로 7개 비동기 CRUD 메서드 즉시 제공
+- **도메인 자동 발견** -- 도메인 폴더를 추가하면 자동 등록. Container나 bootstrap 수정 불필요
+- **4가지 인터페이스** -- HTTP API (FastAPI) + 비동기 Worker (Taskiq) + Admin UI (SQLAdmin) + MCP Server (예정)
+- **아키텍처 자동 강제** -- Pre-commit hook이 커밋 시점에 `Domain -> Infrastructure` import를 차단
+- **타입 안전 제네릭** -- `BaseRepository[ProductDTO]`, `BaseService[ProductDTO]`, `SuccessResponse[ProductResponse]`
+- **DDD 레이어드 구조** -- 각 도메인이 완전히 독립된 계층 보유 (Domain / Infrastructure / Interface / Application)
+- **12개 AI 개발 스킬** -- 스캐폴딩, 테스트, 아키텍처 리뷰 등을 위한 Claude Code 슬래시 커맨드
+- **14개 Architecture Decision Records** -- 모든 주요 설계 결정을 근거와 함께 문서화
 
 ---
 
@@ -46,14 +81,14 @@ class ProductService(BaseService[ProductDTO]):
 
 ---
 
-## Architecture
+## 아키텍처
 
 ```
-Router → Service(BaseService) → Repository(BaseRepository) → DB
-              ↑ 단순 CRUD는 이것만으로 충분
+Router -> Service(BaseService) -> Repository(BaseRepository) -> DB
+               ^ 단순 CRUD는 이것만으로 충분
 
-Router → UseCase → Service → Repository → DB
-              ↑ 복잡한 비즈니스 로직이 필요할 때만 추가
+Router -> UseCase -> Service -> Repository -> DB
+               ^ 복잡한 비즈니스 로직이 필요할 때만 추가
 ```
 
 ### 계층별 책임
@@ -63,18 +98,18 @@ Router → UseCase → Service → Repository → DB
 | **Interface** | Router, Request/Response, Admin, Worker Task | - |
 | **Domain** | Service (비즈니스 로직), Protocol, DTO, Event | `BaseService[ReturnDTO]` |
 | **Infrastructure** | Repository (DB 접근), Model, DI Container | `BaseRepository[ReturnDTO]` |
-| **Application** | UseCase (복합 로직 조율) — **선택적** | - |
+| **Application** | UseCase (복합 로직 조율) -- **선택적** | - |
 
 ### 데이터 흐름
 
 ```
-Write: Request ──→ Service ──→ Repository ──→ Model → DB
-Read:  Response ←── Service ←── Repository ←── DTO ←── Model
+Write: Request --> Service --> Repository --> Model -> DB
+Read:  Response <-- Service <-- Repository <-- DTO <-- Model
 ```
 
 - Request를 Service에 직접 전달 (별도 변환 불필요)
-- Repository가 Model → DTO 변환 (`model_validate(model, from_attributes=True)`)
-- Router가 DTO → Response 변환 (`Response(**dto.model_dump(exclude={...}))`)
+- Repository가 Model -> DTO 변환 (`model_validate(model, from_attributes=True)`)
+- Router가 DTO -> Response 변환 (`Response(**dto.model_dump(exclude={...}))`)
 
 ### 데이터 객체
 
@@ -86,36 +121,107 @@ Read:  Response ←── Service ←── Repository ←── DTO ←── M
 
 ---
 
-## Quick Start
+## AI 네이티브 개발 (AIDD)
+
+이 템플릿은 단독으로도 충분히 사용할 수 있습니다. **[Claude Code](https://docs.anthropic.com/en/docs/claude-code)와 함께라면 마법이 됩니다.**
+
+### 러닝 커브 제로
+
+복잡한 아키텍처? `/onboard`를 입력하세요 -- 당신의 수준에 맞춰 모든 것을 설명해줍니다.
+
+`/onboard` 스킬은 경험 수준에 따라 적응합니다:
+- **초급**: DDD 개념을 쉬운 비유로 설명
+- **중급**: 이 프로젝트 고유의 패턴에 집중
+- **고급**: 아키텍처 규칙과 컨벤션으로 바로 이동
+
+### 12개 내장 스킬
+
+| 명령어 | 기능 |
+|--------|------|
+| `/onboard` | 대화형 온보딩 -- 경험 수준에 맞춰 적응 |
+| `/new-domain {name}` | 도메인 전체 스캐폴딩 (21개 이상 소스 파일 + 테스트) |
+| `/add-api {description}` | 기존 도메인에 API 엔드포인트 추가 |
+| `/add-worker-task {domain} {task}` | 비동기 Taskiq 백그라운드 태스크 추가 |
+| `/add-cross-domain from:{a} to:{b}` | Protocol DIP를 통한 도메인 간 의존성 연결 |
+| `/plan-feature {description}` | 요구사항 인터뷰 -> 아키텍처 -> 보안 -> 태스크 분해 |
+| `/review-architecture {domain}` | 아키텍처 컴플라이언스 감사 (20개 이상 검사) |
+| `/security-review {domain}` | OWASP 기반 보안 감사 |
+| `/test-domain {domain}` | 도메인 테스트 생성 또는 실행 |
+| `/fix-bug {description}` | 구조화된 버그 수정 워크플로우 |
+| `/sync-guidelines` | 설계 변경 후 문서 동기화 |
+| `/migrate-domain {command}` | Alembic 마이그레이션 관리 |
+
+### MCP 서버 설정
+
+AIDD 기능을 사용하려면 다음 MCP 서버를 설정하세요:
+
+**Serena** -- 심볼릭 코드 탐색/편집 (LSP 수준의 rename, reference 분석)
+```json
+{
+  "mcpServers": {
+    "serena": {
+      "command": "uvx",
+      "args": ["--from", "serena-mcp", "serena", "--project-root", "."]
+    }
+  }
+}
+```
+
+**context7** -- 라이브러리 최신 문서 조회
+```json
+{
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"]
+    }
+  }
+}
+```
+
+> MCP 서버 없이도 프로젝트 자체는 정상 동작합니다. AIDD 스킬을 활용하려면 MCP 서버 설정이 필요합니다.
+
+---
+
+## 빠른 시작
 
 ```bash
 # 1. Clone
 git clone https://github.com/Mr-DooSun/fastapi-blueprint.git
 cd fastapi-blueprint
 
-# 2. 가상환경 + 의존성 설치 (UV 권장)
+# 2. 셋업 (uv 필요)
+make setup
+
+# 3. 환경변수 설정
+cp _env/local.env.example _env/local.env
+
+# 4. PostgreSQL 실행 + 마이그레이션 + 서버 시작
+make dev
+```
+
+http://localhost:8000/docs-swagger 에서 API를 확인하세요.
+
+<details>
+<summary>수동 설정 (Make 미사용)</summary>
+
+```bash
+# 2. 가상환경 + 의존성 설치
 uv venv --python 3.12
 source .venv/bin/activate
-uv sync
+uv sync --group dev
 
 # 3. 환경변수 설정
 cp _env/local.env.example _env/local.env
 
 # 4. PostgreSQL 실행 (Docker)
-docker run -d \
-  --name postgres \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=postgres \
-  -e POSTGRES_DB=postgres \
-  -p 5432:5432 \
-  postgres:16
+docker compose -f docker-compose.local.yml up -d postgres
 
 # 5. 마이그레이션 + 서버 실행
 alembic upgrade head
 python run_server_local.py --env local
 ```
-
-http://localhost:8000/docs-swagger 에서 API 확인
+</details>
 
 ---
 
@@ -192,6 +298,23 @@ async def create_product(
 - `src/{name}/__init__.py` 존재
 - `src/{name}/infrastructure/di/{name}_container.py` 존재
 
+> Claude Code를 사용하면 `/new-domain product` 한 줄로 위 모든 파일을 자동 생성할 수 있습니다.
+
+---
+
+## 4가지 인터페이스
+
+각 도메인은 여러 인터페이스를 통해 기능을 노출할 수 있습니다:
+
+| 인터페이스 | 기술 | 위치 | 용도 |
+|-----------|------|------|------|
+| **HTTP API** | FastAPI | `interface/server/` | REST API 엔드포인트 |
+| **비동기 Worker** | Taskiq + SQS | `interface/worker/` | 백그라운드 태스크 처리 |
+| **Admin UI** | SQLAdmin | `interface/admin/` | 데이터베이스 관리 대시보드 |
+| **MCP Server** | FastMCP | `interface/mcp/` | AI 도구 통합 (예정) |
+
+모든 인터페이스는 동일한 Domain/Infrastructure 계층을 공유합니다 -- 비즈니스 로직을 한 번 작성하고, 어디서든 노출하세요.
+
 ---
 
 ## Tech Stack
@@ -203,14 +326,14 @@ async def create_product(
 | **FastAPI** | 비동기 웹 프레임워크 |
 | **Pydantic** 2.x | 데이터 검증, Settings |
 | **SQLAlchemy** 2.0 | 비동기 ORM |
-| **dependency-injector** | IoC Container (DIP 실현) |
+| **dependency-injector** | IoC Container ([왜?](../docs/history/013-why-ioc-container.md)) |
 
 ### Infrastructure
 
 | 기술 | 용도 |
 |------|------|
 | **PostgreSQL** + asyncpg | 메인 RDBMS |
-| **Taskiq** + AWS SQS | 비동기 태스크 큐 |
+| **Taskiq** + AWS SQS | 비동기 태스크 큐 ([왜 Celery가 아닌가?](../docs/history/001-celery-to-taskiq.md)) |
 | **aiohttp** | 비동기 HTTP 클라이언트 |
 | **aioboto3** | S3/MinIO 스토리지 |
 | **Alembic** | DB 마이그레이션 |
@@ -219,21 +342,21 @@ async def create_product(
 
 | 기술 | 용도 |
 |------|------|
-| **Ruff** | 린팅 + 포맷팅 (6개 도구 통합) |
-| **pre-commit** | Git hook 자동화 |
-| **UV** | Python 패키지 관리 |
+| **Ruff** | 린팅 + 포맷팅 ([6개 도구 통합](../docs/history/012-ruff-migration.md)) |
+| **pre-commit** | Git hook 자동화 + 아키텍처 강제 |
+| **UV** | Python 패키지 관리 ([왜 Poetry가 아닌가?](../docs/history/005-poetry-to-uv.md)) |
 | **SQLAdmin** | DB 관리 UI |
 
 ---
 
-## Project Structure
+## 프로젝트 구조
 
 ```
 src/
 ├── _apps/                        # App-level 진입점
-│   ├── server/                  # API 서버
-│   ├── worker/                  # Taskiq 워커
-│   └── admin/                   # Admin UI
+│   ├── server/                  # FastAPI HTTP 서버
+│   ├── worker/                  # Taskiq 비동기 워커
+│   └── admin/                   # SQLAdmin 대시보드
 │
 ├── _core/                        # 공통 인프라
 │   ├── domain/
@@ -273,98 +396,60 @@ src/
 
 ---
 
+## 비교
+
+| 기능 | FastAPI Blueprint | [tiangolo/full-stack](https://github.com/fastapi/full-stack-fastapi-template) | [s3rius/template](https://github.com/s3rius/FastAPI-template) | [teamhide/boilerplate](https://github.com/teamhide/fastapi-boilerplate) |
+|------|:-:|:-:|:-:|:-:|
+| 보일러플레이트 제로 CRUD (7개 메서드) | **Yes** | No | No | No |
+| 도메인 자동 발견 | **Yes** | No | No | No |
+| 아키텍처 자동 강제 (pre-commit) | **Yes** | No | No | No |
+| AI 개발 스킬 | **12** | 0 | 0 | 0 |
+| 적응형 온보딩 (`/onboard`) | **Yes** | No | No | No |
+| 멀티 인터페이스 (API+Worker+Admin) | **4종** | 2 | 1 | 1 |
+| Architecture Decision Records | **14** | 0 | 0 | 0 |
+| 전 계층 타입 안전 제네릭 | **Yes** | 부분 | 부분 | No |
+| IoC Container DI | **Yes** | No | No | No |
+
+---
+
 ## Architecture Decisions
 
 이 프로젝트의 모든 기술 선택은 ADR(Architecture Decision Record)로 기록되어 있습니다.
 
 | # | 제목 |
 |---|------|
-| [004](docs/history/004-dto-entity-responsibility.md) | DTO/Entity 책임 재정의 |
-| [006](docs/history/006-ddd-layered-architecture.md) | 도메인별 레이어드 아키텍처 전환 |
-| [007](docs/history/007-di-container-and-app-separation.md) | DI 컨테이너 계층화와 앱 분리 |
-| [011](docs/history/011-3tier-hybrid-architecture.md) | 3-Tier 하이브리드 아키텍처 전환 |
-| [012](docs/history/012-ruff-migration.md) | Ruff 도입 |
-| [013](docs/history/013-why-ioc-container.md) | 상속 대신 IoC Container를 선택한 이유 |
+| [004](../docs/history/004-dto-entity-responsibility.md) | DTO/Entity 책임 재정의 |
+| [006](../docs/history/006-ddd-layered-architecture.md) | 도메인별 레이어드 아키텍처 전환 |
+| [007](../docs/history/007-di-container-and-app-separation.md) | DI 컨테이너 계층화와 앱 분리 |
+| [011](../docs/history/011-3tier-hybrid-architecture.md) | 3-Tier 하이브리드 아키텍처 전환 |
+| [012](../docs/history/012-ruff-migration.md) | Ruff 도입 |
+| [013](../docs/history/013-why-ioc-container.md) | 상속 대신 IoC Container를 선택한 이유 |
 
-[전체 목록 보기](docs/history/README.md)
+[전체 14개 ADR 보기](../docs/history/README.md)
 
 ---
 
-## AI Pair Programming (AIDD)
+## Roadmap
 
-이 프로젝트는 **AIDD(AI-Driven Development)** 방법론을 적용하여 Claude Code와 페어 프로그래밍이 가능합니다.
+- [ ] JWT 인증 도메인
+- [ ] Product 예시 도메인 (크로스 도메인 데모)
+- [ ] 구조화된 로깅 (structlog)
+- [ ] FastMCP 인터페이스
+- [ ] Reflex Admin 대시보드
+- [ ] 헬스 체크 엔드포인트
+- [ ] 원클릭 배포 (Railway / Render)
+- [ ] MkDocs 문서 사이트
 
-### 내장 Skills
-
-| 명령어 | 기능 |
-|--------|------|
-| `/new-domain {name}` | 도메인 전체 스캐폴딩 자동 생성 |
-| `/add-api {description}` | 기존 도메인에 API 엔드포인트 추가 |
-| `/add-worker-task {domain} {task}` | 비동기 Taskiq 태스크 추가 |
-| `/add-cross-domain from:{a} to:{b}` | 도메인 간 의존성 연결 |
-| `/review-architecture {domain}` | 아키텍처 컴플라이언스 감사 |
-| `/security-review {domain}` | OWASP 기반 보안 감사 |
-| `/test-domain {domain}` | 테스트 생성/실행 |
-| `/fix-bug {description}` | 구조화된 버그 수정 |
-| `/plan-feature {description}` | 기능 구현 계획 수립 |
-| `/sync-guidelines` | 설계 변경 후 문서 동기화 점검 |
-
-### MCP 서버 설정
-
-AIDD 기능을 사용하려면 다음 MCP 서버가 필요합니다:
-
-**Serena** — 심볼릭 코드 탐색/편집 (LSP 수준의 rename, reference 분석)
-```json
-{
-  "mcpServers": {
-    "serena": {
-      "command": "uvx",
-      "args": ["--from", "serena-mcp", "serena", "--project-root", "."]
-    }
-  }
-}
-```
-
-**context7** — 라이브러리 최신 문서 조회
-```json
-{
-  "mcpServers": {
-    "context7": {
-      "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp@latest"]
-    }
-  }
-}
-```
-
-> MCP 서버 없이도 프로젝트 자체는 정상 동작합니다. AIDD 기능(Skills)을 활용하려면 MCP 서버 설정이 필요합니다.
+스타를 눌러 진행 상황을 팔로우하세요!
 
 ---
 
 ## Contributing
 
-```bash
-# pre-commit 설치
-pre-commit install
-
-# 코드 검사
-ruff check src/ --fix
-ruff format src/
-```
-
-### Commit Convention
-
-```
-feat: 새로운 기능
-fix: 버그 수정
-refactor: 리팩토링
-docs: 문서 수정
-chore: 빌드/도구 변경
-test: 테스트
-```
+개발 환경 설정, 코딩 가이드라인, PR 프로세스는 [CONTRIBUTING.md](../CONTRIBUTING.md)를 참고하세요.
 
 ---
 
 ## License
 
-[MIT License](LICENSE) — 상업적 사용, 수정, 배포 자유.
+[MIT License](../LICENSE) -- 상업적 사용, 수정, 배포 자유.

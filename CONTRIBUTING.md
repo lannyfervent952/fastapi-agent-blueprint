@@ -9,30 +9,39 @@ Thank you for your interest in contributing! This guide will help you get starte
 git clone https://github.com/Mr-DooSun/fastapi-blueprint.git
 cd fastapi-blueprint
 
-# Create virtual environment and install dependencies
-uv venv --python 3.12
-source .venv/bin/activate
-uv sync
+# Setup (installs dependencies + pre-commit hooks)
+make setup
 
 # Set up environment variables
 cp _env/local.env.example _env/local.env
 
+# Start PostgreSQL + run migrations + start server
+make dev
+```
+
+<details>
+<summary>Manual setup (without Make)</summary>
+
+```bash
+# Create virtual environment and install dependencies
+uv venv --python 3.12
+source .venv/bin/activate
+uv sync --group dev
+
 # Install pre-commit hooks
-pre-commit install
+uv run pre-commit install
+
+# Set up environment variables
+cp _env/local.env.example _env/local.env
 
 # Start PostgreSQL
-docker run -d \
-  --name postgres \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=postgres \
-  -e POSTGRES_DB=postgres \
-  -p 5432:5432 \
-  postgres:16
+docker compose -f docker-compose.local.yml up -d postgres
 
 # Run migrations and start the server
-alembic upgrade head
-python run_server_local.py --env local
+uv run alembic upgrade head
+uv run python run_server_local.py --env local
 ```
+</details>
 
 ## Project Structure
 
@@ -61,7 +70,10 @@ Or follow the [manual steps in the README](README.md#adding-a-new-domain).
 ## Running Tests
 
 ```bash
-pytest tests/
+make test
+
+# With coverage
+make test-cov
 ```
 
 ## Code Quality
@@ -69,8 +81,9 @@ pytest tests/
 Pre-commit hooks run automatically on commit. To run manually:
 
 ```bash
-ruff check src/ --fix
-ruff format src/
+make lint        # Check for issues
+make format      # Auto-format
+make pre-commit  # Run all pre-commit hooks
 ```
 
 ## Architecture Rules
@@ -97,7 +110,7 @@ test: test additions or changes
 
 1. Create a feature branch from `main`
 2. Make your changes following the architecture rules above
-3. Run tests and linting
+3. Run `make check` (lint + format check + tests)
 4. Submit a PR using the [PR template](.github/pull_request_template.md)
 
 ## Code of Conduct

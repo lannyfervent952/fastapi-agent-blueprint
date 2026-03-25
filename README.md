@@ -1,15 +1,34 @@
-# FastAPI Blueprint
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="docs/assets/logo-light.png">
+    <img alt="FastAPI Blueprint" src="docs/assets/logo-light.png" width="200">
+  </picture>
+</p>
 
-[![Python](https://img.shields.io/badge/Python-3.12.9+-blue.svg)](https://www.python.org/downloads/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-green.svg)](https://fastapi.tiangolo.com)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+<h1 align="center">FastAPI Blueprint</h1>
 
-**Production-ready FastAPI backend blueprint.** Inherit one base class, get 7 CRUD endpoints. Add a domain, it registers itself.
+<p align="center">
+  <a href="https://github.com/Mr-DooSun/fastapi-blueprint/actions/workflows/ci.yml"><img src="https://github.com/Mr-DooSun/fastapi-blueprint/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/Python-3.12.9+-blue.svg" alt="Python"></a>
+  <a href="https://fastapi.tiangolo.com"><img src="https://img.shields.io/badge/FastAPI-0.115+-green.svg" alt="FastAPI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License"></a>
+  <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" alt="Ruff"></a>
+</p>
 
-Designed for teams of 5+ developers managing 10+ domains.
+<p align="center">
+  <b>Production-ready FastAPI backend blueprint.</b><br>
+  Inherit one base class, get 7 CRUD endpoints. Add a domain, it registers itself.<br>
+  Designed for teams of 5+ developers managing 10+ domains.
+</p>
 
-[**Quick Start**](#quick-start) | [**Add a Domain**](#adding-a-new-domain) | [**Architecture**](#architecture) | [:kr: **한국어**](docs/README.ko.md)
+<p align="center">
+  <a href="#quick-start">Quick Start</a> · <a href="#architecture">Architecture</a> · <a href="#ai-native-development-aidd">AI-Native Development</a> · <a href="#comparison">Comparison</a> · <a href="docs/README.ko.md">한국어</a>
+</p>
+
+<!-- TODO: Add demo GIF here
+![Demo](docs/assets/demo.gif)
+-->
 
 ---
 
@@ -102,6 +121,68 @@ Read:  Response <-- Service <-- Repository <-- DTO <-- Model
 
 ---
 
+## AI-Native Development (AIDD)
+
+This template works great on its own. **With [Claude Code](https://docs.anthropic.com/en/docs/claude-code), it's magic.**
+
+### Zero Learning Curve
+
+Complex architecture? Type `/onboard` -- it explains everything at your level.
+
+The `/onboard` skill adapts to your experience:
+- **Beginner**: Explains DDD concepts with simple analogies
+- **Intermediate**: Focuses on this project's specific patterns
+- **Advanced**: Jumps straight to architecture rules and conventions
+
+### 12 Built-in Skills
+
+| Command | What it does |
+|---------|------------|
+| `/onboard` | Interactive onboarding -- adapts to your experience level |
+| `/new-domain {name}` | Scaffold an entire domain (21+ source files + tests) |
+| `/add-api {description}` | Add API endpoint to existing domain |
+| `/add-worker-task {domain} {task}` | Add async Taskiq background task |
+| `/add-cross-domain from:{a} to:{b}` | Wire cross-domain dependency via Protocol DIP |
+| `/plan-feature {description}` | Requirements interview -> architecture -> security -> task breakdown |
+| `/review-architecture {domain}` | Architecture compliance audit (20+ checks) |
+| `/security-review {domain}` | OWASP-based security audit |
+| `/test-domain {domain}` | Generate or run domain tests |
+| `/fix-bug {description}` | Structured bug fixing workflow |
+| `/sync-guidelines` | Sync docs after design changes |
+| `/migrate-domain {command}` | Alembic migration management |
+
+### MCP Server Setup
+
+To use AIDD features, configure these MCP servers:
+
+**Serena** -- Symbolic code navigation/editing (LSP-level rename, reference analysis)
+```json
+{
+  "mcpServers": {
+    "serena": {
+      "command": "uvx",
+      "args": ["--from", "serena-mcp", "serena", "--project-root", "."]
+    }
+  }
+}
+```
+
+**context7** -- Up-to-date library documentation
+```json
+{
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"]
+    }
+  }
+}
+```
+
+> The project works without MCP servers. AIDD skills require MCP server configuration.
+
+---
+
 ## Quick Start
 
 ```bash
@@ -109,29 +190,38 @@ Read:  Response <-- Service <-- Repository <-- DTO <-- Model
 git clone https://github.com/Mr-DooSun/fastapi-blueprint.git
 cd fastapi-blueprint
 
-# 2. Create virtual environment + install dependencies (UV recommended)
+# 2. Setup (requires uv)
+make setup
+
+# 3. Set up environment variables
+cp _env/local.env.example _env/local.env
+
+# 4. Start PostgreSQL + run migrations + start server
+make dev
+```
+
+Open http://localhost:8000/docs-swagger to explore the API.
+
+<details>
+<summary>Manual setup (without Make)</summary>
+
+```bash
+# 2. Create virtual environment + install dependencies
 uv venv --python 3.12
 source .venv/bin/activate
-uv sync
+uv sync --group dev
 
 # 3. Set up environment variables
 cp _env/local.env.example _env/local.env
 
 # 4. Start PostgreSQL (Docker)
-docker run -d \
-  --name postgres \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=postgres \
-  -e POSTGRES_DB=postgres \
-  -p 5432:5432 \
-  postgres:16
+docker compose -f docker-compose.local.yml up -d postgres
 
 # 5. Run migrations + start server
 alembic upgrade head
 python run_server_local.py --env local
 ```
-
-Open http://localhost:8000/docs-swagger to explore the API.
+</details>
 
 ---
 
@@ -208,6 +298,8 @@ Discovery conditions:
 - `src/{name}/__init__.py` exists
 - `src/{name}/infrastructure/di/{name}_container.py` exists
 
+> With Claude Code, just run `/new-domain product` to scaffold all of this automatically.
+
 ---
 
 ## 4 Interface Types
@@ -234,14 +326,14 @@ All interfaces share the same Domain and Infrastructure layers -- write your bus
 | **FastAPI** | Async web framework |
 | **Pydantic** 2.x | Data validation & settings |
 | **SQLAlchemy** 2.0 | Async ORM |
-| **dependency-injector** | IoC Container (DIP) |
+| **dependency-injector** | IoC Container ([why?](docs/history/013-why-ioc-container.md)) |
 
 ### Infrastructure
 
 | Technology | Purpose |
 |-----------|---------|
 | **PostgreSQL** + asyncpg | Primary RDBMS |
-| **Taskiq** + AWS SQS | Async task queue |
+| **Taskiq** + AWS SQS | Async task queue ([why not Celery?](docs/history/001-celery-to-taskiq.md)) |
 | **aiohttp** | Async HTTP client |
 | **aioboto3** | S3/MinIO storage |
 | **Alembic** | DB migrations |
@@ -250,9 +342,9 @@ All interfaces share the same Domain and Infrastructure layers -- write your bus
 
 | Technology | Purpose |
 |-----------|---------|
-| **Ruff** | Linting + formatting (replaces 6 tools) |
-| **pre-commit** | Git hook automation |
-| **UV** | Python package management |
+| **Ruff** | Linting + formatting ([replaces 6 tools](docs/history/012-ruff-migration.md)) |
+| **pre-commit** | Git hook automation + architecture enforcement |
+| **UV** | Python package management ([why not Poetry?](docs/history/005-poetry-to-uv.md)) |
 | **SQLAdmin** | DB admin UI |
 
 ---
@@ -306,16 +398,17 @@ src/
 
 ## Comparison
 
-| Feature | FastAPI Blueprint | Typical Templates |
-|---------|:-:|:-:|
-| Auto domain discovery | Yes | No |
-| Generic CRUD base classes (7 methods) | Yes | Manual |
-| Multi-interface (API + Worker + Admin + MCP) | 4 types | API only |
-| Architecture enforcement (pre-commit) | Yes | No |
-| AI development skills (Claude Code) | 12 skills | 0 |
-| Architecture Decision Records | 14 ADRs | Rare |
-| Type-safe generics across all layers | Yes | Partial |
-| DI with IoC Container (DIP) | Yes | Varies |
+| Feature | FastAPI Blueprint | [tiangolo/full-stack](https://github.com/fastapi/full-stack-fastapi-template) | [s3rius/template](https://github.com/s3rius/FastAPI-template) | [teamhide/boilerplate](https://github.com/teamhide/fastapi-boilerplate) |
+|---------|:-:|:-:|:-:|:-:|
+| Zero-boilerplate CRUD (7 methods) | **Yes** | No | No | No |
+| Auto domain discovery | **Yes** | No | No | No |
+| Architecture enforcement (pre-commit) | **Yes** | No | No | No |
+| AI development skills | **12** | 0 | 0 | 0 |
+| Adaptive onboarding (`/onboard`) | **Yes** | No | No | No |
+| Multi-interface (API+Worker+Admin) | **4 types** | 2 | 1 | 1 |
+| Architecture Decision Records | **14** | 0 | 0 | 0 |
+| Type-safe generics across layers | **Yes** | Partial | Partial | No |
+| DI with IoC Container | **Yes** | No | No | No |
 
 ---
 
@@ -332,58 +425,22 @@ Every technical choice in this project is documented as an ADR (Architecture Dec
 | [012](docs/history/012-ruff-migration.md) | Ruff adoption |
 | [013](docs/history/013-why-ioc-container.md) | Why IoC Container over inheritance |
 
-[View all ADRs](docs/history/README.md)
+[View all 14 ADRs](docs/history/README.md)
 
 ---
 
-## AI Pair Programming (AIDD)
+## Roadmap
 
-This project supports **AIDD (AI-Driven Development)** methodology with Claude Code pair programming.
+- [ ] JWT Authentication domain
+- [ ] Product example domain (cross-domain demo)
+- [ ] Structured logging (structlog)
+- [ ] FastMCP interface
+- [ ] Reflex Admin dashboard
+- [ ] Health check endpoint
+- [ ] One-click deploy (Railway / Render)
+- [ ] MkDocs documentation site
 
-### Built-in Skills
-
-| Command | Description |
-|---------|------------|
-| `/new-domain {name}` | Scaffold an entire domain (21+ source files) |
-| `/add-api {description}` | Add API endpoint to existing domain |
-| `/add-worker-task {domain} {task}` | Add async Taskiq task |
-| `/add-cross-domain from:{a} to:{b}` | Wire cross-domain dependency |
-| `/review-architecture {domain}` | Architecture compliance audit |
-| `/security-review {domain}` | OWASP-based security audit |
-| `/test-domain {domain}` | Generate or run tests |
-| `/fix-bug {description}` | Structured bug fixing workflow |
-| `/plan-feature {description}` | Feature implementation planning |
-| `/sync-guidelines` | Sync guidelines after design changes |
-
-### MCP Server Setup
-
-To use AIDD features, configure these MCP servers:
-
-**Serena** -- Symbolic code navigation/editing (LSP-level rename, reference analysis)
-```json
-{
-  "mcpServers": {
-    "serena": {
-      "command": "uvx",
-      "args": ["--from", "serena-mcp", "serena", "--project-root", "."]
-    }
-  }
-}
-```
-
-**context7** -- Up-to-date library documentation
-```json
-{
-  "mcpServers": {
-    "context7": {
-      "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp@latest"]
-    }
-  }
-}
-```
-
-> The project works without MCP servers. AIDD features (Skills) require MCP server configuration.
+Star this repo to follow our progress!
 
 ---
 
