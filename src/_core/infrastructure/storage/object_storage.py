@@ -18,7 +18,7 @@ class ObjectStorage:
         key: str,
         content_type: str = "application/octet-stream",
     ) -> str:
-        """파일 업로드"""
+        """Upload a file."""
         try:
             async with self.storage_client.client() as client:
                 if isinstance(file_obj, bytes):
@@ -37,7 +37,7 @@ class ObjectStorage:
             )
 
     async def download_file(self, key: str) -> bytes:
-        """파일 다운로드"""
+        """Download a file."""
         try:
             async with self.storage_client.client() as client:
                 response = await client.get_object(Bucket=self.bucket_name, Key=key)
@@ -53,7 +53,7 @@ class ObjectStorage:
             )
 
     async def delete_file(self, key: str) -> bool:
-        """파일 삭제"""
+        """Delete a file."""
         try:
             async with self.storage_client.client() as client:
                 await client.delete_object(Bucket=self.bucket_name, Key=key)
@@ -64,7 +64,7 @@ class ObjectStorage:
             )
 
     async def file_exists(self, key: str) -> bool:
-        """파일 존재 여부 확인"""
+        """Check whether a file exists."""
         try:
             async with self.storage_client.client() as client:
                 await client.head_object(Bucket=self.bucket_name, Key=key)
@@ -77,7 +77,7 @@ class ObjectStorage:
             )
 
     async def get_file_url(self, key: str, expires_in: int = 3600) -> str:
-        """파일 presigned URL 생성"""
+        """Generate a presigned URL for a file."""
         try:
             async with self.storage_client.client() as client:
                 url = await client.generate_presigned_url(
@@ -92,7 +92,7 @@ class ObjectStorage:
             )
 
     async def list_files(self, prefix: str = "") -> list[str]:
-        """파일 목록 조회"""
+        """List files."""
         try:
             async with self.storage_client.client() as client:
                 response = await client.list_objects_v2(

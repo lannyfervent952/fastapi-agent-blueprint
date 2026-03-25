@@ -61,7 +61,7 @@ class Database:
             database_name=database_name,
         )
 
-        # connect_args는 asyncpg 전용 옵션이 포함될 수 있으므로 sync 엔진 생성 시 제외
+        # Exclude connect_args when creating the sync engine (asyncpg-specific options)
         sync_config = config.model_dump(exclude={"connect_args"})
         self.engine = create_engine(url=dsn, **sync_config)
 

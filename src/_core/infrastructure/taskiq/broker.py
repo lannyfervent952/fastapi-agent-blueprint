@@ -8,10 +8,10 @@ _T = TypeVar("_T")
 
 
 class CustomSQSBroker(SQSBroker):
-    """
-    AWS 자격 증명을 수동으로 주입할 수 있는 커스텀 SQSBroker.
-    기본 SQSBroker는 환경 변수나 설정 파일에서만 자격 증명을 로드하지만,
-    이 클래스는 __init__에서 명시적으로 자격 증명을 받아 설정합니다.
+    """Custom SQSBroker that accepts AWS credentials via manual injection.
+
+    The default SQSBroker only loads credentials from environment variables or
+    config files. This subclass accepts credentials explicitly in __init__.
     """
 
     def __init__(

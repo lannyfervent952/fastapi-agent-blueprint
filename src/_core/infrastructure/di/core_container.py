@@ -43,7 +43,7 @@ class CoreContainer(containers.DeclarativeContainer):
     # Storage
     #########################################################
 
-    # MinIO용 설정 (필요시 교체 사용)
+    # MinIO configuration (swap in when needed)
     # minio_client = providers.Singleton(
     #     ObjectStorageClient,
     #     access_key=settings.minio_access_key,
@@ -51,7 +51,7 @@ class CoreContainer(containers.DeclarativeContainer):
     #     endpoint_url=settings.minio_endpoint_url,
     # )
 
-    # AWS S3용 설정
+    # AWS S3 configuration
     s3_client = providers.Singleton(
         ObjectStorageClient,
         access_key=settings.s3_access_key,

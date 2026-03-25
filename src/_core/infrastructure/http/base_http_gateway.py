@@ -9,7 +9,7 @@ class BaseHttpGateway:
         self.base_url = base_url
 
     def _get_headers(self) -> dict[str, str]:
-        """기본 헤더를 반환합니다. 하위 클래스에서 오버라이드 가능합니다."""
+        """Return default headers. Can be overridden by subclasses."""
         return {}
 
     async def _get(
@@ -18,7 +18,7 @@ class BaseHttpGateway:
         params: dict[str, Any] | None = None,
         headers: dict[str, str] | None = None,
     ) -> dict[str, Any]:
-        """GET 요청을 수행합니다."""
+        """Perform a GET request."""
         merged_headers = {**self._get_headers(), **(headers or {})}
 
         async with self.http_client.session() as session:
@@ -37,7 +37,7 @@ class BaseHttpGateway:
         data: Any | None = None,
         headers: dict[str, str] | None = None,
     ) -> dict[str, Any]:
-        """POST 요청을 수행합니다."""
+        """Perform a POST request."""
         merged_headers = {**self._get_headers(), **(headers or {})}
 
         async with self.http_client.session() as session:
@@ -57,7 +57,7 @@ class BaseHttpGateway:
         data: Any | None = None,
         headers: dict[str, str] | None = None,
     ) -> dict[str, Any]:
-        """PUT 요청을 수행합니다."""
+        """Perform a PUT request."""
         merged_headers = {**self._get_headers(), **(headers or {})}
 
         async with self.http_client.session() as session:
@@ -77,7 +77,7 @@ class BaseHttpGateway:
         data: Any | None = None,
         headers: dict[str, str] | None = None,
     ) -> dict[str, Any]:
-        """PATCH 요청을 수행합니다."""
+        """Perform a PATCH request."""
         merged_headers = {**self._get_headers(), **(headers or {})}
 
         async with self.http_client.session() as session:
@@ -96,7 +96,7 @@ class BaseHttpGateway:
         params: dict[str, Any] | None = None,
         headers: dict[str, str] | None = None,
     ) -> bool:
-        """DELETE 요청을 수행합니다."""
+        """Perform a DELETE request."""
         merged_headers = {**self._get_headers(), **(headers or {})}
 
         async with self.http_client.session() as session:

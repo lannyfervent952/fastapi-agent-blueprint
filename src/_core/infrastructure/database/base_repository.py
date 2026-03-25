@@ -51,7 +51,7 @@ class BaseRepository(Generic[ReturnDTO], ABC):
             )
             datas = result.scalars().all()
 
-            # 필요한 경우에만 관계 로딩
+            # Load relationships only when needed
             if hasattr(self.model, "related_entities"):
                 await session.refresh(datas, ["related_entities"])
 
@@ -88,21 +88,21 @@ class BaseRepository(Generic[ReturnDTO], ABC):
     async def select_datas_with_count(
         self, page: int, page_size: int
     ) -> tuple[list[ReturnDTO], int]:
-        """데이터 조회와 카운트를 하나의 세션에서 처리하여 연결 풀 사용 최적화"""
+        """Fetch data and count in a single session to optimize connection pool usage."""
         async with self.database.session() as session:
-            # 데이터 조회
+            # Fetch data
             result = await session.execute(
                 select(self.model).offset((page - 1) * page_size).limit(page_size)
             )
             datas = result.scalars().all()
 
-            # 카운트 조회 (동일 세션)
+            # Count query (same session)
             count_result = await session.execute(
                 select(func.count()).select_from(self.model)
             )
             total_count = count_result.scalar_one()
 
-            # 필요한 경우에만 관계 로딩
+            # Load relationships only when needed
             if hasattr(self.model, "related_entities"):
                 await session.refresh(datas, ["related_entities"])
 

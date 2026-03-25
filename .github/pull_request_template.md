@@ -1,15 +1,22 @@
-## 📌 관련 이슈 (필수)
-<!-- 닫히는 이슈 번호를 아래 형식으로 작성하세요 (여러 개 가능) -->
+## Related Issue
 - Fixes #
 - Closes #
 
----
-
-## 📝 변경 내용 요약
+## Change Summary
 -
 
-## 🔍 추가 확인/테스트 방법
--
+## Type of Change
+- [ ] feat: New feature
+- [ ] fix: Bug fix
+- [ ] refactor: Code restructuring
+- [ ] docs: Documentation
+- [ ] chore: Build/tooling
+- [ ] test: Tests
 
-## ⚠️ 기타 참고사항
+## Checklist
+- [ ] Architecture rules followed (no Domain -> Infrastructure imports)
+- [ ] Tests pass
+- [ ] Linting passes (`ruff check src/`)
+
+## How to Test
 -

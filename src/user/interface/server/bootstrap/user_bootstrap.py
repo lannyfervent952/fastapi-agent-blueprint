@@ -1,4 +1,4 @@
-"""User 도메인 독립 Bootstrap"""
+"""User domain independent bootstrap"""
 
 from fastapi import FastAPI
 from sqladmin import Admin
@@ -15,12 +15,12 @@ def create_user_container(user_container: UserContainer):
 
 
 def setup_user_routes(app: FastAPI):
-    """User 도메인 라우터 등록"""
-    app.include_router(router=user_router.router, prefix="/v1", tags=["사용자"])
+    """Register user domain routes"""
+    app.include_router(router=user_router.router, prefix="/v1", tags=["User"])
 
 
 def setup_user_admin(app: FastAPI, database: Database):
-    """User 도메인 관리자 뷰 등록"""
+    """Register user domain admin views"""
     admin = Admin(app=app, engine=database.engine)
     admin.add_view(UserView)
     return admin

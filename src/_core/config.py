@@ -8,12 +8,12 @@ class Settings(BaseSettings):
     )
 
     # ----------------------------------------------------------------
-    # 공통 설정
+    # General
     # ----------------------------------------------------------------
-    # 환경 설정 (예: local, dev, stg, prod)
+    # Environment (e.g. local, dev, stg, prod)
     env: str = Field("local", validation_alias=AliasChoices("ENV", "env"))
 
-    # Taskiq 태스크 이름 프리픽스 (예: "my-project.user.test")
+    # Taskiq task name prefix (e.g. "my-project.user.test")
     task_name_prefix: str = Field(
         default="my-project", validation_alias="TASK_NAME_PREFIX"
     )
@@ -86,16 +86,16 @@ class Settings(BaseSettings):
 
     @property
     def allowed_hosts(self) -> list[str]:
-        """TrustedHostMiddleware 용 호스트 목록"""
+        """Allowed host list for TrustedHostMiddleware."""
         if self.is_dev:
             return ["localhost", "127.0.0.1"]
-        return ["api.example.com"]  # TODO: 실제 운영 도메인 입력 필요
+        return ["api.example.com"]  # TODO: set production domain
 
     @property
     def allow_origins(self) -> list[str]:
         if self.is_dev:
             return ["*"]
-        return ["https://example.com"]  # TODO: 실제 프론트엔드 도메인 입력 필요
+        return ["https://example.com"]  # TODO: set production frontend domain
 
 
 settings = Settings()

@@ -1,9 +1,9 @@
-"""도메인 자동 발견 유틸리티.
+"""Domain auto-discovery utility.
 
-src/ 하위 도메인 패키지를 자동 탐지하여 DI Container와 Bootstrap에서
-수동 등록 없이 도메인을 로딩할 수 있게 한다.
+Automatically detects domain packages under src/ so that DI Containers
+and Bootstrap can load domains without manual registration.
 
-참조: migrations/env_utils.py의 load_models()와 동일한 스캔 패턴 사용.
+Reference: Uses the same scan pattern as load_models() in migrations/env_utils.py.
 """
 
 import importlib
@@ -11,15 +11,15 @@ from pathlib import Path
 
 
 def discover_domains() -> list[str]:
-    """src/ 하위 유효 도메인 패키지를 자동 탐지한다.
+    """Auto-detect valid domain packages under src/.
 
-    유효 도메인 조건:
-    - 디렉토리명이 '_' 또는 '.'으로 시작하지 않음
-    - __init__.py 존재
-    - infrastructure/di/{name}_container.py 존재
+    A valid domain must satisfy:
+    - Directory name does not start with '_' or '.'
+    - Contains __init__.py
+    - Contains infrastructure/di/{name}_container.py
 
     Returns:
-        알파벳 순 정렬된 도메인 이름 목록
+        Alphabetically sorted list of domain names.
     """
     src_path = Path(__file__).parent.parent.parent  # src/
     domains = []
@@ -38,7 +38,7 @@ def discover_domains() -> list[str]:
 
 
 def to_class_name(domain_name: str) -> str:
-    """snake_case 도메인명을 PascalCase로 변환한다.
+    """Convert a snake_case domain name to PascalCase.
 
     Examples:
         >>> to_class_name("user")
@@ -50,13 +50,13 @@ def to_class_name(domain_name: str) -> str:
 
 
 def load_domain_container(domain_name: str):
-    """도메인의 DI Container 클래스를 동적으로 로드한다.
+    """Dynamically load a domain's DI Container class.
 
     Args:
-        domain_name: 도메인 이름 (예: "user")
+        domain_name: Domain name (e.g. "user").
 
     Returns:
-        Container 클래스 (예: UserContainer)
+        Container class (e.g. UserContainer).
     """
     module_path = f"src.{domain_name}.infrastructure.di.{domain_name}_container"
     module = importlib.import_module(module_path)

@@ -36,15 +36,15 @@ class HttpClient:
         self._session_loop: asyncio.AbstractEventLoop | None = None
 
     async def _ensure_session(self) -> aiohttp.ClientSession:
-        # 현재 실행 중인 루프 확인
+        # Check the currently running event loop
         try:
             current_loop = asyncio.get_running_loop()
             if self._client_session and self._session_loop != current_loop:
-                # 루프가 변경되었거나 닫힌 경우 세션 초기화
+                # Reset session if the event loop has changed or closed
                 self._client_session = None
                 self._session_loop = None
         except RuntimeError:
-            # 루프가 없는 경우 (동기 컨텍스트 등) - 여기서는 무시하거나 새로 생성
+            # No running loop (e.g. synchronous context) - ignore and create new
             pass
 
         if self._client_session is None or self._client_session.closed:

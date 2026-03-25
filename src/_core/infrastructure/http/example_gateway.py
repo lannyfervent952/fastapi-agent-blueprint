@@ -10,23 +10,23 @@ class ExampleApiGateway(BaseHttpGateway):
         self.token = token
 
     def _get_headers(self) -> dict[str, str]:
-        """인증 토큰이 포함된 기본 헤더를 반환합니다."""
+        """Return default headers with the authentication token."""
         return {"Authorization": f"Bearer {self.token}"}
 
     async def get_data(self, resource_id: str) -> dict[str, Any]:
-        """리소스 단건 조회"""
+        """Retrieve a single resource."""
         return await self._get(f"/resources/{resource_id}")
 
     async def create_data(self, data: dict[str, Any]) -> dict[str, Any]:
-        """리소스 생성"""
+        """Create a resource."""
         return await self._post("/resources", json=data)
 
     async def update_data(
         self, resource_id: str, data: dict[str, Any]
     ) -> dict[str, Any]:
-        """리소스 전체 수정"""
+        """Fully update a resource."""
         return await self._put(f"/resources/{resource_id}", json=data)
 
     async def delete_data(self, resource_id: str) -> bool:
-        """리소스 삭제"""
+        """Delete a resource."""
         return await self._delete(f"/resources/{resource_id}")

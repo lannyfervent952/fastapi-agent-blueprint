@@ -12,13 +12,13 @@ from src._core.middleware.exception_middleware import ExceptionMiddleware
 
 
 def bootstrap_app(app: FastAPI) -> None:
-    # 미들웨어 설정
+    # Middleware setup
     app.add_middleware(ExceptionMiddleware)
 
-    # TrustedHostMiddleware 설정
+    # TrustedHostMiddleware setup
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.allowed_hosts)
 
-    # CORSMiddleware 설정
+    # CORSMiddleware setup
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.allow_origins,
@@ -27,18 +27,18 @@ def bootstrap_app(app: FastAPI) -> None:
         allow_headers=["*"],
     )
 
-    # 공통 라우터 (Core)
+    # Core routers
     app.include_router(router=health_check_router.router, tags=["status", "NEW"])
     if settings.is_dev:
         app.include_router(router=docs_router.router, tags=["docs"])
 
-    # 각 도메인 bootstrap (자동 발견)
+    # Bootstrap each domain (auto-discovery)
     server_container = create_server_container()
     _bootstrap_domains(app=app, server_container=server_container)
 
 
 def _bootstrap_domains(app: FastAPI, server_container) -> None:
-    """discover_domains()로 탐지된 모든 도메인을 동적으로 bootstrap한다."""
+    """Dynamically bootstrap all domains detected by discover_domains()."""
     for name in discover_domains():
         module_path = f"src.{name}.interface.server.bootstrap.{name}_bootstrap"
         module = importlib.import_module(module_path)

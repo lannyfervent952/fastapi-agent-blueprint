@@ -16,7 +16,7 @@ def bootstrap_app(app: SQSBroker) -> None:
 
 
 def _bootstrap_domains(app: SQSBroker, worker_container) -> None:
-    """discover_domains()로 탐지된 모든 도메인의 worker를 동적으로 bootstrap한다."""
+    """Dynamically bootstrap workers for all domains detected by discover_domains()."""
     for name in discover_domains():
         module_path = f"src.{name}.interface.worker.bootstrap.{name}_bootstrap"
         module = importlib.import_module(module_path)

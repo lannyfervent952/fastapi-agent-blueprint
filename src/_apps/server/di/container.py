@@ -5,10 +5,10 @@ from src._core.infrastructure.discovery import discover_domains, load_domain_con
 
 
 def create_server_container() -> containers.DynamicContainer:
-    """Server용 DI 컨테이너를 동적으로 생성한다.
+    """Dynamically create the server DI container.
 
-    discover_domains()로 탐지된 모든 도메인의 Container를
-    자동 등록하므로, 새 도메인 추가 시 이 파일을 수정할 필요 없다.
+    Auto-registers containers for all domains detected by discover_domains(),
+    so this file does not need modification when adding a new domain.
     """
     container = containers.DynamicContainer()
     container.core_container = providers.Container(CoreContainer)

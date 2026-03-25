@@ -18,7 +18,7 @@ router = APIRouter()
 
 @router.post(
     "/user",
-    summary="유저 생성",
+    summary="Create user",
     response_model=SuccessResponse[UserResponse],
     response_model_exclude={"pagination"},
 )
@@ -36,7 +36,7 @@ async def create_user(
 
 @router.post(
     "/users",
-    summary="유저 생성 (복수)",
+    summary="Create users (batch)",
     response_model=SuccessResponse[list[UserResponse]],
     response_model_exclude={"pagination"},
 )
@@ -56,7 +56,7 @@ async def create_users(
 
 @router.get(
     "/users",
-    summary="유저 정보 모두 조회",
+    summary="List all users",
     response_model=SuccessResponse[list[UserResponse]],
 )
 @inject
@@ -77,13 +77,15 @@ async def get_user(
 
 @router.get(
     "/user/by-ids",
-    summary="ID 리스트로 유저 여러 명 조회",
+    summary="Get users by IDs",
     response_model=SuccessResponse[list[UserResponse]],
     response_model_exclude={"pagination"},
 )
 @inject
 async def get_user_by_ids(
-    ids: list[int] = Query(..., description="쉼표로 구분된 ID 리스트 (예: 0,1,2)"),
+    ids: list[int] = Query(
+        ..., description="Comma-separated list of IDs (e.g., 0,1,2)"
+    ),
     user_service: UserService = Depends(Provide[UserContainer.user_service]),
 ) -> SuccessResponse[list[UserResponse]]:
     datas = await user_service.get_datas_by_data_ids(data_ids=ids)
@@ -97,7 +99,7 @@ async def get_user_by_ids(
 
 @router.get(
     "/user/{user_id}",
-    summary="유저 정보 조회",
+    summary="Get user by ID",
     response_model=SuccessResponse[UserResponse],
     response_model_exclude_none=True,
     response_model_exclude={"pagination"},
@@ -116,7 +118,7 @@ async def get_user_by_user_id(
 
 @router.put(
     "/user/{user_id}",
-    summary="유저 수정",
+    summary="Update user",
     response_model=SuccessResponse[UserResponse],
     response_model_exclude={"pagination"},
 )
@@ -135,7 +137,7 @@ async def update_user_by_user_id(
 
 @router.delete(
     "/user/{user_id}",
-    summary="유저 삭제",
+    summary="Delete user",
     response_model=SuccessResponse,
     response_model_exclude={"data", "pagination"},
 )

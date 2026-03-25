@@ -5,15 +5,31 @@
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
-**CRUD 반복을 끝내는 FastAPI 백엔드 청사진.**
-Base 클래스 상속 한 줄로 7개 CRUD 자동 제공. 새 도메인은 만들기만 하면 자동 등록.
+**Production-ready FastAPI backend blueprint.** Inherit one base class, get 7 CRUD endpoints. Add a domain, it registers itself.
+
+Designed for teams of 5+ developers managing 10+ domains.
+
+[**Quick Start**](#quick-start) | [**Add a Domain**](#adding-a-new-domain) | [**Architecture**](#architecture) | [:kr: **한국어**](docs/README.ko.md)
+
+---
+
+## Key Features
+
+- **Zero-boilerplate CRUD** -- Inherit `BaseRepository[DTO]` + `BaseService[DTO]`, get 7 async CRUD methods instantly
+- **Auto domain discovery** -- Add a domain folder, it auto-registers. No container or bootstrap changes needed
+- **4 interface types** -- HTTP API (FastAPI) + Async Worker (Taskiq) + Admin UI (SQLAdmin) + MCP Server (planned)
+- **Architecture enforcement** -- Pre-commit hooks block `Domain -> Infrastructure` imports at commit time
+- **Type-safe generics** -- `BaseRepository[ProductDTO]`, `BaseService[ProductDTO]`, `SuccessResponse[ProductResponse]`
+- **DDD layered structure** -- Each domain is fully independent with its own layers (Domain / Infrastructure / Interface / Application)
+- **12 AI development skills** -- Claude Code slash commands for scaffolding, testing, architecture review, and more
+- **14 Architecture Decision Records** -- Every major design choice documented with rationale
 
 ---
 
 ## Why?
 
 ```python
-# Before: 도메인마다 동일한 CRUD 반복
+# Before: Repeat the same CRUD for every domain
 @router.post("/user")
 async def create_user(user: UserCreate):
     db = get_db()
@@ -22,7 +38,7 @@ async def create_user(user: UserCreate):
     db.commit()
     return new_user
 
-@router.post("/product")  # 또 반복...
+@router.post("/product")  # Repeat again...
 async def create_product(product: ProductCreate):
     db = get_db()
     new_product = Product(**product.dict())
@@ -32,7 +48,7 @@ async def create_product(product: ProductCreate):
 ```
 
 ```python
-# After: 베이스 클래스 상속 한 줄로 CRUD 완료
+# After: One inheritance line, CRUD done
 class ProductRepository(BaseRepository[ProductDTO]):
     def __init__(self, database: Database):
         super().__init__(database=database, model=ProductModel, return_entity=ProductDTO)
@@ -41,7 +57,7 @@ class ProductService(BaseService[ProductDTO]):
     def __init__(self, product_repository: ProductRepositoryProtocol):
         super().__init__(repository=product_repository)
 
-# 7개 CRUD 메서드 자동 제공 — 커스텀 로직만 추가하면 됨
+# 7 CRUD methods provided automatically -- just add your custom logic
 ```
 
 ---
@@ -49,40 +65,40 @@ class ProductService(BaseService[ProductDTO]):
 ## Architecture
 
 ```
-Router → Service(BaseService) → Repository(BaseRepository) → DB
-              ↑ 단순 CRUD는 이것만으로 충분
+Router -> Service(BaseService) -> Repository(BaseRepository) -> DB
+               ^ Simple CRUD: this is all you need
 
-Router → UseCase → Service → Repository → DB
-              ↑ 복잡한 비즈니스 로직이 필요할 때만 추가
+Router -> UseCase -> Service -> Repository -> DB
+               ^ Add only when complex business logic is required
 ```
 
-### 계층별 책임
+### Layer Responsibilities
 
-| 계층 | 역할 | Base 클래스 |
-|------|------|------------|
+| Layer | Role | Base Class |
+|-------|------|-----------|
 | **Interface** | Router, Request/Response, Admin, Worker Task | - |
-| **Domain** | Service (비즈니스 로직), Protocol, DTO, Event | `BaseService[ReturnDTO]` |
-| **Infrastructure** | Repository (DB 접근), Model, DI Container | `BaseRepository[ReturnDTO]` |
-| **Application** | UseCase (복합 로직 조율) — **선택적** | - |
+| **Domain** | Service (business logic), Protocol, DTO, Event | `BaseService[ReturnDTO]` |
+| **Infrastructure** | Repository (DB access), Model, DI Container | `BaseRepository[ReturnDTO]` |
+| **Application** | UseCase (orchestration) -- **optional** | - |
 
-### 데이터 흐름
+### Data Flow
 
 ```
-Write: Request ──→ Service ──→ Repository ──→ Model → DB
-Read:  Response ←── Service ←── Repository ←── DTO ←── Model
+Write: Request --> Service --> Repository --> Model -> DB
+Read:  Response <-- Service <-- Repository <-- DTO <-- Model
 ```
 
-- Request를 Service에 직접 전달 (별도 변환 불필요)
-- Repository가 Model → DTO 변환 (`model_validate(model, from_attributes=True)`)
-- Router가 DTO → Response 변환 (`Response(**dto.model_dump(exclude={...}))`)
+- Request is passed directly to Service (no extra conversion needed)
+- Repository handles Model -> DTO conversion (`model_validate(model, from_attributes=True)`)
+- Router handles DTO -> Response conversion (`Response(**dto.model_dump(exclude={...}))`)
 
-### 데이터 객체
+### Data Objects
 
-| 객체 | 역할 | 위치 |
-|------|------|------|
-| **Request/Response** | API 통신 규격 | `interface/server/dtos/` |
-| **DTO** | 내부 레이어 간 데이터 운반 | `domain/dtos/` |
-| **Model** | DB 테이블 매핑 (Repository 밖으로 노출 금지) | `infrastructure/database/models/` |
+| Object | Role | Location |
+|--------|------|----------|
+| **Request/Response** | API contract | `interface/server/dtos/` |
+| **DTO** | Internal data transfer between layers | `domain/dtos/` |
+| **Model** | DB table mapping (never exposed outside Repository) | `infrastructure/database/models/` |
 
 ---
 
@@ -93,15 +109,15 @@ Read:  Response ←── Service ←── Repository ←── DTO ←── M
 git clone https://github.com/Mr-DooSun/fastapi-blueprint.git
 cd fastapi-blueprint
 
-# 2. 가상환경 + 의존성 설치 (UV 권장)
+# 2. Create virtual environment + install dependencies (UV recommended)
 uv venv --python 3.12
 source .venv/bin/activate
 uv sync
 
-# 3. 환경변수 설정
+# 3. Set up environment variables
 cp _env/local.env.example _env/local.env
 
-# 4. PostgreSQL 실행 (Docker)
+# 4. Start PostgreSQL (Docker)
 docker run -d \
   --name postgres \
   -e POSTGRES_USER=postgres \
@@ -110,27 +126,27 @@ docker run -d \
   -p 5432:5432 \
   postgres:16
 
-# 5. 마이그레이션 + 서버 실행
+# 5. Run migrations + start server
 alembic upgrade head
 python run_server_local.py --env local
 ```
 
-http://localhost:8000/docs-swagger 에서 API 확인
+Open http://localhost:8000/docs-swagger to explore the API.
 
 ---
 
-## 새 도메인 추가하기
+## Adding a New Domain
 
-Product 도메인을 예로 들면:
+Using `Product` domain as an example:
 
 ### 1. Domain Layer
 
 ```python
 # src/product/domain/dtos/product_dto.py
 class ProductDTO(BaseModel):
-    id: int = Field(..., description="제품 ID")
-    name: str = Field(..., description="제품명")
-    price: int = Field(..., description="가격")
+    id: int = Field(..., description="Product ID")
+    name: str = Field(..., description="Product name")
+    price: int = Field(..., description="Price")
     created_at: datetime
     updated_at: datetime
 
@@ -142,7 +158,7 @@ class ProductRepositoryProtocol(BaseRepositoryProtocol[ProductDTO]):
 class ProductService(BaseService[ProductDTO]):
     def __init__(self, product_repository: ProductRepositoryProtocol):
         super().__init__(repository=product_repository)
-    # CRUD 자동 제공. 커스텀 로직만 추가.
+    # CRUD provided automatically. Just add custom logic.
 ```
 
 ### 2. Infrastructure Layer
@@ -183,14 +199,29 @@ async def create_product(
     return SuccessResponse(data=ProductResponse(**data.model_dump()))
 ```
 
-### 자동 등록
+### Auto Registration
 
-`discover_domains()`가 새 도메인을 자동 탐지합니다.
-`_apps/` 내 container나 bootstrap을 **수정할 필요 없습니다**.
+`discover_domains()` automatically detects new domains.
+**No changes needed** in `_apps/` containers or bootstrap files.
 
-자동 발견 조건:
-- `src/{name}/__init__.py` 존재
-- `src/{name}/infrastructure/di/{name}_container.py` 존재
+Discovery conditions:
+- `src/{name}/__init__.py` exists
+- `src/{name}/infrastructure/di/{name}_container.py` exists
+
+---
+
+## 4 Interface Types
+
+Each domain can expose functionality through multiple interfaces:
+
+| Interface | Technology | Location | Purpose |
+|-----------|-----------|----------|---------|
+| **HTTP API** | FastAPI | `interface/server/` | REST API endpoints |
+| **Async Worker** | Taskiq + SQS | `interface/worker/` | Background task processing |
+| **Admin UI** | SQLAdmin | `interface/admin/` | Database management dashboard |
+| **MCP Server** | FastMCP | `interface/mcp/` | AI tool integration (planned) |
+
+All interfaces share the same Domain and Infrastructure layers -- write your business logic once, expose it everywhere.
 
 ---
 
@@ -198,31 +229,31 @@ async def create_product(
 
 ### Core
 
-| 기술 | 용도 |
-|------|------|
-| **FastAPI** | 비동기 웹 프레임워크 |
-| **Pydantic** 2.x | 데이터 검증, Settings |
-| **SQLAlchemy** 2.0 | 비동기 ORM |
-| **dependency-injector** | IoC Container (DIP 실현) |
+| Technology | Purpose |
+|-----------|---------|
+| **FastAPI** | Async web framework |
+| **Pydantic** 2.x | Data validation & settings |
+| **SQLAlchemy** 2.0 | Async ORM |
+| **dependency-injector** | IoC Container (DIP) |
 
 ### Infrastructure
 
-| 기술 | 용도 |
-|------|------|
-| **PostgreSQL** + asyncpg | 메인 RDBMS |
-| **Taskiq** + AWS SQS | 비동기 태스크 큐 |
-| **aiohttp** | 비동기 HTTP 클라이언트 |
-| **aioboto3** | S3/MinIO 스토리지 |
-| **Alembic** | DB 마이그레이션 |
+| Technology | Purpose |
+|-----------|---------|
+| **PostgreSQL** + asyncpg | Primary RDBMS |
+| **Taskiq** + AWS SQS | Async task queue |
+| **aiohttp** | Async HTTP client |
+| **aioboto3** | S3/MinIO storage |
+| **Alembic** | DB migrations |
 
 ### DevOps
 
-| 기술 | 용도 |
-|------|------|
-| **Ruff** | 린팅 + 포맷팅 (6개 도구 통합) |
-| **pre-commit** | Git hook 자동화 |
-| **UV** | Python 패키지 관리 |
-| **SQLAdmin** | DB 관리 UI |
+| Technology | Purpose |
+|-----------|---------|
+| **Ruff** | Linting + formatting (replaces 6 tools) |
+| **pre-commit** | Git hook automation |
+| **UV** | Python package management |
+| **SQLAdmin** | DB admin UI |
 
 ---
 
@@ -230,12 +261,12 @@ async def create_product(
 
 ```
 src/
-├── _apps/                        # App-level 진입점
-│   ├── server/                  # API 서버
-│   ├── worker/                  # Taskiq 워커
-│   └── admin/                   # Admin UI
+├── _apps/                        # App entry points
+│   ├── server/                  # FastAPI HTTP server
+│   ├── worker/                  # Taskiq async worker
+│   └── admin/                   # SQLAdmin dashboard
 │
-├── _core/                        # 공통 인프라
+├── _core/                        # Shared infrastructure
 │   ├── domain/
 │   │   ├── protocols/           # BaseRepositoryProtocol[ReturnDTO]
 │   │   └── services/            # BaseService[ReturnDTO]
@@ -245,12 +276,12 @@ src/
 │   │   ├── taskiq/              # SQS Broker, TaskiqManager
 │   │   ├── storage/             # S3/MinIO
 │   │   ├── di/                  # CoreContainer
-│   │   └── discovery.py         # 도메인 자동 발견
+│   │   └── discovery.py         # Auto domain discovery
 │   ├── application/dtos/        # BaseRequest, BaseResponse, SuccessResponse
 │   ├── middleware/               # ExceptionMiddleware
 │   └── config.py                # Settings (pydantic-settings)
 │
-├── user/                         # 예시 도메인
+├── user/                         # Example domain
 │   ├── domain/
 │   │   ├── dtos/                # UserDTO
 │   │   ├── protocols/           # UserRepositoryProtocol
@@ -267,53 +298,68 @@ src/
 │       └── admin/               # SQLAdmin views
 │
 ├── migrations/                   # Alembic
-├── _env/                         # 환경변수
+├── _env/                         # Environment variables
 └── docs/history/                 # Architecture Decision Records
 ```
 
 ---
 
+## Comparison
+
+| Feature | FastAPI Blueprint | Typical Templates |
+|---------|:-:|:-:|
+| Auto domain discovery | Yes | No |
+| Generic CRUD base classes (7 methods) | Yes | Manual |
+| Multi-interface (API + Worker + Admin + MCP) | 4 types | API only |
+| Architecture enforcement (pre-commit) | Yes | No |
+| AI development skills (Claude Code) | 12 skills | 0 |
+| Architecture Decision Records | 14 ADRs | Rare |
+| Type-safe generics across all layers | Yes | Partial |
+| DI with IoC Container (DIP) | Yes | Varies |
+
+---
+
 ## Architecture Decisions
 
-이 프로젝트의 모든 기술 선택은 ADR(Architecture Decision Record)로 기록되어 있습니다.
+Every technical choice in this project is documented as an ADR (Architecture Decision Record).
 
-| # | 제목 |
-|---|------|
-| [004](docs/history/004-dto-entity-responsibility.md) | DTO/Entity 책임 재정의 |
-| [006](docs/history/006-ddd-layered-architecture.md) | 도메인별 레이어드 아키텍처 전환 |
-| [007](docs/history/007-di-container-and-app-separation.md) | DI 컨테이너 계층화와 앱 분리 |
-| [011](docs/history/011-3tier-hybrid-architecture.md) | 3-Tier 하이브리드 아키텍처 전환 |
-| [012](docs/history/012-ruff-migration.md) | Ruff 도입 |
-| [013](docs/history/013-why-ioc-container.md) | 상속 대신 IoC Container를 선택한 이유 |
+| # | Title |
+|---|-------|
+| [004](docs/history/004-dto-entity-responsibility.md) | DTO/Entity responsibility redefined |
+| [006](docs/history/006-ddd-layered-architecture.md) | Domain-driven layered architecture |
+| [007](docs/history/007-di-container-and-app-separation.md) | DI container hierarchy and app separation |
+| [011](docs/history/011-3tier-hybrid-architecture.md) | 3-Tier hybrid architecture |
+| [012](docs/history/012-ruff-migration.md) | Ruff adoption |
+| [013](docs/history/013-why-ioc-container.md) | Why IoC Container over inheritance |
 
-[전체 목록 보기](docs/history/README.md)
+[View all ADRs](docs/history/README.md)
 
 ---
 
 ## AI Pair Programming (AIDD)
 
-이 프로젝트는 **AIDD(AI-Driven Development)** 방법론을 적용하여 Claude Code와 페어 프로그래밍이 가능합니다.
+This project supports **AIDD (AI-Driven Development)** methodology with Claude Code pair programming.
 
-### 내장 Skills
+### Built-in Skills
 
-| 명령어 | 기능 |
-|--------|------|
-| `/new-domain {name}` | 도메인 전체 스캐폴딩 자동 생성 |
-| `/add-api {description}` | 기존 도메인에 API 엔드포인트 추가 |
-| `/add-worker-task {domain} {task}` | 비동기 Taskiq 태스크 추가 |
-| `/add-cross-domain from:{a} to:{b}` | 도메인 간 의존성 연결 |
-| `/review-architecture {domain}` | 아키텍처 컴플라이언스 감사 |
-| `/security-review {domain}` | OWASP 기반 보안 감사 |
-| `/test-domain {domain}` | 테스트 생성/실행 |
-| `/fix-bug {description}` | 구조화된 버그 수정 |
-| `/plan-feature {description}` | 기능 구현 계획 수립 |
-| `/sync-guidelines` | 설계 변경 후 문서 동기화 점검 |
+| Command | Description |
+|---------|------------|
+| `/new-domain {name}` | Scaffold an entire domain (21+ source files) |
+| `/add-api {description}` | Add API endpoint to existing domain |
+| `/add-worker-task {domain} {task}` | Add async Taskiq task |
+| `/add-cross-domain from:{a} to:{b}` | Wire cross-domain dependency |
+| `/review-architecture {domain}` | Architecture compliance audit |
+| `/security-review {domain}` | OWASP-based security audit |
+| `/test-domain {domain}` | Generate or run tests |
+| `/fix-bug {description}` | Structured bug fixing workflow |
+| `/plan-feature {description}` | Feature implementation planning |
+| `/sync-guidelines` | Sync guidelines after design changes |
 
-### MCP 서버 설정
+### MCP Server Setup
 
-AIDD 기능을 사용하려면 다음 MCP 서버가 필요합니다:
+To use AIDD features, configure these MCP servers:
 
-**Serena** — 심볼릭 코드 탐색/편집 (LSP 수준의 rename, reference 분석)
+**Serena** -- Symbolic code navigation/editing (LSP-level rename, reference analysis)
 ```json
 {
   "mcpServers": {
@@ -325,7 +371,7 @@ AIDD 기능을 사용하려면 다음 MCP 서버가 필요합니다:
 }
 ```
 
-**context7** — 라이브러리 최신 문서 조회
+**context7** -- Up-to-date library documentation
 ```json
 {
   "mcpServers": {
@@ -337,34 +383,16 @@ AIDD 기능을 사용하려면 다음 MCP 서버가 필요합니다:
 }
 ```
 
-> MCP 서버 없이도 프로젝트 자체는 정상 동작합니다. AIDD 기능(Skills)을 활용하려면 MCP 서버 설정이 필요합니다.
+> The project works without MCP servers. AIDD features (Skills) require MCP server configuration.
 
 ---
 
 ## Contributing
 
-```bash
-# pre-commit 설치
-pre-commit install
-
-# 코드 검사
-ruff check src/ --fix
-ruff format src/
-```
-
-### Commit Convention
-
-```
-feat: 새로운 기능
-fix: 버그 수정
-refactor: 리팩토링
-docs: 문서 수정
-chore: 빌드/도구 변경
-test: 테스트
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, coding guidelines, and PR process.
 
 ---
 
 ## License
 
-[MIT License](LICENSE) — 상업적 사용, 수정, 배포 자유.
+[MIT License](LICENSE) -- Free for commercial use, modification, and distribution.

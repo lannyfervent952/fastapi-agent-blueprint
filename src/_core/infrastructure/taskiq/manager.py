@@ -17,5 +17,5 @@ class TaskiqManager:
             task = await self._broker.kick(task_name, *(args or []), **(kwargs or {}))
             return task
         except SendTaskError as e:
-            # 추후 로깅 추가 가능
+            # TODO: add logging
             raise e

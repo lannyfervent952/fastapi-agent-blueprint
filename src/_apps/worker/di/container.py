@@ -4,11 +4,11 @@ from src._core.infrastructure.discovery import discover_domains, load_domain_con
 
 
 def create_worker_container(core_container) -> containers.DynamicContainer:
-    """Worker용 DI 컨테이너를 동적으로 생성한다.
+    """Dynamically create the worker DI container.
 
     Args:
-        core_container: 외부에서 주입받은 CoreContainer 인스턴스.
-            Worker는 broker.py에서 생성한 CoreContainer를 공유한다.
+        core_container: CoreContainer instance injected from outside.
+            The worker shares the CoreContainer created in broker.py.
     """
     container = containers.DynamicContainer()
     container.core_container = core_container

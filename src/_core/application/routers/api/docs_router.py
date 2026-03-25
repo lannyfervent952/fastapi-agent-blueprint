@@ -7,7 +7,7 @@ router = APIRouter()
 @router.get(
     "/docs",
     include_in_schema=False,
-    description="API 문서 선택기 - 다양한 문서 UI 중 선택할 수 있는 메인 페이지",
+    description="API Docs Selector - Main page for choosing among various documentation UIs",
 )
 def docs_selector():
     return HTMLResponse(
@@ -201,8 +201,8 @@ def docs_selector():
       <div class="header">
         <h1>🚀 API Documentation</h1>
         <p class="subtitle">
-          다양한 스타일의 API 문서 중에서 원하는 형태를 선택하세요.<br>
-          각각의 독특한 장점과 사용자 경험을 제공합니다.
+          Choose your preferred style of API documentation below.<br>
+          Each one offers a unique set of features and user experience.
         </p>
       </div>
 
@@ -211,50 +211,50 @@ def docs_selector():
           <span class="card-icon">📚</span>
           <div class="docs-title">FastAPI Swagger UI</div>
           <p class="docs-desc">
-            가장 널리 사용되는 API 문서 형태로, 직관적인 인터페이스와
-            완전한 기능을 제공합니다.
+            The most widely used API documentation format, offering an
+            intuitive interface with full-featured functionality.
           </p>
-          <span class="badge">추천</span>
+          <span class="badge">Recommended</span>
         </a>
 
         <a href="/api/docs-redoc" class="docs-card">
           <span class="card-icon">📖</span>
           <div class="docs-title">ReDoc</div>
           <p class="docs-desc">
-            깔끔하고 읽기 좋은 문서 중심의 디자인으로,
-            API 명세를 체계적으로 탐색할 수 있습니다.
+            A clean, readable, documentation-focused design that lets
+            you explore API specifications in a well-organized manner.
           </p>
-          <span class="badge">깔끔함</span>
+          <span class="badge">Clean</span>
         </a>
 
         <a href="/api/docs-scalar" class="docs-card">
           <span class="card-icon">✨</span>
           <div class="docs-title">Scalar API Reference</div>
           <p class="docs-desc">
-            모던하고 세련된 디자인의 API 문서로,
-            개발자 친화적인 기능들을 제공합니다.
+            A modern, sophisticated API documentation with
+            developer-friendly features.
           </p>
-          <span class="badge">모던</span>
+          <span class="badge">Modern</span>
         </a>
 
         <a href="/api/docs-elements" class="docs-card">
           <span class="card-icon">🎨</span>
           <div class="docs-title">Stoplight Elements</div>
           <p class="docs-desc">
-            인터랙티브하고 시각적으로 아름다운 API 문서로,
-            풍부한 사용자 경험을 제공합니다.
+            An interactive, visually appealing API documentation that
+            delivers a rich user experience.
           </p>
-          <span class="badge">인터랙티브</span>
+          <span class="badge">Interactive</span>
         </a>
 
         <a href="/api/docs-rapidoc" class="docs-card">
           <span class="card-icon">⚡</span>
           <div class="docs-title">RapiDoc</div>
           <p class="docs-desc">
-            빠르고 가벼운 API 문서로,
-            심플하면서도 효율적인 인터페이스를 제공합니다.
+            A fast, lightweight API documentation that provides
+            a simple yet efficient interface.
           </p>
-          <span class="badge">빠름</span>
+          <span class="badge">Fast</span>
         </a>
       </div>
     </div>
@@ -266,7 +266,7 @@ def docs_selector():
 @router.get(
     "/docs-scalar",
     include_in_schema=False,
-    description="Scalar API Reference - 모던하고 깔끔한 디자인의 API 문서",
+    description="Scalar API Reference - Modern, clean API documentation",
 )
 def scalar_docs(request: Request):
     root_path = request.scope.get("root_path", "")
@@ -287,7 +287,7 @@ def scalar_docs(request: Request):
     <script>
       Scalar.createApiReference('#api', {{
         url: '{spec_url}',
-        // proxyUrl: 'https://proxy.scalar.com' // CORS 회피용(선택)
+        // proxyUrl: 'https://proxy.scalar.com' // Optional CORS bypass
       }});
     </script>
   </body>
@@ -298,7 +298,7 @@ def scalar_docs(request: Request):
 @router.get(
     "/docs-elements",
     include_in_schema=False,
-    description="Stoplight Elements - 인터랙티브하고 시각적으로 아름다운 API 문서",
+    description="Stoplight Elements - Interactive, visually appealing API documentation",
 )
 def elements_docs(request: Request):
     root_path = request.scope.get("root_path", "")
@@ -324,7 +324,7 @@ def elements_docs(request: Request):
 @router.get(
     "/docs-rapidoc",
     include_in_schema=False,
-    description="RapiDoc - 빠르고 가벼운 API 문서",
+    description="RapiDoc - Fast, lightweight API documentation",
 )
 def rapidoc_docs(request: Request):
     root_path = request.scope.get("root_path", "")
