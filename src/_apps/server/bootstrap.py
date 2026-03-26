@@ -27,13 +27,21 @@ def bootstrap_app(app: FastAPI) -> None:
         allow_headers=["*"],
     )
 
+    # Bootstrap DI container (auto-discovery)
+    server_container = create_server_container()
+
+    # Wire core container for health check DI
+    # (core is not a domain — no separate bootstrap file needed)
+    server_container.core_container().wire(
+        modules=["src._core.application.routers.api.health_check_router"]
+    )
+
     # Core routers
     app.include_router(router=health_check_router.router, tags=["status", "NEW"])
     if settings.is_dev:
         app.include_router(router=docs_router.router, tags=["docs"])
 
-    # Bootstrap each domain (auto-discovery)
-    server_container = create_server_container()
+    # Bootstrap each domain
     _bootstrap_domains(app=app, server_container=server_container)
 
 
