@@ -1,87 +1,87 @@
-# 011. 3-Tier 하이브리드 아키텍처로 전환
+# 011. Transition to 3-Tier Hybrid Architecture
 
-- 상태: Accepted
-- 날짜: 2026-03-23
-- 관련 이슈: #33
-- 관련 ADR: 004-dto-entity-responsibility.md (진화), 006-ddd-layered-architecture.md (진화)
+- Status: Accepted
+- Date: 2026-03-23
+- Related Issues: #33
+- Related ADRs: 004-dto-entity-responsibility.md (evolution), 006-ddd-layered-architecture.md (evolution)
 
-## 배경
+## Background
 
-프로젝트는 4계층 구조(Router → UseCase → Service → Repository)를 사용하고 있었다.
-ADR 004에서 Entity를 DTO로 대체한 후, UseCase와 Service 계층이 모두 "데이터를 그대로 넘기는" 위임 역할만 하고 있었다.
+The project was using a 4-layer structure (Router -> UseCase -> Service -> Repository).
+After replacing Entity with DTO in ADR 004, both the UseCase and Service layers were only serving as delegation layers that "pass data through as-is."
 
 ```python
-# UseCase — Service 위임만
+# UseCase -- delegates to Service only
 class UserUseCase:
     async def create_data(self, entity: BaseModel) -> UserDTO:
         return await self.user_service.create_data(entity=entity)
 
-# Service — Repository 위임만
+# Service -- delegates to Repository only
 class UserService:
     async def create_data(self, entity: BaseModel) -> UserDTO:
         return await self.user_repository.insert_data(entity=entity)
 ```
 
-8개 CRUD 메서드 x 2계층 = 16개의 passthrough 메서드가 도메인마다 반복되었다.
+8 CRUD methods x 2 layers = 16 passthrough methods repeated per domain.
 
-## 문제
+## Problem
 
-### 1. UseCase가 Service의 복사본
+### 1. UseCase Was a Copy of Service
 
-UserUseCase의 7개 메서드 중 6개는 `self.user_service.method()` 호출이 전부였다.
-유일한 추가 로직은 `get_datas`의 pagination 처리뿐이었다.
+6 out of 7 methods in UserUseCase consisted entirely of `self.user_service.method()` calls.
+The only additional logic was pagination handling in `get_datas`.
 
-### 2. Service도 Repository의 복사본
+### 2. Service Was Also a Copy of Repository
 
-UserService의 8개 메서드 전부가 `self.user_repository.method()` 호출만 했다.
-BaseService가 이전에 존재했으나, Entity→DTO 리팩토링 과정에서 제거되면서 수동 위임으로 전환되었다.
+All 8 methods in UserService only called `self.user_repository.method()`.
+BaseService had previously existed but was removed during the Entity-to-DTO refactoring, reverting to manual delegation.
 
-### 3. Generic 파라미터 과잉
+### 3. Excessive Generic Parameters
 
-`BaseRepositoryProtocol[CreateDTO, ReturnDTO, UpdateDTO]`에서 CreateDTO와 UpdateDTO는
-항상 `BaseModel`로 설정되어 실질적 타입 안전성을 제공하지 못했다.
+In `BaseRepositoryProtocol[CreateDTO, ReturnDTO, UpdateDTO]`, CreateDTO and UpdateDTO
+were always set to `BaseModel`, providing no practical type safety.
 
 ```python
-# 3개 중 2개가 항상 BaseModel — 의미 없음
+# 2 out of 3 are always BaseModel -- meaningless
 class UserRepositoryProtocol(BaseRepositoryProtocol[BaseModel, UserDTO, BaseModel]):
     pass
 ```
 
-## 검토한 대안
+## Alternatives Considered
 
-### 1. 현행 유지 (4계층)
-- UseCase/Service 위임 boilerplate 16개 메서드 수동 유지
-- 도메인 추가 시 매번 동일 boilerplate 복사
-- 이점: 계층이 명확. 단점: 실질적 가치 없는 코드 반복
+### 1. Maintain Status Quo (4 layers)
+- Manually maintain 16 UseCase/Service delegation boilerplate methods
+- Copy the same boilerplate for every new domain
+- Advantage: Clear layer separation. Disadvantage: Repetition of code with no practical value
 
-### 2. UseCase 완전 제거 (Router → Service → Repository)
-- Service에 pagination 로직 흡수
-- 단점: 복잡한 비즈니스 로직이 필요해지면 Service가 비대해짐
+### 2. Remove UseCase Entirely (Router -> Service -> Repository)
+- Absorb pagination logic into Service
+- Disadvantage: Service becomes bloated when complex business logic is needed
 
-### 3. 하이브리드 (선택)
-- 단순 CRUD: Router → Service → Repository (UseCase 생략)
-- 복합 로직: Router → UseCase → Service → Repository (UseCase 유지)
-- BaseService 복원으로 Service boilerplate도 제거
+### 3. Hybrid (chosen)
+- Simple CRUD: Router -> Service -> Repository (UseCase omitted)
+- Complex logic: Router -> UseCase -> Service -> Repository (UseCase retained)
+- Restore BaseService to eliminate Service boilerplate as well
 
-## 결정
+## Decision
 
-**3-Tier 하이브리드 아키텍처 채택**
+**Adopted 3-Tier Hybrid Architecture**
 
-### 변경 1: Generic 간소화 (3개 → 1개)
+### Change 1: Generic Simplification (3 -> 1)
 
 ```python
 # Before
-BaseRepositoryProtocol[CreateDTO, ReturnDTO, UpdateDTO]  # 3개
+BaseRepositoryProtocol[CreateDTO, ReturnDTO, UpdateDTO]  # 3
 BaseRepository[CreateDTO, ReturnDTO, UpdateDTO]
 
 # After
-BaseRepositoryProtocol[ReturnDTO]  # 1개 — 의미있는 것만
+BaseRepositoryProtocol[ReturnDTO]  # 1 -- only what's meaningful
 BaseRepository[ReturnDTO]
 ```
 
-Write 방향은 Request를 그대로 넘기므로 `BaseModel`을 파라미터 타입으로 직접 사용한다.
+Since the write direction passes Request as-is, `BaseModel` is used directly as the parameter type.
 
-### 변경 2: BaseService 복원
+### Change 2: Restored BaseService
 
 ```python
 class BaseService(Generic[ReturnDTO]):
@@ -90,56 +90,56 @@ class BaseService(Generic[ReturnDTO]):
 
     async def create_data(self, entity: BaseModel) -> ReturnDTO: ...
     async def get_datas(self, page, page_size) -> tuple[list[ReturnDTO], PaginationInfo]: ...
-    # CRUD 위임 + pagination 자동 제공
+    # CRUD delegation + automatic pagination
 ```
 
-도메인 Service는 상속만으로 CRUD 완료:
+Domain Services complete CRUD through inheritance alone:
 
 ```python
 class UserService(BaseService[UserDTO]):
     def __init__(self, user_repository: UserRepositoryProtocol):
         super().__init__(repository=user_repository)
-    # 커스텀 메서드만 추가
+    # Add only custom methods
 ```
 
-### 변경 3: UseCase 선택적 사용
+### Change 3: Optional UseCase Usage
 
 ```
-단순 CRUD:  Router → Service(BaseService 상속) → Repository
-복합 로직:  Router → UseCase(수동 작성) → Service → Repository
+Simple CRUD:   Router -> Service(inherits BaseService) -> Repository
+Complex logic: Router -> UseCase(manually written) -> Service -> Repository
 ```
 
-UseCase 추가 기준:
-- 여러 Service를 조합해야 할 때
-- 트랜잭션 경계가 Service 단위를 넘을 때
-- 이벤트 발행 등 orchestration이 필요할 때
+Criteria for adding a UseCase:
+- When multiple Services need to be composed
+- When the transaction boundary exceeds a single Service
+- When orchestration such as event publishing is needed
 
-### 변경 4: 용어 통일
+### Change 4: Terminology Standardization
 
-| 용어 | 역할 | 위치 |
-|------|------|------|
-| Request/Response | API 통신 규격 | `interface/server/dtos/` |
-| DTO | 내부 레이어 간 데이터 운반 | `domain/dtos/` |
-| Model | DB 테이블 매핑 | `infrastructure/database/models/` |
-| Entity | 사용하지 않음 | - |
+| Term | Role | Location |
+|------|------|----------|
+| Request/Response | API communication contract | `interface/server/dtos/` |
+| DTO | Data transport between internal layers | `domain/dtos/` |
+| Model | DB table mapping | `infrastructure/database/models/` |
+| Entity | Not used | - |
 
-## 근거
+## Rationale
 
-| 기준 | 4계층 (이전) | 3-Tier 하이브리드 (현재) |
-|------|------------|----------------------|
-| Service boilerplate | 8개 메서드 수동 작성 | BaseService 상속 (0줄) |
-| UseCase boilerplate | 7개 메서드 수동 작성 | 필요할 때만 생성 |
-| Generic 타입 안전성 | 3개 중 2개 무의미 | 1개 (ReturnDTO)만 의미있게 |
-| 도메인 추가 비용 | UseCase + Service 파일 2개 | Service 파일 1개 (5줄) |
-| 복합 로직 대응 | UseCase 항상 존재 | UseCase 필요 시 추가 |
+| Criterion | 4-Layer (before) | 3-Tier Hybrid (current) |
+|-----------|-----------------|-------------------------|
+| Service boilerplate | 8 methods written manually | BaseService inheritance (0 lines) |
+| UseCase boilerplate | 7 methods written manually | Created only when needed |
+| Generic type safety | 2 out of 3 meaningless | Only 1 (ReturnDTO) is meaningful |
+| Cost to add a domain | 2 files: UseCase + Service | 1 file: Service (5 lines) |
+| Complex logic support | UseCase always present | UseCase added when needed |
 
-1. CRUD 위주 도메인에서 UseCase는 불필요한 위임 레이어 — passthrough 제거로 코드 명확성 향상
-2. BaseService가 Spring Boot의 CRUD Service, NestJS의 TypeOrmCrudService와 동일한 패턴
-3. UseCase를 선택적으로 유지하여 복합 로직 확장성 보존
-4. Generic 간소화로 타입 시그니처가 실제 의미를 반영
+1. In CRUD-heavy domains, UseCase is an unnecessary delegation layer -- removing passthrough improves code clarity
+2. BaseService follows the same pattern as Spring Boot's CRUD Service and NestJS's TypeOrmCrudService
+3. Keeping UseCase optional preserves extensibility for complex logic
+4. Generic simplification makes type signatures reflect actual meaning
 
-## 교훈
+## Lessons Learned
 
-- 계층이 많다고 좋은 아키텍처가 아니다. 각 계층이 실질적 가치를 제공하는지 검증해야 한다
-- "나중에 필요할 수 있으니 미리 만들어두자"는 YAGNI 위반이다. 필요해지면 그때 추가하면 된다
-- Base 클래스를 통한 CRUD 자동화는 엔터프라이즈에서 검증된 패턴이다 (Spring, NestJS, Django)
+- More layers do not mean better architecture. Each layer must be validated for providing practical value
+- "Let's build it in advance in case we need it later" violates YAGNI. Add it when the need arises
+- CRUD automation through base classes is a proven pattern in enterprise frameworks (Spring, NestJS, Django)

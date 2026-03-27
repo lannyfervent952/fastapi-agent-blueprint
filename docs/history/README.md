@@ -1,74 +1,74 @@
 # Architecture Decision History
 
-이 프로젝트의 기술 스택 선택 근거를 기록합니다.
-각 문서는 "왜 이 기술을 선택했는가"에 대한 맥락과 판단 기준을 담고 있습니다.
+This document records the rationale behind technology stack choices for this project.
+Each document captures the context and decision criteria for "why this technology was chosen."
 
-## 목차
+## Table of Contents
 
-| # | 제목 | 상태 | 작성 | 날짜 |
-|---|------|------|------|------|
-| [000](000-rabbitmq-to-celery.md) | RabbitMQ에서 Celery로 전환 | Superseded by 001 | Done | 2025-09-10 |
-| [001](001-celery-to-taskiq.md) | Celery에서 Taskiq로 전환 | Accepted | Done | 2025-12-24 |
-| [002](002-serena-adoption.md) | Serena MCP 서버 도입 및 Claude Code 병행 전략 | Accepted | Done | 2026-03-18 |
-| [003](003-response-request-pattern.md) | Response/Request 패턴 설계 | Accepted | Done | 2025-03~09 |
-| [004](004-dto-entity-responsibility.md) | DTO/Entity 책임 재정의 | Accepted | Done | 2025-07 |
-| [005](005-poetry-to-uv.md) | Poetry에서 uv로 전환 | Accepted | Done | 2025-04 |
-| [006](006-ddd-layered-architecture.md) | 도메인별 레이어드 아키텍처 전환 | Accepted | Done | 2025-07~08 |
-| [007](007-di-container-and-app-separation.md) | DI 컨테이너 계층화와 Interface별 앱 분리 | Accepted | Done | 2025-09~11 |
-| [008](008-deploy-env-separation.md) | 배포 환경 분리 및 설정 관리 | Accepted | Done | 2025-09 |
-| [009](009-async-external-clients.md) | 비동기 외부 클라이언트 표준화 | Accepted | Done | 2025-10 |
-| [010](010-code-quality-tools.md) | 코드 품질 도구 체계화 | Superseded by 012 | Done | 2025-10 |
-| [011](011-3tier-hybrid-architecture.md) | 3-Tier 하이브리드 아키텍처 전환 | Accepted | Done | 2026-03-23 |
-| [012](012-ruff-migration.md) | pre-commit 린팅 도구 Ruff 통합 | Accepted | Done | 2026-03-23 |
-| [013](013-why-ioc-container.md) | 상속 대신 IoC Container를 선택한 이유 | Accepted | Done | 2026-03-23 |
-| [014](014-omc-vs-native-orchestration.md) | OMC vs 네이티브 오케스트레이션 의사결정 | Pending | In Progress | 2026-03-24 |
+| # | Title | Status | Written | Date |
+|---|-------|--------|---------|------|
+| [000](000-rabbitmq-to-celery.md) | Migration from RabbitMQ to Celery | Superseded by 001 | Done | 2025-09-10 |
+| [001](001-celery-to-taskiq.md) | Migration from Celery to Taskiq | Accepted | Done | 2025-12-24 |
+| [002](002-serena-adoption.md) | Serena MCP Server Adoption and Claude Code Parallel Strategy | Accepted | Done | 2026-03-18 |
+| [003](003-response-request-pattern.md) | Response/Request Pattern Design | Accepted | Done | 2025-03~09 |
+| [004](004-dto-entity-responsibility.md) | DTO/Entity Responsibility Redefinition | Accepted | Done | 2025-07 |
+| [005](005-poetry-to-uv.md) | Migration from Poetry to uv | Accepted | Done | 2025-04 |
+| [006](006-ddd-layered-architecture.md) | Migration to Per-Domain Layered Architecture | Accepted | Done | 2025-07~08 |
+| [007](007-di-container-and-app-separation.md) | DI Container Layering and Per-Interface App Separation | Accepted | Done | 2025-09~11 |
+| [008](008-deploy-env-separation.md) | Deployment Environment Separation and Configuration Management | Accepted | Done | 2025-09 |
+| [009](009-async-external-clients.md) | Async External Client Standardization | Accepted | Done | 2025-10 |
+| [010](010-code-quality-tools.md) | Code Quality Tooling Systematization | Superseded by 012 | Done | 2025-10 |
+| [011](011-3tier-hybrid-architecture.md) | Migration to 3-Tier Hybrid Architecture | Accepted | Done | 2026-03-23 |
+| [012](012-ruff-migration.md) | pre-commit Linting Tool Ruff Integration | Accepted | Done | 2026-03-23 |
+| [013](013-why-ioc-container.md) | Why IoC Container Over Inheritance | Accepted | Done | 2026-03-23 |
+| [014](014-omc-vs-native-orchestration.md) | OMC vs Native Orchestration Decision | Pending | In Progress | 2026-03-24 |
 
-## 미래 고려 사항 (Open Issues)
+## Future Considerations (Open Issues)
 
-| 이슈 | 제목 | 라벨 |
-|------|------|------|
-| #8 | websocket router 문서화 라이브러리 추가 | enhancement |
-| #11 | pytest 추가하기 | enhancement |
-| #12 | locust 추가하기 | enhancement |
-| #13 | auth 기능 추가 | enhancement |
-| #18 | database health check | enhancement |
-| #28 | serverless 추가 | enhancement |
-| #29 | DB 환경별 분리 | enhancement, refactor |
-| #31 | message broker별 환경 분리 | enhancement, refactor |
-| #32 | 로깅 | enhancement |
-| #35 | 데이터 CRUD 유효성 검사 추가 | - |
-| #36 | vector db 추가하기 | enhancement |
-| #45 | vercel 추가하기 | enhancement |
-| #46 | dynamodb 추가 | enhancement |
-| #47 | replex 도입 및 자체 admin 페이지 | enhancement |
-| #51 | pydanticAI 도입 | enhancement |
-| #52 | alembic 개발 환경별 분리 | refactor |
-| #55 | error 발생시 slack, discord 알림 | enhancement |
+| Issue | Title | Label |
+|-------|-------|-------|
+| #8 | Add WebSocket router documentation library | enhancement |
+| #11 | Add pytest | enhancement |
+| #12 | Add locust | enhancement |
+| #13 | Add auth functionality | enhancement |
+| #18 | Database health check | enhancement |
+| #28 | Add serverless | enhancement |
+| #29 | Per-environment DB separation | enhancement, refactor |
+| #31 | Per-message-broker environment separation | enhancement, refactor |
+| #32 | Logging | enhancement |
+| #35 | Add data CRUD validation | - |
+| #36 | Add vector DB | enhancement |
+| #45 | Add Vercel | enhancement |
+| #46 | Add DynamoDB | enhancement |
+| #47 | Adopt Replex and build internal admin page | enhancement |
+| #51 | Adopt PydanticAI | enhancement |
+| #52 | Per-environment Alembic separation | refactor |
+| #55 | Slack/Discord alerts on error | enhancement |
 
-## 작성 가이드
+## Writing Guide
 
-### 파일 네이밍
+### File Naming
 ```
-{번호}-{주제}.md
-예: 001-celery-to-taskiq.md
+{number}-{topic}.md
+e.g.: 001-celery-to-taskiq.md
 ```
 
-### 문서 구조
+### Document Structure
 ```markdown
-# {번호}. {제목}
+# {number}. {title}
 
-- 상태: Accepted / Deprecated / Superseded by {번호}
-- 날짜: YYYY-MM-DD
-- 관련 이슈: #{번호}
+- Status: Accepted / Deprecated / Superseded by {number}
+- Date: YYYY-MM-DD
+- Related issue: #{number}
 
-## 배경
-## 문제
-## 검토한 대안
-## 결정
-## 근거
+## Background
+## Problem
+## Alternatives Considered
+## Decision
+## Rationale
 ```
 
-### 상태 값
-- **Accepted** — 현재 적용 중
-- **Deprecated** — 더 이상 유효하지 않음
-- **Superseded by XXX** — 다른 결정으로 대체됨
+### Status Values
+- **Accepted** — Currently in effect
+- **Deprecated** — No longer valid
+- **Superseded by XXX** — Replaced by another decision

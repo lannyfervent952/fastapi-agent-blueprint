@@ -1,51 +1,51 @@
-# 008. 배포 환경 분리 및 설정 관리
+# 008. Deployment Environment Separation and Configuration Management
 
-- 상태: Accepted
-- 날짜: 2025-09-15
-- 관련 이슈: #26, #38
-- 관련 PR: #30
-- 관련 커밋: `abe8a6f`, `21fd076`
+- Status: Accepted
+- Date: 2025-09-15
+- Related Issues: #26, #38
+- Related PRs: #30
+- Related Commits: `abe8a6f`, `21fd076`
 
-## 배경
+## Background
 
-프로젝트가 운영 배포를 준비하면서, 환경별로 다르게 동작해야 하는 설정이 생겼다.
-특히 Swagger 문서(docs)와 에러 메시지가 운영 환경에서도 그대로 노출되는 보안 이슈가 있었다.
+As the project prepared for production deployment, settings that needed to behave differently per environment emerged.
+In particular, there was a security issue where Swagger docs and error messages were exposed as-is in production.
 
-## 문제
+## Problem
 
-### 1. 운영 환경에서 Swagger 문서 노출
+### 1. Swagger Documentation Exposed in Production
 
-개발 환경과 운영 환경 구분 없이 Swagger UI(`/docs-swagger`)와 ReDoc(`/docs-redoc`)이 항상 노출되었다.
-운영 환경에서 API 문서가 공개되면 엔드포인트 구조, 파라미터, 응답 형식 등 내부 정보가 노출된다.
+Without distinguishing between development and production environments, Swagger UI (`/docs-swagger`) and ReDoc (`/docs-redoc`) were always exposed.
+When API documentation is publicly accessible in production, internal information such as endpoint structure, parameters, and response formats is revealed.
 
-### 2. 에러 메시지 무분별 노출
+### 2. Indiscriminate Error Message Exposure
 
-에러 발생 시 스택 트레이스와 상세 에러 정보가 환경 구분 없이 클라이언트에 반환되어,
-운영 환경에서 내부 구현이 노출되는 보안 이슈가 있었다.
+When errors occurred, stack traces and detailed error information were returned to clients regardless of environment,
+creating a security issue where internal implementation details were exposed in production.
 
-### 3. 설정 파일 관리 방식
+### 3. Configuration File Management Approach
 
-기존에 `config.yml`로 설정을 관리하고 있었는데,
-별도의 YAML 파서가 필요하고 IDE 자동완성이나 타입 검증을 받을 수 없었다.
+Configuration was previously managed via `config.yml`,
+which required a separate YAML parser and could not benefit from IDE auto-completion or type validation.
 
-## 결정
+## Decision
 
-### pydantic-settings 기반 환경 설정 도입
+### Introduced pydantic-settings Based Environment Configuration
 
-`config.yml`을 제거하고 `pydantic-settings`로 `Settings` 클래스를 만들었다.
+Removed `config.yml` and created a `Settings` class using `pydantic-settings`.
 
 ```python
-# src/_core/config.py (커밋 abe8a6f)
+# src/_core/config.py (commit abe8a6f)
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     env: str = "local"
-    # 환경별로 docs URL 제어
-    # local/dev: Swagger UI 노출
-    # prod: None (비노출)
+    # Control docs URL per environment
+    # local/dev: Swagger UI exposed
+    # prod: None (hidden)
 ```
 
-### 환경별 API 문서 제어
+### Per-Environment API Documentation Control
 
 ```python
 # src/app.py
@@ -56,20 +56,20 @@ app = FastAPI(
 )
 ```
 
-### 환경별 에러 메시지 제어
+### Per-Environment Error Message Control
 
-ExceptionMiddleware에서 환경에 따라 에러 트레이스 포함 여부를 결정하도록 변경했다.
+The ExceptionMiddleware was modified to determine whether to include error traces based on the environment.
 
-## 근거
+## Rationale
 
-| 기준 | config.yml | pydantic-settings |
-|------|-----------|-------------------|
-| 타입 검증 | 없음 (문자열) | 자동 타입 변환/검증 |
-| IDE 지원 | 없음 | 자동완성, 타입 힌트 |
-| 환경변수 바인딩 | 별도 코드 필요 | 자동 바인딩 |
-| 파서 의존성 | PyYAML 필요 | 불필요 (Pydantic 내장) |
-| 관리 형태 | `.yml` 파일 | `.py` 파일 (코드와 동일) |
+| Criterion | config.yml | pydantic-settings |
+|-----------|-----------|-------------------|
+| Type validation | None (strings) | Automatic type conversion/validation |
+| IDE support | None | Auto-completion, type hints |
+| Env variable binding | Requires separate code | Automatic binding |
+| Parser dependency | PyYAML required | Not needed (built into Pydantic) |
+| Management format | `.yml` file | `.py` file (same as code) |
 
-1. **보안이 주요 동기**: 운영 환경에서 docs 노출과 에러 메시지 노출을 환경별로 제어
-2. `.py` 파일로 설정을 관리하면 코드와 같은 도구(IDE, 린터, 타입체커)로 관리 가능
-3. `pydantic-settings`는 환경변수를 자동으로 바인딩하므로, 12-Factor App 원칙에 부합
+1. **Security was the primary motivation**: Per-environment control of docs exposure and error message exposure in production
+2. Managing settings as `.py` files enables management with the same tools as code (IDE, linter, type checker)
+3. `pydantic-settings` automatically binds environment variables, aligning with the 12-Factor App principles

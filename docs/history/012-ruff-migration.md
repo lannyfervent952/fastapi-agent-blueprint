@@ -1,30 +1,30 @@
-# 012. pre-commit 린팅 도구 통합: Ruff로 마이그레이션
+# 012. Consolidating pre-commit Linting Tools: Migration to Ruff
 
-- 상태: Accepted
-- 날짜: 2026-03-23
-- 관련 이슈: #58
-- 관련 ADR: 010-code-quality-tools.md (Supersedes)
+- Status: Accepted
+- Date: 2026-03-23
+- Related Issues: #58
+- Related ADRs: 010-code-quality-tools.md (Supersedes)
 
-## 배경
+## Background
 
-ADR 010에서 pre-commit 설정을 체계화하여 6개 도구를 조합하고 있었다:
+In ADR 010, the pre-commit configuration was systematized with a combination of 6 tools:
 pyupgrade, autoflake, isort, Black, flake8 + plugins, bandit.
 
-각 도구가 개별 virtualenv에서 실행되며, 도구 간 버전 호환과 설정 관리가 분산되어 있었다.
+Each tool ran in its own virtualenv, and version compatibility and settings management were scattered across tools.
 
-## 문제
+## Problem
 
-### 1. 실행 속도
+### 1. Execution Speed
 
-6개 도구가 순차 실행되며, 각각 별도 virtualenv를 유지한다.
-초기 설치 시 수 분, 이후에도 도구별 순차 실행으로 pre-commit 전체 시간이 길다.
+6 tools ran sequentially, each maintaining a separate virtualenv.
+Initial installation took several minutes, and sequential per-tool execution made the overall pre-commit time long.
 
-### 2. 설정 분산
+### 2. Scattered Configuration
 
-각 도구의 설정이 `.pre-commit-config.yaml`의 `args`에 인라인으로 산재되어 있었다:
+Each tool's settings were scattered inline in the `args` of `.pre-commit-config.yaml`:
 
 ```yaml
-# flake8 설정이 args에 한 줄로 압축
+# flake8 settings compressed into a single args line
 args:
   - --ignore=F841,E501,W503,E203,E402,F401,B008,B006,C901,SIM114,SIM910,SIM904,E704
   - --max-line-length=88
@@ -32,59 +32,59 @@ args:
   - --per-file-ignores=**/routers/*:B008,**/workflows/*:B006
 ```
 
-`pyproject.toml`에 중앙 관리되지 않아 설정을 찾으려면 `.pre-commit-config.yaml`을 읽어야 했다.
+Without centralized management in `pyproject.toml`, finding settings required reading `.pre-commit-config.yaml`.
 
-### 3. 버전 관리 부담
+### 3. Version Management Burden
 
-6개 도구의 `rev`를 개별 관리해야 했다.
-`pre-commit autoupdate` 시 도구 간 호환성 문제가 발생할 수 있었다.
+6 tools required individual `rev` management.
+Running `pre-commit autoupdate` could introduce compatibility issues between tools.
 
-### 4. Python 버전 의존성
+### 4. Python Version Dependency
 
-Black hook에 `language_version: python3.12`가 하드코딩되어,
-Python 3.13으로 업그레이드 시 hook이 실패하는 문제가 발생했다.
+The Black hook had `language_version: python3.12` hardcoded,
+causing the hook to fail when upgrading to Python 3.13.
 
-## 검토한 대안
+## Alternatives Considered
 
-### 1. 현행 유지 (6개 도구)
-- 안정적이고 검증됨
-- 단점: 위에 나열한 4가지 문제 지속
+### 1. Maintain Status Quo (6 tools)
+- Stable and proven
+- Disadvantage: The 4 problems listed above persist
 
-### 2. Ruff로 통합 (선택)
-- Rust 기반, 10-100x 빠른 실행 속도
-- flake8, pyupgrade, autoflake, isort, Black, bandit 규칙을 하나로 통합
-- `pyproject.toml`에 설정 중앙 관리
-- 1개 rev만 관리
+### 2. Consolidate with Ruff (chosen)
+- Rust-based, 10-100x faster execution speed
+- Consolidates flake8, pyupgrade, autoflake, isort, Black, and bandit rules into one
+- Centralized configuration management in `pyproject.toml`
+- Only 1 rev to manage
 
-### 3. 부분 마이그레이션 (flake8만 Ruff로)
-- Black/isort는 유지하고 flake8만 교체
-- 단점: 도구 수가 줄지 않아 근본적 해결이 안 됨
+### 3. Partial Migration (only replace flake8 with Ruff)
+- Keep Black/isort and only replace flake8
+- Disadvantage: The number of tools does not decrease, so the fundamental problem remains unsolved
 
-## 결정
+## Decision
 
-**6개 린팅 도구를 Ruff 1개로 전면 교체**
+**Replaced all 6 linting tools with a single Ruff installation**
 
-### 제거한 도구
+### Removed Tools
 
-| 도구 | Ruff 대체 규칙 |
-|------|-------------|
-| pyupgrade | `UP` (Python 3.12+ 구문 현대화) |
-| autoflake | `F` (미사용 import/변수 제거) |
-| isort | `I` (import 정렬) |
-| Black | `ruff format` (Black 호환 포맷팅) |
+| Tool | Ruff Replacement Rule |
+|------|----------------------|
+| pyupgrade | `UP` (Python 3.12+ syntax modernization) |
+| autoflake | `F` (unused import/variable removal) |
+| isort | `I` (import sorting) |
+| Black | `ruff format` (Black-compatible formatting) |
 | flake8 + bugbear + comprehensions | `E`, `W`, `F`, `B`, `C4` |
-| bandit | `S` (보안 검사) |
+| bandit | `S` (security checks) |
 
-### 유지한 도구
+### Retained Tools
 
-- **pre-commit-hooks**: 일반 파일 검증 (trailing whitespace 등)
-- **mypy**: 타입 체킹 (Ruff가 커버하지 않는 영역)
-- **커스텀 pygrep hooks**: 아키텍처 위반 검사 4개
+- **pre-commit-hooks**: General file validation (trailing whitespace, etc.)
+- **mypy**: Type checking (an area Ruff does not cover)
+- **Custom pygrep hooks**: 4 architecture violation checks
 
-### 설정 구조
+### Configuration Structure
 
 ```toml
-# pyproject.toml — 중앙 관리
+# pyproject.toml -- centralized management
 [tool.ruff]
 target-version = "py312"
 line-length = 88
@@ -92,11 +92,11 @@ exclude = ["migrations"]
 
 [tool.ruff.lint]
 select = ["E", "W", "F", "UP", "I", "B", "C4", "SIM", "S"]
-ignore = [...]  # 기존 flake8 ignore 1:1 매핑
+ignore = [...]  # 1:1 mapping from existing flake8 ignore list
 ```
 
 ```yaml
-# .pre-commit-config.yaml — 실행만 담당
+# .pre-commit-config.yaml -- handles execution only
 - repo: https://github.com/astral-sh/ruff-pre-commit
   rev: v0.15.7
   hooks:
@@ -105,24 +105,24 @@ ignore = [...]  # 기존 flake8 ignore 1:1 매핑
     - id: ruff-format
 ```
 
-### 규칙 매핑
+### Rule Mapping
 
-기존 flake8 ignore 목록을 Ruff 코드로 1:1 매핑했다.
-Ruff에 존재하지 않는 규칙(W503, E203, E704, SIM904)은 제거했다.
-기존 도구에서 잡지 않던 신규 규칙(SIM102, SIM117, B904, UP046, S607)은
-행동 일관성을 위해 ignore에 추가했다.
+Existing flake8 ignore lists were mapped 1:1 to Ruff codes.
+Rules that do not exist in Ruff (W503, E203, E704, SIM904) were removed.
+New rules not caught by the existing tools (SIM102, SIM117, B904, UP046, S607)
+were added to the ignore list for behavioral consistency.
 
-## 근거
+## Rationale
 
-| 기준 | 6개 도구 (이전) | Ruff (현재) |
-|------|-------------|------------|
-| 실행 속도 | 순차 6회 실행 | Rust 기반, 10-100x 빠름 |
-| 설정 위치 | .pre-commit-config.yaml args | pyproject.toml 중앙 관리 |
-| 버전 관리 | 6개 rev 개별 관리 | 1개 rev |
-| Python 버전 | Black에 하드코딩 필요 | target-version으로 선언적 관리 |
-| 규칙 호환 | flake8 코드 체계 | 동일 코드 체계 유지 |
+| Criterion | 6 Tools (before) | Ruff (current) |
+|-----------|-----------------|----------------|
+| Execution speed | Sequential 6-pass execution | Rust-based, 10-100x faster |
+| Settings location | .pre-commit-config.yaml args | Centralized in pyproject.toml |
+| Version management | 6 individual revs | 1 rev |
+| Python version | Hardcoding required for Black | Declarative management via target-version |
+| Rule compatibility | flake8 code system | Same code system maintained |
 
-1. 개발 경험 개선: pre-commit 실행 시간이 체감상 크게 줄어듦
-2. 설정 가독성: `pyproject.toml` 한 곳에서 모든 린팅 규칙 확인 가능
-3. 유지보수 단순화: 도구 1개의 버전만 관리
-4. 생태계 추세: Ruff가 Python 린팅 표준으로 자리잡는 중 (FastAPI, Pydantic, Django 등 주요 프로젝트 채택)
+1. Improved developer experience: pre-commit execution time noticeably reduced
+2. Settings readability: All linting rules visible in a single `pyproject.toml` location
+3. Simplified maintenance: Only 1 tool version to manage
+4. Ecosystem trend: Ruff is establishing itself as the Python linting standard (adopted by major projects including FastAPI, Pydantic, Django, etc.)
