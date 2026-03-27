@@ -1,97 +1,97 @@
-# FastAPI Layered Architecture - Claude 작업 가이드
+# FastAPI Layered Architecture — Claude Work Guide
 
-## 프로젝트 스케일
-이 프로젝트는 도메인 10개 이상, 팀원 5명 이상의 엔터프라이즈급 서비스를 목표로 설계한다.
-모든 제안과 설계는 이 규모를 전제로 확장성, 유지보수성, 팀 협업을 고려해야 한다.
+## Project Scale
+This project targets enterprise-grade services with 10+ domains and 5+ team members.
+All proposals and designs must consider scalability, maintainability, and team collaboration at this scale.
 
-## 작업 전 필수 확인
-1. Serena `refactoring_status` 메모리로 현재 Phase 확인
-2. Serena `architecture_conventions` 메모리로 DO/DON'T 확인
+## Pre-work Checklist
+1. Check current Phase via Serena `refactoring_status` memory
+2. Check DO/DON'T via Serena `architecture_conventions` memory
 
-## 절대 금지 규칙
-- Domain 레이어에서 Infrastructure import 금지
-- Model 객체를 Repository 밖으로 노출 금지
-- Mapper 클래스 별도 생성 금지 (인라인 변환으로 충분)
-- Entity 패턴 미사용 — DTO로 통일 (배경: [ADR 004](docs/history/004-dto-entity-responsibility.md))
+## Absolute Prohibitions
+- No Infrastructure imports from the Domain layer
+- No exposing Model objects outside the Repository
+- No separate Mapper classes (inline conversion is sufficient)
+- No Entity pattern — unified to DTO (background: [ADR 004](docs/history/004-dto-entity-responsibility.md))
 
-## 계층 구조 (3-Tier 하이브리드)
-- 기본: Router → Service(BaseService 상속) → Repository(BaseRepository 상속)
-- 복합 로직 시: Router → UseCase(수동 작성) → Service → Repository
-- UseCase 추가 기준: 여러 Service 조합, 트랜잭션 경계 초과, 이벤트 발행 등
-- 판단이 애매하면: UseCase 없이 시작, 복잡해지면 추가
+## Layer Architecture (3-Tier Hybrid)
+- Default: Router → Service (extends BaseService) → Repository (extends BaseRepository)
+- Complex logic: Router → UseCase (manually written) → Service → Repository
+- UseCase criteria: multiple Service composition, cross-transaction boundaries, event publishing, etc.
+- When in doubt: start without UseCase, add when complexity grows
 
-## 용어 정의
-- **Request/Response**: API 통신 규격 (`interface/server/dtos/`)
-- **DTO**: 내부 레이어 간 데이터 운반 — Repository→Router (`domain/dtos/`)
-- **Model**: DB 테이블 매핑, Repository 밖으로 노출 금지 (`infrastructure/database/models/`)
+## Terminology
+- **Request/Response**: API communication schema (`interface/server/dtos/`)
+- **DTO**: Internal data carrier between layers — Repository→Router (`domain/dtos/`)
+- **Model**: DB table mapping, never exposed outside Repository (`infrastructure/database/models/`)
 
-## Claude 협업 규칙
-- 진단/리뷰 결과가 "적절하다"면 억지 개선 제안을 만들지 않는다
-- 제안 전 기존 4계층(CLAUDE.md / project-dna / Serena / auto-memory)에서 이미 커버되는지 검증한다
-- 기존 구조를 수정/삭제하는 제안은 새 구조의 이득이 명확할 때만 한다
-- 스킬 SKILL.md frontmatter 지원 속성: name, argument-hint, description, disable-model-invocation, compatibility (allowed-tools 미지원)
-- **코드 변경 시 관련 문서 동시 업데이트 필수** — 커밋 전에 아래 항목을 확인한다:
-  1. 변경한 패턴을 참조하는 Skills SKILL.md 및 references/
-  2. project-dna.md의 관련 섹션
-  3. Serena 메모리 (architecture_conventions 등)
-  4. 에이전트에 위임 시 변경 파일 목록을 명시적으로 전달
+## Claude Collaboration Rules
+- If diagnosis/review result is "adequate", do not force improvement suggestions
+- Before proposing, verify existing 4-layer coverage (CLAUDE.md / project-dna / Serena / auto-memory)
+- Only propose modifying/deleting existing structures when benefits of the new structure are clear
+- Skill SKILL.md frontmatter supported attributes: name, argument-hint, description, disable-model-invocation, compatibility (allowed-tools not supported)
+- **Update related documentation when changing code** — before committing, check:
+  1. Skills SKILL.md and references/ that reference the changed patterns
+  2. Relevant sections of project-dna.md
+  3. Serena memories (architecture_conventions, etc.)
+  4. When delegating to agents, explicitly pass the list of changed files
 
-## 변환 패턴
-### Write 방향 (Request → DB)
-- Router → Service: `entity=item` (Request 직접 전달)
-- Service → Repository: entity 그대로 전달
+## Conversion Patterns
+### Write Direction (Request → DB)
+- Router → Service: `entity=item` (pass Request directly)
+- Service → Repository: pass entity as-is
 - Repository → DB: `Model(**entity.model_dump(exclude_none=True))`
 
-### Read 방향 (DB → Response)
+### Read Direction (DB → Response)
 - DB → Repository: `DTO.model_validate(model, from_attributes=True)`
-- Repository → Service → Router: DTO 그대로 전달
+- Repository → Service → Router: pass DTO as-is
 - Router → Client: `Response(**dto.model_dump(exclude={'password'}))`
 
-## Write DTO 생성 기준
-- Request 필드와 동일한 경우: Request를 직접 전달, 별도 Create/Update DTO 불필요
-- 필드가 다른 경우 (auth context 주입, 파생 필드 등): `domain/dtos/`에 별도 DTO 생성
-  - 예: `CreateUserDTO(**item.model_dump(), created_by=current_user.id)`
+## Write DTO Creation Criteria
+- When fields match Request: pass Request directly, no separate Create/Update DTO needed
+- When fields differ (auth context injection, derived fields, etc.): create separate DTO in `domain/dtos/`
+  - Example: `CreateUserDTO(**item.model_dump(), created_by=current_user.id)`
 
-## 작업별 Skills (slash commands)
-- `/plan-feature {description}` — 기능 구현 계획 수립 (요구사항 인터뷰 → 아키텍처 분석 → 보안 체크 → 태스크 분해)
-- `/new-domain {name}` — 도메인 전체 스캐폴딩 (소스 21개 + 테스트 4개)
-- `/add-api {description}` — 기존 도메인에 API 엔드포인트 추가
-- `/add-worker-task {domain} {task}` — 비동기 Taskiq 태스크 추가
-- `/add-cross-domain from:{a} to:{b}` — 도메인 간 의존성 연결
-- `/review-architecture {domain|all}` — 아키텍처 컴플라이언스 감사
-- `/security-review {domain|file|all}` — OWASP 기반 코드 보안 감사
-- `/test-domain {domain} [generate|run]` — 테스트 생성 또는 실행
-- `/fix-bug {description}` — 구조화된 버그 수정 워크플로우
-- `/sync-guidelines` — 설계 변경 후 가이드라인 동기화 + project-dna.md 재생성
-- `/migrate-domain {generate|upgrade|downgrade|status}` — Alembic 마이그레이션 관리
-- `/onboard` — 신규 인력 대화형 온보딩 (프로젝트 구조 → 규칙 → 워크플로우)
+## Skills (slash commands)
+- `/plan-feature {description}` — Feature implementation planning (requirements interview → architecture analysis → security check → task decomposition)
+- `/new-domain {name}` — Full domain scaffolding (21 source + 4 test files)
+- `/add-api {description}` — Add API endpoint to existing domain
+- `/add-worker-task {domain} {task}` — Add async Taskiq task
+- `/add-cross-domain from:{a} to:{b}` — Wire cross-domain dependency
+- `/review-architecture {domain|all}` — Architecture compliance audit
+- `/security-review {domain|file|all}` — OWASP-based code security audit
+- `/test-domain {domain} [generate|run]` — Generate or run tests
+- `/fix-bug {description}` — Structured bug-fix workflow
+- `/sync-guidelines` — Synchronize guidelines after design changes + regenerate project-dna.md
+- `/migrate-domain {generate|upgrade|downgrade|status}` — Alembic migration management
+- `/onboard` — Interactive onboarding for new members (project structure → rules → workflow)
 
-## 도메인 자동 발견
-- `src/_core/infrastructure/discovery.py`의 `discover_domains()`가 도메인을 자동 탐지
-- Server/Worker의 App-level Container는 `DynamicContainer` + 팩토리 함수 사용
-- **새 도메인 추가 시 `container.py`, `bootstrap.py` 수정 불필요** (자동 등록)
-- 도메인 Container 자체는 `DeclarativeContainer` 유지
+## Domain Auto-discovery
+- `discover_domains()` in `src/_core/infrastructure/discovery.py` auto-detects domains
+- Server/Worker App-level Containers use `DynamicContainer` + factory function
+- **No need to modify `container.py` or `bootstrap.py` when adding a new domain** (auto-registered)
+- Domain Containers themselves use `DeclarativeContainer`
 
-## 도구 선택 기준
+## Tool Selection Guidelines
 
-### 코드 탐색/읽기 (우선순위 순)
-1. **Serena 심볼 도구** (기본): `get_symbols_overview` → `find_symbol(include_body=True)`
-   - 파일 구조 파악, 특정 메서드 읽기, 클래스 계층 탐색
-   - 토큰 효율이 높아 대규모 코드베이스에서 필수
-2. **Grep/Glob** (보조): 파일 위치 찾기, 문자열 패턴 검색, 설정 파일 탐색
-3. **Read** (최후 수단): 비코드 파일, 설정 파일, 또는 심볼 탐색으로 불충분할 때만
+### Code Exploration / Reading (by priority)
+1. **Serena symbol tools** (default): `get_symbols_overview` → `find_symbol(include_body=True)`
+   - Understand file structure, read specific methods, navigate class hierarchy
+   - Token-efficient, essential for large codebases
+2. **Grep/Glob** (auxiliary): locate files, search string patterns, explore config files
+3. **Read** (last resort): non-code files, config files, or when symbol exploration is insufficient
 
-### 영향 범위 분석
-- 리팩토링/시그니처 변경 시: Serena `find_referencing_symbols` 우선
-- 단순 문자열 검색: Grep
+### Impact Analysis
+- For refactoring/signature changes: prioritize Serena `find_referencing_symbols`
+- For simple string search: Grep
 
-### 편집
-- 심볼 전체 교체 (메서드, 클래스): Serena `replace_symbol_body`
-- 부분 수정 (몇 줄 변경): Claude Code `Edit`
-- 새 코드 삽입: Serena `insert_before/after_symbol` 또는 `Edit`
+### Editing
+- Full symbol replacement (methods, classes): Serena `replace_symbol_body`
+- Partial modification (few lines): Claude Code `Edit`
+- New code insertion: Serena `insert_before/after_symbol` or `Edit`
 
-### 정형화된 작업
-- 도메인 생성/API 추가/테스트 등: Skills (`/new-domain`, `/add-api` 등)
+### Routine Tasks
+- Domain creation/API addition/tests/etc.: Skills (`/new-domain`, `/add-api`, etc.)
 
-### 라이브러리 문서
-- context7으로 최신 문서 확인 (SQLAlchemy 2.0, Pydantic 2.x, Taskiq 등)
+### Library Documentation
+- Check latest docs via context7 (SQLAlchemy 2.0, Pydantic 2.x, Taskiq, etc.)

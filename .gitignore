@@ -171,3 +171,6 @@ cython_debug/
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+# Internal strategy docs
+GROWTH_STRATEGY.md
