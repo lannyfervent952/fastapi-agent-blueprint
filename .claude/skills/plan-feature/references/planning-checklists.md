@@ -1,186 +1,186 @@
-# 기능 계획 수립 체크리스트 상세
+# Feature Planning Checklist Details
 
-## 1. 요구사항 인터뷰 질문 은행
+## 1. Requirements Interview Question Bank
 
-### 데이터 모델
-- 이 기능의 핵심 엔티티(데이터)는 무엇인가요? (예: 주문, 상품, 결제)
-- 각 엔티티의 주요 필드를 알려주세요 (예: name, price, status)
-- 엔티티 간 관계가 있나요? (1:N, N:M 등)
-- 고유 제약조건이 있나요? (unique 필드, 복합 키 등)
+### Data Model
+- What are the core entities (data) for this feature? (e.g., Order, Product, Payment)
+- What are the main fields for each entity? (e.g., name, price, status)
+- Are there relationships between entities? (1:N, N:M, etc.)
+- Are there unique constraints? (unique fields, composite keys, etc.)
 
-### 비즈니스 규칙
-- 데이터 생성 시 필수 검증 조건이 있나요?
-- 상태 전이 규칙이 있나요? (예: pending → confirmed → shipped)
-- 비즈니스 로직에서 계산/파생되는 값이 있나요?
-- 동시성 처리가 필요한 경우가 있나요? (재고 차감, 좌석 예약 등)
+### Business Rules
+- Are there mandatory validation conditions when creating data?
+- Are there state transition rules? (e.g., pending -> confirmed -> shipped)
+- Are there calculated/derived values in the business logic?
+- Are there cases requiring concurrency handling? (inventory deduction, seat reservation, etc.)
 
-### 사용자 유형 및 권한
-- 이 기능을 사용하는 사용자 유형은? (비로그인, 일반 사용자, 관리자)
-- 권한 레벨이 다른 경우, 각 레벨에서 가능한 작업은?
-- 데이터 소유권 개념이 있나요? (자신의 데이터만 접근 가능?)
+### User Types and Permissions
+- What user types will use this feature? (anonymous, regular user, admin)
+- If permission levels differ, what actions are available at each level?
+- Is there a data ownership concept? (access only own data?)
 
-### 외부 연동
-- 외부 API 호출이 필요한가요? (결제 게이트웨이, 알림 서비스 등)
-- 파일 업로드/다운로드가 필요한가요? (S3, 로컬 스토리지)
-- 이메일/SMS/푸시 알림이 필요한가요?
+### External Integrations
+- Are external API calls needed? (payment gateway, notification service, etc.)
+- Are file uploads/downloads needed? (S3, local storage)
+- Are email/SMS/push notifications needed?
 
-### 비동기 처리
-- 즉시 응답이 필요한 작업 vs. 백그라운드 처리 가능한 작업?
-- 예약 실행(스케줄링)이 필요한 작업이 있나요?
-- 대량 데이터 처리가 필요한 경우가 있나요?
+### Async Processing
+- Which tasks need immediate response vs. can be processed in the background?
+- Are there tasks that need scheduled execution?
+- Are there cases requiring bulk data processing?
 
-### 에러 및 예외
-- 주요 실패 시나리오는? (데이터 없음, 권한 없음, 중복, 외부 연동 실패)
-- 실패 시 롤백/보상 트랜잭션이 필요한가요?
-- 재시도 정책이 필요한가요?
+### Errors and Exceptions
+- What are the main failure scenarios? (data not found, unauthorized, duplicate, external integration failure)
+- Is rollback/compensating transaction needed on failure?
+- Is a retry policy needed?
 
-## 2. 보안 평가 매트릭스
+## 2. Security Assessment Matrix
 
-### 인증/인가
-- [ ] 로그인 필수 엔드포인트인가?
-- [ ] 역할 기반 접근 제어(RBAC)가 필요한가?
-- [ ] 토큰 검증 미들웨어가 이미 있는가, 추가가 필요한가?
-- [ ] 데이터 소유권 검증이 필요한가? (본인 데이터만 접근)
+### Authentication & Authorization
+- [ ] Is this a login-required endpoint?
+- [ ] Is role-based access control (RBAC) needed?
+- [ ] Does a token verification middleware already exist, or does one need to be added?
+- [ ] Is data ownership verification needed? (access only own data)
 
-### 결제 처리
-- [ ] 결제 금액 무결성 검증이 필요한가?
-- [ ] 결제 상태 변경에 대한 audit 로그가 필요한가?
-- [ ] PCI DSS 관련 데이터를 직접 저장하는가?
-- [ ] 결제 실패/환불 시나리오가 정의되어 있는가?
+### Payment Processing
+- [ ] Is payment amount integrity verification needed?
+- [ ] Are audit logs needed for payment status changes?
+- [ ] Is PCI DSS-related data being stored directly?
+- [ ] Are payment failure/refund scenarios defined?
 
-### 데이터 변경 (CUD)
-- [ ] CREATE: 입력 데이터 검증이 충분한가?
-- [ ] UPDATE: 부분 업데이트 시 권한 체크가 되는가?
-- [ ] DELETE: 물리 삭제 vs. 논리 삭제(soft delete) 결정?
-- [ ] 변경 이력(audit trail)이 필요한가?
+### Data Modification (CUD)
+- [ ] CREATE: Is input data validation sufficient?
+- [ ] UPDATE: Are permission checks in place for partial updates?
+- [ ] DELETE: Physical delete vs. soft delete decision?
+- [ ] Is change history (audit trail) needed?
 
-### 외부 API 연동
-- [ ] API 키/시크릿 관리 방법이 정해져 있는가? (환경변수, 시크릿 매니저)
-- [ ] 요청/응답 로깅 시 민감 데이터가 노출되지 않는가?
-- [ ] 타임아웃 및 서킷 브레이커 설정이 필요한가?
-- [ ] 외부 API 장애 시 fallback 전략이 있는가?
+### External API Integration
+- [ ] Is the API key/secret management method defined? (env vars, secret manager)
+- [ ] Are request/response logs free of sensitive data exposure?
+- [ ] Are timeout and circuit breaker settings needed?
+- [ ] Is there a fallback strategy for external API failures?
 
-### 민감 데이터 (PII)
-- [ ] 어떤 PII 데이터를 저장하는가? (이름, 이메일, 전화번호, 주소)
-- [ ] PII가 Response에 노출되지 않는가? (model_dump exclude 적용)
-- [ ] PII가 로그에 기록되지 않는가?
-- [ ] 데이터 암호화(at rest, in transit)가 필요한가?
+### Sensitive Data (PII)
+- [ ] What PII data is being stored? (name, email, phone number, address)
+- [ ] Is PII excluded from Response? (model_dump exclude applied)
+- [ ] Is PII excluded from logs?
+- [ ] Is data encryption (at rest, in transit) needed?
 
-### 파일 처리
-- [ ] 업로드 파일 크기 제한이 설정되어 있는가?
-- [ ] 파일 확장자/MIME 타입 검증이 있는가?
-- [ ] 저장 경로에 path traversal 위험이 없는가?
-- [ ] 파일 접근 권한 검증이 있는가?
+### File Processing
+- [ ] Is upload file size limit configured?
+- [ ] Is file extension/MIME type validation in place?
+- [ ] Is the storage path free of path traversal risk?
+- [ ] Is file access permission verification in place?
 
-## 3. Skill 매핑 테이블
+## 3. Skill Mapping Table
 
-| 태스크 유형 | 매핑 Skill | 인자 형식 | 비고 |
-|------------|-----------|----------|------|
-| 새 도메인 생성 | `/new-domain` | `{name}` | 소스 21개 + 테스트 4개 자동 생성 |
-| CRUD API 추가 | `/add-api` | `"{domain}에 {METHOD} /{path} 추가"` | Bottom-up 구현 |
-| 커스텀 API 추가 | `/add-api` | `"{description}"` | 비즈니스 로직 포함 시 감독 필요 |
-| 비동기 태스크 | `/add-worker-task` | `{domain} {task_name}` | UseCase 메서드 필요 시 먼저 추가 |
-| 도메인 간 연결 | `/add-cross-domain` | `from:{consumer} to:{provider}` | Protocol 기반 DIP |
-| 테스트 생성 | `/test-domain` | `{domain} generate` | 4개 필수 테스트 파일 |
-| 테스트 실행 | `/test-domain` | `{domain} run` | unit + integration + e2e |
-| 아키텍처 검증 | `/review-architecture` | `{domain}` 또는 `all` | 20+ 항목 검사 |
-| 보안 감사 | `/security-review` | `{domain}`, `{file}`, 또는 `all` | OWASP 6카테고리 24+ 항목 |
-| 가이드라인 동기화 | `/sync-guidelines` | (없음) | 설계 변경 후 실행 |
-| 버그 수정 | `/fix-bug` | `"{description}"` | 재현→추적→수정→검증 |
-| DB 마이그레이션 | `/migrate-domain` | `generate\|upgrade\|downgrade\|status` | autogenerate 후 수동 검토 필수 |
-| **매핑 불가** 항목 | 수동 구현 | — | 외부 API 연동, 미들웨어 등 |
+| Task Type | Mapped Skill | Argument Format | Notes |
+|-----------|-------------|-----------------|-------|
+| New domain creation | `/new-domain` | `{name}` | Auto-generates 21 source + 4 test files |
+| CRUD API addition | `/add-api` | `"add {METHOD} /{path} to {domain}"` | Bottom-up implementation |
+| Custom API addition | `/add-api` | `"{description}"` | Supervision Level required when business logic is included |
+| Async task | `/add-worker-task` | `{domain} {task_name}` | Add UseCase method first if needed |
+| Cross-domain connection | `/add-cross-domain` | `from:{consumer} to:{provider}` | Protocol-based DIP |
+| Test generation | `/test-domain` | `{domain} generate` | 4 required test files |
+| Test execution | `/test-domain` | `{domain} run` | unit + integration + e2e |
+| Architecture verification | `/review-architecture` | `{domain}` or `all` | 20+ item inspection |
+| Security audit | `/security-review` | `{domain}`, `{file}`, or `all` | OWASP 6 categories, 24+ items |
+| Guideline sync | `/sync-guidelines` | (none) | Run after design changes |
+| Bug fix | `/fix-bug` | `"{description}"` | Reproduce -> Trace -> Fix -> Verify |
+| DB migration | `/migrate-domain` | `generate\|upgrade\|downgrade\|status` | Manual review required after autogenerate |
+| **Unmappable** items | Manual implementation | — | External API integrations, middleware, etc. |
 
-## 4. 감독 수준 정의
+## 4. Supervision Level Definitions
 
-### L1: AI 완전 위임 가능
-- 기존 Skill에 100% 매핑되는 태스크
-- 기존 패턴의 반복 (새 CRUD 엔드포인트 등)
-- 테스트 생성/실행
-- 아키텍처 검증
+### L1: Fully Delegatable to AI
+- Tasks that map 100% to existing Skills
+- Repetition of existing patterns (new CRUD endpoints, etc.)
+- Test generation/execution
+- Architecture verification
 
-### L2: 인간 확인 후 위임
-- 새 도메인 생성 (필드 구성 확인 필요)
-- 비즈니스 로직이 포함된 UseCase 구현
-- DTO 결정 (Request 직접 전달 vs. 별도 DTO)
-- DB 마이그레이션 (alembic revision)
+### L2: Delegate After Human Confirmation
+- New domain creation (field configuration review needed)
+- UseCase implementation with business logic
+- DTO decisions (direct Request pass-through vs. separate DTO)
+- DB migration (alembic revision)
 
-### L3: 인간 감독 필수
-- 보안 관련 구현 (인증, 인가, 암호화)
-- 결제 처리 로직
-- 외부 API 연동 (API 키 관리, 에러 처리)
-- 데이터 모델 설계 결정 (관계, 인덱스, 제약조건)
-- 기존 API 시그니처 변경 (하위 호환성)
+### L3: Human Supervision Required
+- Security-related implementation (authentication, authorization, encryption)
+- Payment processing logic
+- External API integration (API key management, error handling)
+- Data model design decisions (relationships, indexes, constraints)
+- Existing API signature changes (backward compatibility)
 
-## 5. 출력 계획서 템플릿
+## 5. Output Plan Template
 
 ```markdown
-# 기능 구현 계획: {Feature Name}
-- 작성일: {date}
-- 요청: {user description}
+# Feature Implementation Plan: {Feature Name}
+- Date: {date}
+- Request: {user description}
 
-## 1. 요구사항 요약
+## 1. Requirements Summary
 
-### 기능 요구사항
+### Functional Requirements
 - [ ] {requirement 1}
 - [ ] {requirement 2}
 
-### 비기능 요구사항
+### Non-Functional Requirements
 - [ ] {NFR 1}
 
-### 엣지 케이스
+### Edge Cases
 - {edge case 1}
 
-## 2. 아키텍처 영향 분석
+## 2. Architecture Impact Analysis
 
-### 레이어별 변경사항
-| 레이어 | 변경 유형 | 상세 |
-|--------|----------|------|
-| Domain | 신규/수정/없음 | {details} |
-| Application | 신규/수정/없음 | {details} |
-| Infrastructure | 신규/수정/없음 | {details} |
-| Interface | 신규/수정/없음 | {details} |
+### Changes by Layer
+| Layer | Change Type | Details |
+|-------|------------|---------|
+| Domain | New/Modified/None | {details} |
+| Application | New/Modified/None | {details} |
+| Infrastructure | New/Modified/None | {details} |
+| Interface | New/Modified/None | {details} |
 
-### 도메인 영향
-- 기존 도메인: {list}
-- 새 도메인: {name or "불필요"}
-- 도메인 간 의존성: {list or "없음"}
+### Domain Impact
+- Existing domains: {list}
+- New domain: {name or "not needed"}
+- Cross-domain dependencies: {list or "none"}
 
-### DTO 결정
+### DTO Decisions
 - {each DTO decision with rationale}
 
-## 3. 보안 평가
+## 3. Security Assessment
 
-| 항목 | 해당 | 필요 조치 |
-|------|------|-----------|
-| 인증/인가 | {Y/N} | {action} |
-| 결제 처리 | {Y/N} | {action} |
-| 데이터 변경 | {Y/N} | {action} |
-| 외부 API | {Y/N} | {action} |
-| 민감 데이터 | {Y/N} | {action} |
-| 파일 처리 | {Y/N} | {action} |
+| Item | Applicable | Required Action |
+|------|-----------|----------------|
+| Authentication/Authorization | {Y/N} | {action} |
+| Payment Processing | {Y/N} | {action} |
+| Data Modification | {Y/N} | {action} |
+| External API | {Y/N} | {action} |
+| Sensitive Data | {Y/N} | {action} |
+| File Processing | {Y/N} | {action} |
 
-## 4. 실행 태스크 목록
+## 4. Execution Task List
 
-| # | 태스크 | Skill | 감독 수준 | 선행 태스크 | 병렬 그룹 |
-|---|--------|-------|----------|------------|----------|
+| # | Task | Skill | Supervision Level | Predecessor | Parallel Group |
+|---|------|-------|----------|------------|----------|
 | 1 | {task} | {skill} | L1/L2/L3 | - | A |
 | 2 | {task} | {skill} | L1/L2/L3 | 1 | B |
 
-## 5. 실행 순서
+## 5. Execution Order
 
-### 단계 1 (병렬 그룹 A)
-- 태스크 1, 2
+### Stage 1 (Parallel Group A)
+- Tasks 1, 2
 
-### 단계 2 (병렬 그룹 B — 단계 1 완료 후)
-- 태스크 3, 4
+### Stage 2 (Parallel Group B — after Stage 1 completion)
+- Tasks 3, 4
 
-### 크리티컬 패스
-태스크 1 → 3 → 5 → 6
+### Critical Path
+Task 1 -> 3 -> 5 -> 6
 
-## 6. 검증 계획
-- [ ] `/review-architecture {domain}` — 아키텍처 준수 확인
-- [ ] `/test-domain {domain} generate` — 테스트 생성
-- [ ] `/test-domain {domain} run` — 테스트 실행
-- [ ] `pre-commit run --all-files` — 린트/포맷 확인
-- [ ] Swagger UI에서 엔드포인트 동작 확인
+## 6. Verification Plan
+- [ ] `/review-architecture {domain}` — confirm architecture compliance
+- [ ] `/test-domain {domain} generate` — generate tests
+- [ ] `/test-domain {domain} run` — run tests
+- [ ] `pre-commit run --all-files` — lint/format check
+- [ ] Verify endpoint behavior in Swagger UI
 ```

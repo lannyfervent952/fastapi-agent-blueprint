@@ -2,30 +2,30 @@
 name: add-worker-task
 argument-hint: domain_name task_name
 description: |
-  This skill should be used when the user asks to "태스크 추가",
-  "워커 태스크", "비동기 작업 추가", "add worker task",
-  "background job", "async task", "queue task", "Taskiq 태스크",
+  This skill should be used when the user asks to
+  "add worker task", "add async task", "add background job",
+  "queue task", "Taskiq task",
   or wants to create a new asynchronous background task for a domain.
 ---
 
-# 비동기 Worker 태스크 추가
+# Add Async Worker Task
 
-요청: $ARGUMENTS (도메인명과 태스크 설명, 예: "order process_payment")
+Request: $ARGUMENTS (domain name and task description, e.g.: "order process_payment")
 
-## 분석
+## Analysis
 
-1. 도메인명과 태스크 목적 파악
-2. 해당 도메인의 Service에 필요한 메서드가 있는지 확인
-3. 없으면 `/add-api` 절차의 1~2단계(Repository → Service)를 먼저 수행
+1. Identify the domain name and task purpose
+2. Check if the required method already exists in the domain's Service
+3. If not, first perform steps 1-2 (Repository → Service) from the `/add-api` procedure
 
-## 레퍼런스
-- `src/user/interface/worker/tasks/user_test_task.py` — 태스크 패턴
-- `src/user/interface/worker/bootstrap/user_bootstrap.py` — 워커 부트스트랩 패턴
-- `src/_apps/worker/broker.py` — 브로커 설정
+## Reference
+- `src/user/interface/worker/tasks/user_test_task.py` — task pattern
+- `src/user/interface/worker/bootstrap/user_bootstrap.py` — worker bootstrap pattern
+- `src/_apps/worker/broker.py` — broker configuration
 
-## 구현 순서
+## Implementation Order
 
-### 1. 태스크 함수 생성
+### 1. Create Task Function
 `src/{name}/interface/worker/tasks/{task_name}_task.py`
 
 ```python
@@ -46,22 +46,22 @@ async def {task_name}_task(
     await {name}_service.{method}(dto=dto)
 ```
 
-### 2. 워커 부트스트랩 업데이트
-`src/{name}/interface/worker/bootstrap/{name}_bootstrap.py`에서:
-- 새 태스크 모듈을 import
-- `wire(modules=[..., {task_name}_task])` 에 추가
+### 2. Update Worker Bootstrap
+In `src/{name}/interface/worker/bootstrap/{name}_bootstrap.py`:
+- Import the new task module
+- Add to `wire(modules=[..., {task_name}_task])`
 
-### 3. Service 메서드 확인/추가
-- 태스크가 호출할 Service 메서드가 있는지 확인
-- 없으면 Service에 메서드 추가 (필요 시 Repository도)
+### 3. Verify/Add Service Method
+- Check if the Service method that the task will call exists
+- If not, add the method to the Service (and Repository if needed)
 
-## 핵심 규칙
-- 태스크 함수는 thin adapter: `**kwargs` 받아서 DTO 변환 후 Service 호출만
-- 비즈니스 로직은 반드시 Service에 위치
-- Model 객체가 태스크에 노출되면 안 됨
-- DI 패턴: **project-dna.md §5** 참조
-- 변환 패턴: **project-dna.md §6** 참조
+## Core Rules
+- Task functions are thin adapters: receive `**kwargs`, convert to DTO, then call Service only
+- Business logic must reside in the Service
+- Model objects must not be exposed to tasks
+- DI pattern: see **project-dna.md §5**
+- Conversion Patterns: see **project-dna.md §6**
 
-## 완료 후 검증
-1. pre-commit 실행
-2. 브로커 import 확인: `python -c "from src.{name}.interface.worker.tasks.{task_name}_task import {task_name}_task; print('OK')"`
+## Post-completion Verification
+1. Run pre-commit
+2. Verify broker import: `python -c "from src.{name}.interface.worker.tasks.{task_name}_task import {task_name}_task; print('OK')"`
