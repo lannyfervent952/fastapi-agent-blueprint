@@ -1,7 +1,7 @@
-"""PreToolUse Hook: 코드 작성 전 보안 패턴 검사
+"""PreToolUse Hook: Security pattern check before code writing
 
-Edit/Write 도구가 .py 파일에 위험 패턴을 작성하려 할 때 차단.
-Exit 0 = 허용, Exit 2 = 차단
+Blocks when Edit/Write tools attempt to write dangerous patterns to .py files.
+Exit 0 = allow, Exit 2 = block
 """
 
 import json
@@ -32,8 +32,8 @@ def check_security(data: dict) -> list[str]:
         r'f["\x27].*\b(SELECT|INSERT|UPDATE|DELETE|DROP)\b', content, re.IGNORECASE
     ):
         errors.append(
-            "SQL injection 위험: f-string SQL 감지. "
-            "parameterized query 사용 필요 (SQLAlchemy ORM 또는 text(:param))"
+            "SQL injection risk: f-string SQL detected. "
+            "Use parameterized queries (SQLAlchemy ORM or text(:param))"
         )
 
     # 1b. .format() + SQL
@@ -41,26 +41,26 @@ def check_security(data: dict) -> list[str]:
         r"\.format\s*\(.*\).*(SELECT|INSERT|UPDATE|DELETE)", content, re.IGNORECASE
     ):
         errors.append(
-            "SQL injection 위험: .format() SQL 감지. parameterized query 사용 필요"
+            "SQL injection risk: .format() SQL detected. Use parameterized queries"
         )
 
     # 1c. text() + f-string (SQLAlchemy text with dynamic string)
     if re.search(r'text\s*\(\s*f["\x27]', content):
         errors.append(
-            'SQL injection 위험: text(f"...") 감지. text(:param) + bindparams 사용 필요'
+            'SQL injection risk: text(f"...") detected. Use text(:param) + bindparams'
         )
 
-    # 1d. execute() + f-string 또는 .format()
+    # 1d. execute() + f-string or .format()
     if re.search(r'\.execute\s*\(\s*f["\x27]', content):
         errors.append(
-            'SQL injection 위험: execute(f"...") 감지. parameterized query 사용 필요'
+            'SQL injection risk: execute(f"...") detected. Use parameterized queries'
         )
     if re.search(r'\.execute\s*\(["\x27].*\.format\s*\(', content, re.IGNORECASE):
         errors.append(
-            'SQL injection 위험: execute("...".format()) 감지. parameterized query 사용 필요'
+            'SQL injection risk: execute("...".format()) detected. Use parameterized queries'
         )
 
-    # 2. 하드코딩된 시크릿 (Pydantic Field, 환경변수 패턴 제외, 테스트 파일 제외)
+    # 2. Hardcoded secrets (excludes Pydantic Field, env var patterns, and test files)
     is_test_file = "/tests/" in path or path.endswith("_test.py")
     if not is_test_file:
         secret_patterns = [
@@ -80,25 +80,25 @@ def check_security(data: dict) -> list[str]:
                     content,
                 ):
                     errors.append(
-                        "하드코딩된 시크릿 감지. 환경변수(Settings) 또는 시크릿 매니저 사용 필요"
+                        "Hardcoded secret detected. Use environment variables (Settings) or a secret manager"
                     )
                     break
 
-    # 3. Domain → Infrastructure import 금지
+    # 3. Prohibit Domain → Infrastructure import
     if "/domain/" in path:
         if re.search(r"from\s+src\..*\.infrastructure", content):
             errors.append(
-                "아키텍처 위반: Domain 레이어에서 Infrastructure import 금지. Protocol(DIP) 사용 필요"
+                "Architecture violation: Domain layer must not import Infrastructure. Use Protocol (DIP)"
             )
 
-    # 4. 로그/print에 민감 데이터 포함
+    # 4. Sensitive data in logs/print
     if re.search(
         r"(?:logger\.|logging\.|print\s*\().*(?:password|secret|token|api_key|private_key)",
         content,
         re.IGNORECASE,
     ):
         errors.append(
-            "민감 데이터 로그 노출 위험: password/secret/token 등이 로그에 포함됨. 마스킹 필요"
+            "Sensitive data exposure risk in logs: password/secret/token found in log output. Masking required"
         )
 
     return errors

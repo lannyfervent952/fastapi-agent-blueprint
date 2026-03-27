@@ -2,7 +2,7 @@
 
 ## Current Phase: COMPLETE ✅
 
-> 최종 갱신: 2026-03-18
+> Last updated: 2026-03-18
 
 All phases of the Entity → DTO refactoring have been completed.
 
