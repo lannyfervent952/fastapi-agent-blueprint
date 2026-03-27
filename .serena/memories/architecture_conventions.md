@@ -1,38 +1,38 @@
 # Architecture Conventions
 
-> 절대 금지 규칙, 변환 패턴, Write DTO 기준은 CLAUDE.md를 참조.
-> 이 메모리는 CLAUDE.md에 없는 **구조적 컨텍스트**만 담는다.
+> For Absolute Prohibitions, Conversion Patterns, and Write DTO criteria, refer to CLAUDE.md.
+> This memory only contains **structural context** not covered in CLAUDE.md.
 
-## 데이터 흐름 (3-Tier 하이브리드)
+## Data Flow (3-Tier Hybrid)
 ```
-기본 (단순 CRUD):
+Default (simple CRUD):
   Write: Request → Service(BaseService) → Repository → Model → DB
   Read:  Response ← Service ← Repository ← DTO ← Model
 
-복합 로직 시:
+Complex logic:
   Write: Request → UseCase → Service → Repository → Model → DB
   Read:  Response ← UseCase ← Service ← Repository ← DTO ← Model
 ```
-> UseCase는 여러 Service 조합, 트랜잭션 경계 초과, 이벤트 발행 시에만 추가
-> 변환 패턴 상세: CLAUDE.md "변환 패턴" 섹션 참조
+> UseCase is added only when combining multiple Services, crossing transaction boundaries, or publishing events
+> For detailed Conversion Patterns: refer to the "Conversion Patterns" section in CLAUDE.md
 
-## 객체 역할
+## Object Roles
 
 ### DTO (Domain DTO)
-- 위치: `src/{domain}/domain/dtos/{domain}_dto.py`
-- 역할: Repository → Service → Router 읽기 결과 전달 (full data)
-- **읽기 전용 1종**: `{Name}DTO` — 민감 필드(password 등) 포함 가능
-- Create/Update DTO는 Request 필드와 다를 때만 별도 생성
+- Location: `src/{domain}/domain/dtos/{domain}_dto.py`
+- Role: Carries read results from Repository → Service → Router (full data)
+- **Read-only, single type**: `{Name}DTO` — may include sensitive fields (password, etc.)
+- Create/Update DTO is only created separately when fields differ from Request
 
 ### API Schema (Interface DTO)
-- 위치: `src/{domain}/interface/server/dtos/{domain}_dto.py`
-- `BaseRequest` / `BaseResponse` 상속
-- 명시적 필드 선언
-- 민감 필드 의도적 제외 (Response)
-- Request는 필드가 동일한 경우 레이어 DTO 역할도 겸함
+- Location: `src/{domain}/interface/server/dtos/{domain}_dto.py`
+- Inherits `BaseRequest` / `BaseResponse`
+- Explicit field declarations
+- Intentionally excludes sensitive fields (Response)
+- When fields are identical, Request also serves as the layer DTO
 
 ### Model (SQLAlchemy ORM)
-- 위치: `src/{domain}/infrastructure/database/models/{domain}_model.py`
-- Repository 레이어 밖으로 절대 나가지 않음
-- 변환: `DTO → Model: Model(**dto.model_dump())`
-- 변환: `Model → DTO: DTO.model_validate(model, from_attributes=True)`
+- Location: `src/{domain}/infrastructure/database/models/{domain}_model.py`
+- Must never leave the Repository layer
+- Conversion: `DTO → Model: Model(**dto.model_dump())`
+- Conversion: `Model → DTO: DTO.model_validate(model, from_attributes=True)`

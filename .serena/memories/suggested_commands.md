@@ -1,7 +1,7 @@
 # Suggested Commands
 
-> 용도: Serena/Claude가 쉘 명령을 실행할 때 참조하는 빠른 레퍼런스.
-> Skills 실행 시에도 이 명령어 목록을 참조한다.
+> Purpose: Quick reference for Serena/Claude when executing shell commands.
+> Also referenced when running Skills.
 
 ## Run
 ```bash
@@ -45,8 +45,8 @@ uv sync
 
 ## Verify Imports (architecture rules)
 ```bash
-# Entity import 완전 제거 확인
+# Verify complete removal of Entity imports
 grep -r "from src._core.domain.entities" src/
-# Domain의 Infrastructure import 확인 (없어야 함)
+# Verify no Domain → Infrastructure imports (should return nothing)
 grep -r "from src._core.infrastructure" src/_core/domain/
 ```

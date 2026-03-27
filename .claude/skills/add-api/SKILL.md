@@ -1,55 +1,55 @@
 ---
 name: add-api
-argument-hint: "도메인에 METHOD /path 추가"
+argument-hint: "Add METHOD /path to a domain"
 description: |
-  This skill should be used when the user asks to "API 추가",
-  "엔드포인트 추가", "add endpoint", "라우터 추가",
+  This skill should be used when the user asks to
+  "add endpoint", "add route", "add API",
   or wants to add a new route to an existing domain.
 ---
 
-# API 엔드포인트 추가
+# Add API Endpoint
 
-요청: $ARGUMENTS
+Request: $ARGUMENTS
 
-## 분석
+## Analysis
 
-1. 요청에서 파악: 도메인명, HTTP 메서드, 경로, 목적
-2. Serena `find_symbol`로 해당 도메인의 기존 Router, Service, Repository 탐색 (UseCase가 있으면 함께 확인)
-3. 필요한 것 판단:
-   - 새 Request/Response DTO가 필요한가? (기존 것으로 충분한가?)
-   - 새 Service 메서드가 필요한가? (BaseService 메서드로 충분한가?)
-   - 새 Repository 메서드가 필요한가? (커스텀 쿼리가 필요한가?)
-   - UseCase가 필요한가? (여러 Service 조합 등 복잡한 로직이 있는 경우만)
+1. Identify from the request: domain name, HTTP method, path, purpose
+2. Use Serena `find_symbol` to explore the domain's existing Router, Service, Repository (also check UseCase if present)
+3. Determine what is needed:
+   - Is a new Request/Response DTO required? (Or are existing ones sufficient?)
+   - Is a new Service method required? (Or are BaseService methods sufficient?)
+   - Is a new Repository method required? (Is a custom query needed?)
+   - Is a UseCase required? (Only when complex logic such as combining multiple Services is involved)
 
-## 구현 순서 (Bottom-up)
+## Implementation Order (Bottom-up)
 
-### 1. Repository (커스텀 쿼리가 필요한 경우만)
-- Protocol에 메서드 시그니처 추가: `src/{name}/domain/protocols/{name}_repository_protocol.py`
-- Repository에 구현 추가: `src/{name}/infrastructure/repositories/{name}_repository.py`
-- BaseRepository 메서드로 충분하면 이 단계 생략
+### 1. Repository (only when a custom query is needed)
+- Add method signature to Protocol: `src/{name}/domain/protocols/{name}_repository_protocol.py`
+- Add implementation to Repository: `src/{name}/infrastructure/repositories/{name}_repository.py`
+- Skip this step if BaseRepository methods are sufficient
 
 ### 2. Service
-- `src/{name}/domain/services/{name}_service.py`에 메서드 추가
-- BaseService가 기본 CRUD + pagination을 제공하므로, 커스텀 로직이 있을 때만 메서드 추가
+- Add method to `src/{name}/domain/services/{name}_service.py`
+- BaseService provides basic CRUD + pagination, so only add methods when custom logic is needed
 
-### 3. UseCase (복잡한 로직이 필요한 경우만)
-- 여러 Service 조합 등 복잡한 워크플로우가 필요할 때만 `src/{name}/application/use_cases/{name}_use_case.py` 추가
-- 단순 CRUD는 Router → Service 직접 주입으로 충분
+### 3. UseCase (only when complex logic is needed)
+- Only add `src/{name}/application/use_cases/{name}_use_case.py` when a complex workflow such as combining multiple Services is required
+- Simple CRUD is sufficient with direct Router → Service injection
 
-### 4. Interface DTO (필요한 경우)
-- `src/{name}/interface/server/dtos/{name}_dto.py`에 Request/Response 추가
-- Request는 `BaseRequest` 상속, Response는 `BaseResponse` 상속
-- **명시적 필드 선언** (BaseRequest/BaseResponse만 단일 상속)
+### 4. Interface DTO (if needed)
+- Add Request/Response to `src/{name}/interface/server/dtos/{name}_dto.py`
+- Request inherits from `BaseRequest`, Response inherits from `BaseResponse`
+- **Explicit field declaration** (single inheritance from BaseRequest/BaseResponse only)
 
 ### 5. Router
-- `src/{name}/interface/server/routers/{name}_router.py`에 엔드포인트 추가
-- Router 패턴: **project-dna.md §9** 참조
-- 변환 패턴: **project-dna.md §6** 참조
+- Add endpoint to `src/{name}/interface/server/routers/{name}_router.py`
+- Router pattern: see **project-dna.md §9**
+- Conversion Patterns: see **project-dna.md §6**
 
-## 변환 규칙
-변환 패턴은 **project-dna.md §6** 참조. import 경로는 **project-dna.md §2** 참조.
+## Conversion Rules
+For Conversion Patterns see **project-dna.md §6**. For import paths see **project-dna.md §2**.
 
-## 완료 후 검증
-1. pre-commit 실행
-2. 해당 도메인 단위 테스트에 새 메서드 테스트 추가
-3. 서버 실행 후 Swagger에서 엔드포인트 확인 가능 안내
+## Post-completion Verification
+1. Run pre-commit
+2. Add tests for the new method to the domain's unit tests
+3. Inform that the endpoint can be verified in Swagger after starting the server

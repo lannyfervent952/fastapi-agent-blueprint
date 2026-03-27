@@ -1,133 +1,133 @@
-# 002. Serena MCP 서버 도입 및 Claude Code 병행 전략
+# 002. Serena MCP Server Adoption and Claude Code Parallel Strategy
 
-- 상태: Accepted
-- 날짜: 2026-03-18
-- 관련 이슈: #57
+- Status: Accepted
+- Date: 2026-03-18
+- Related issue: #57
 
-## 배경
+## Background
 
-프로젝트가 DDD 기반 모듈형 레이어드 아키텍처로 성장하면서, AI 코딩 도구의 코드 탐색 정확도가 중요해졌다.
-Claude Code의 Grep/Glob 기반 텍스트 검색만으로는 클래스 계층, 메서드 시그니처, 참조 관계를 구조적으로 파악하기 어려웠다.
+As the project grew into a DDD-based modular layered architecture, the accuracy of AI coding tools' code navigation became critical.
+Text-based search using Claude Code's Grep/Glob alone made it difficult to structurally understand class hierarchies, method signatures, and reference relationships.
 
-특히 다음 작업에서 한계가 드러났다:
-- 도메인 간 Protocol 기반 의존성 추적 (어떤 클래스가 어떤 Protocol을 구현하는지)
-- BaseRepository의 Generic 타입 파라미터 확인 (상속 체인 추적)
-- 리팩토링 시 영향 범위 분석 (find_referencing_symbols)
+The limitations became particularly apparent in the following tasks:
+- Tracking Protocol-based dependencies across domains (which classes implement which Protocols)
+- Checking BaseRepository's Generic type parameters (tracing the inheritance chain)
+- Analyzing impact scope during refactoring (find_referencing_symbols)
 
-## 문제
+## Problem
 
-### Claude Code 텍스트 검색의 한계
-
-```
-Grep: "class UserRepository" → 텍스트 매칭 (파일:줄 번호)
-  - 상속 구조 모름
-  - 어떤 메서드가 있는지 모름
-  - 누가 이 클래스를 참조하는지 모름
-
-Serena: find_symbol "UserRepository" → AST 수준 이해
-  - BaseRepository[BaseModel, UserDTO, BaseModel] 상속 확인
-  - 메서드 목록 + 시그니처 구조적 파악
-  - find_referencing_symbols로 모든 참조 추적
-```
-
-### 팀 지식 공유의 부재
-
-Claude Code auto-memory는 `~/.claude/projects/` 에 머신 로컬로 저장되어 팀 공유가 불가능했다.
-리팩토링 진행 상태, 아키텍처 컨벤션 같은 팀 공유 지식을 저장할 수단이 없었다.
-
-## 검토한 대안
-
-### 1. Claude Code 단독 사용 (Grep/Glob + auto-memory)
-- 텍스트 검색으로 대부분의 작업 가능
-- 심볼 수준 탐색 불가 → 리팩토링, 영향 분석에 약함
-- 메모리가 머신 로컬 → 팀 공유 불가
-
-### 2. Serena 단독 사용
-- LSP 기반 심볼 탐색 + 메모리 시스템 제공
-- 스킬 시스템, 훅 시스템 없음 → 자동화 워크플로우 구축 불가
-- 파일 수준 편집 도구가 Claude Code보다 제한적
-
-### 3. Claude Code + Serena 병행 사용
-- Claude Code: 스킬 시스템, 훅 시스템, Grep/Glob 텍스트 검색, auto-memory
-- Serena: LSP 심볼 탐색, 팀 공유 메모리 (.serena/ git 커밋)
-- 각 도구의 강점을 조합
-
-## 결정
-
-**Claude Code + Serena 병행 사용 채택**
-
-### 4계층 메모리 아키텍처
-
-| 계층 | 저장소 | 공유 | 역할 | 업데이트 주체 |
-|------|--------|------|------|-------------|
-| CLAUDE.md | 프로젝트 루트 | git (팀) | 불변 팀 규칙 | 수동 (사람) |
-| project-dna.md | .claude/skills/_shared/ | git (팀) | 코드에서 추출된 패턴 레퍼런스 | /sync-guidelines (자동) |
-| Serena memories | .serena/memories/ | git (팀) | 동적 프로젝트 상태 + 심볼 탐색 컨텍스트 | /sync-guidelines + 수동 |
-| Claude auto-memory | ~/.claude/projects/ | 로컬 (개인) | 세션 피드백, 개인 학습 | Claude 자동 |
-
-### 도구 역할 분리
+### Limitations of Claude Code Text Search
 
 ```
-코드 탐색:
-  1순위 — Serena 심볼 도구 (get_symbols_overview, find_symbol, find_referencing_symbols)
-  2순위 — Grep/Glob (텍스트 패턴 검색, 설정 파일)
-  3순위 — Read (비코드 파일, 심볼 탐색으로 불충분할 때)
+Grep: "class UserRepository" -> Text matching (file:line number)
+  - Does not know inheritance structure
+  - Does not know what methods exist
+  - Does not know who references this class
 
-코드 편집:
-  심볼 전체 교체 — Serena replace_symbol_body
-  부분 수정 — Claude Code Edit
-  새 코드 삽입 — Serena insert_before/after_symbol 또는 Edit
-
-자동화:
-  스킬 시스템 — Claude Code (.claude/skills/)
-  훅 시스템 — Claude Code (.claude/settings.local.json)
-  보안 검사 — Claude Code PreToolUse 훅
-
-메모리:
-  팀 공유 동적 상태 — Serena (.serena/memories/, git 커밋)
-  개인 피드백 — Claude Code auto-memory (머신 로컬)
+Serena: find_symbol "UserRepository" -> AST-level understanding
+  - Confirms BaseRepository[BaseModel, UserDTO, BaseModel] inheritance
+  - Structurally identifies method list + signatures
+  - Tracks all references via find_referencing_symbols
 ```
 
-### Serena 메모리 구성 (4건)
+### Lack of Team Knowledge Sharing
 
-| 메모리 | 역할 | 고유 정보 |
-|--------|------|-----------|
-| architecture_conventions | 심볼 탐색 전 컨텍스트 프라이밍 | 데이터 흐름도, 객체 역할 (DTO/Model/Schema 위치) |
-| refactoring_status | 진행 중인 아키텍처 변경 추적 | Phase별 완료 상태, 위반 검사 결과 |
-| project_overview | 프로젝트 수준 컨텍스트 | 목적, 앱 엔트리포인트, 의존성 방향 |
-| suggested_commands | 개발자 CLI 참조 | 실행/테스트/린트/마이그레이션 명령어 |
+Claude Code auto-memory is stored locally on the machine at `~/.claude/projects/`, making team sharing impossible.
+There was no means to store team-shared knowledge such as refactoring progress status and architecture conventions.
 
-### 자동 동기화 메커니즘
+## Alternatives Considered
+
+### 1. Claude Code Standalone (Grep/Glob + auto-memory)
+- Most tasks achievable with text search
+- No symbol-level navigation -> weak for refactoring and impact analysis
+- Memory is machine-local -> team sharing impossible
+
+### 2. Serena Standalone
+- Provides LSP-based symbol navigation + memory system
+- No skill system or hook system -> unable to build automated workflows
+- File-level editing tools more limited than Claude Code
+
+### 3. Claude Code + Serena Parallel Use
+- Claude Code: skill system, hook system, Grep/Glob text search, auto-memory
+- Serena: LSP symbol navigation, team-shared memory (.serena/ git commit)
+- Combines the strengths of each tool
+
+## Decision
+
+**Adopt Claude Code + Serena Parallel Use**
+
+### 4-Layer Memory Architecture
+
+| Layer | Storage | Sharing | Role | Update Owner |
+|-------|---------|---------|------|-------------|
+| CLAUDE.md | Project root | git (team) | Immutable team rules | Manual (human) |
+| project-dna.md | .claude/skills/_shared/ | git (team) | Pattern references extracted from code | /sync-guidelines (auto) |
+| Serena memories | .serena/memories/ | git (team) | Dynamic project state + symbol navigation context | /sync-guidelines + manual |
+| Claude auto-memory | ~/.claude/projects/ | Local (personal) | Session feedback, personal learning | Claude auto |
+
+### Tool Role Separation
 
 ```
-코드 변경 시:
-  PostToolUse 훅 → 핵심 파일(src/_core/ 등) 변경 감지 → 경고 출력
-  Stop 훅 → 세션 종료 전 /sync-guidelines 미실행 감지 → block → 자동 실행 강제
-  /sync-guidelines → project-dna.md 재생성 + Serena 메모리 갱신
+Code navigation:
+  1st priority — Serena symbol tools (get_symbols_overview, find_symbol, find_referencing_symbols)
+  2nd priority — Grep/Glob (text pattern search, config files)
+  3rd priority — Read (non-code files, when symbol navigation is insufficient)
+
+Code editing:
+  Full symbol replacement — Serena replace_symbol_body
+  Partial modification — Claude Code Edit
+  New code insertion — Serena insert_before/after_symbol or Edit
+
+Automation:
+  Skill system — Claude Code (.claude/skills/)
+  Hook system — Claude Code (.claude/settings.local.json)
+  Security checks — Claude Code PreToolUse hooks
+
+Memory:
+  Team-shared dynamic state — Serena (.serena/memories/, git commit)
+  Personal feedback — Claude Code auto-memory (machine-local)
 ```
 
-## 근거
+### Serena Memory Composition (4 entries)
 
-| 기준 | Claude Code 단독 | Serena 단독 | Claude Code + Serena |
-|------|-----------------|-------------|---------------------|
-| 심볼 수준 탐색 | 불가 (Grep만) | 강함 (LSP) | 강함 |
-| 스킬/훅 자동화 | 강함 | 없음 | 강함 |
-| 팀 공유 메모리 | 불가 (로컬만) | 가능 (.serena/ git) | 가능 |
-| 개인 학습 메모리 | 가능 | 제한적 | 가능 |
-| 코드 편집 도구 | 강함 (Edit/Write) | 있음 (심볼 기반) | 상호 보완 |
+| Memory | Role | Unique Information |
+|--------|------|--------------------|
+| architecture_conventions | Context priming before symbol navigation | Data flow diagrams, object roles (DTO/Model/Schema locations) |
+| refactoring_status | Track ongoing architecture changes | Per-phase completion status, violation check results |
+| project_overview | Project-level context | Purpose, app entry points, dependency directions |
+| suggested_commands | Developer CLI reference | Run/test/lint/migration commands |
 
-1. 두 도구는 **다른 패러다임**으로 동작하므로 충돌이 아니라 보완
-2. Serena의 핵심 가치는 메모리가 아니라 **LSP 기반 심볼 탐색** — 이는 Claude Code에 없는 기능
-3. `.serena/`를 git에 커밋하면 **팀 공유 가능한 유일한 동적 지식 저장소** 역할
-4. 역할을 명확히 분리하면 중복 없이 각 도구의 강점을 최대화
+### Automatic Synchronization Mechanism
 
-### 10+ 도메인 확장 시 진화 방향
+```
+On code changes:
+  PostToolUse hook -> Detects changes to core files (src/_core/ etc.) -> Outputs warning
+  Stop hook -> Detects /sync-guidelines not run before session end -> Block -> Force auto-run
+  /sync-guidelines -> Regenerates project-dna.md + Updates Serena memories
+```
 
-- `domain_dependencies` 메모리 추가 (도메인 간 Protocol 의존성 맵)
-- `active_work` 메모리 추가 (5+ 팀원 시 작업 현황 추적)
-- 메모리 총 10개 이하 유지 (도구 호출 비용 관리)
+## Rationale
 
-### Serena가 불필요해지는 경우
-- Claude Code가 LSP 기반 심볼 탐색을 네이티브로 지원할 때
-- Claude Code auto-memory가 팀 공유를 지원할 때
-- 프로젝트가 단일 도메인으로 축소되어 심볼 추적이 불필요할 때
+| Criteria | Claude Code Standalone | Serena Standalone | Claude Code + Serena |
+|----------|----------------------|-------------------|---------------------|
+| Symbol-level navigation | Impossible (Grep only) | Strong (LSP) | Strong |
+| Skill/hook automation | Strong | None | Strong |
+| Team-shared memory | Impossible (local only) | Possible (.serena/ git) | Possible |
+| Personal learning memory | Possible | Limited | Possible |
+| Code editing tools | Strong (Edit/Write) | Available (symbol-based) | Complementary |
+
+1. The two tools operate under **different paradigms**, so they complement rather than conflict
+2. Serena's core value is not memory but **LSP-based symbol navigation** — a capability absent from Claude Code
+3. Committing `.serena/` to git makes it the **only team-shareable dynamic knowledge store**
+4. Clear role separation maximizes each tool's strengths without duplication
+
+### Evolution Direction for 10+ Domain Scaling
+
+- Add `domain_dependencies` memory (Protocol dependency map across domains)
+- Add `active_work` memory (work status tracking for 5+ team members)
+- Keep total memories at 10 or fewer (tool call cost management)
+
+### Cases Where Serena Would Become Unnecessary
+- When Claude Code natively supports LSP-based symbol navigation
+- When Claude Code auto-memory supports team sharing
+- When the project shrinks to a single domain where symbol tracking is unnecessary

@@ -1,51 +1,51 @@
-# Project DNA - 코드에서 추출된 프로젝트 패턴 참조
+# Project DNA - Project Pattern Reference Extracted from Code
 
-> 이 파일은 `/sync-guidelines` 실행 시 `src/user/`(레퍼런스 도메인)와 `src/_core/`(Base 클래스)에서
-> 자동 추출/갱신됩니다. **수동 편집 대신 `/sync-guidelines`를 실행하세요.**
+> This file is auto-extracted/updated from `src/user/` (reference domain) and `src/_core/` (Base classes)
+> when `/sync-guidelines` is run. **Run `/sync-guidelines` instead of editing manually.**
 >
-> 최종 갱신: 2026-03-19
+> Last updated: 2026-03-19
 
-## 섹션 인덱스
-§0 프로젝트 스케일 및 설계 철학 |
-§1 디렉토리 구조 | §2 Base Class 경로 | §3 Generic 시그니처 | §4 CRUD 메서드
-§5 DI 패턴 | §6 변환 패턴 | §7 보안 도구 | §8 활성 기능
-§9 Router 패턴 | §10 Exception 패턴 | §11 Event 패턴
-
----
-
-## §0. 프로젝트 스케일 및 설계 철학
-
-### 스케일
-- 도메인 10개 이상, 팀원 5명 이상의 엔터프라이즈급 서비스
-- 모든 제안과 설계는 이 규모를 전제로 확장성, 유지보수성, 팀 협업을 고려한다
-
-### 제안 시 엔터프라이즈 관행 적용 기준
-
-Skills가 코드 생성, 설계 제안, 리뷰를 수행할 때 아래 관점을 능동적으로 고려한다:
-
-**확장성**
-- 목록 조회 API는 항상 pagination을 기본 포함한다
-- 대량 데이터 처리가 예상되면 비동기 Worker 태스크 분리를 제안한다
-- N+1 쿼리 위험이 있는 관계 조회는 joinedload/selectinload를 명시한다
-
-**팀 협업**
-- 도메인 간 의존성은 반드시 Protocol 기반 DIP로 제안한다 (직접 import 제안 금지)
-- 공유 DTO 변경 시 영향 범위(어떤 도메인이 참조하는지)를 먼저 분석한다
-- API 시그니처 변경은 하위 호환성을 기본으로 제안한다
-
-**운영**
-- 데이터 변경(CUD) API는 audit trail 필요 여부를 확인한다
-- 외부 API 연동 시 timeout, retry, circuit breaker 설정을 제안한다
-- 에러 응답은 클라이언트가 대응 가능한 수준의 error_code를 포함한다
-
-**보안**
-- 민감 데이터(PII)는 Response에서 제외하고 로그에 기록하지 않는다
-- 인증이 필요한 엔드포인트는 명시적으로 표시한다
-- 환경별 설정(시크릿, DB URL)은 환경변수로만 관리한다
+## Section Index
+§0 Project Scale and Design Philosophy |
+§1 Directory Structure | §2 Base Class Path | §3 Generic Type Signatures | §4 CRUD Methods
+§5 DI Pattern | §6 Conversion Patterns | §7 Security Tools | §8 Active Features
+§9 Router Pattern | §10 Exception Pattern | §11 Event Pattern
 
 ---
 
-## §1. 레이어 디렉토리 구조
+## §0. Project Scale and Design Philosophy
+
+### Scale
+- Enterprise-grade service with 10+ domains and 5+ team members
+- All proposals and designs must consider scalability, maintainability, and team collaboration at this scale
+
+### Enterprise Practice Criteria for Proposals
+
+Skills proactively consider the following perspectives when generating code, making design proposals, or performing reviews:
+
+**Scalability**
+- List query APIs always include pagination by default
+- Suggest separating into async Worker tasks when large-scale data processing is expected
+- Specify joinedload/selectinload for relationship queries that risk N+1 queries
+
+**Team Collaboration**
+- Cross-domain dependencies must always be proposed via Protocol-based DIP (direct import proposals are prohibited)
+- When modifying shared DTOs, first analyze the impact scope (which domains reference them)
+- API signature changes are proposed with backward compatibility by default
+
+**Operations**
+- Data mutation (CUD) APIs must verify whether audit trail is needed
+- Suggest timeout, retry, and circuit breaker settings when integrating with external APIs
+- Error responses must include error_codes at a level that clients can act upon
+
+**Security**
+- Sensitive data (PII) must be excluded from Responses and not logged
+- Endpoints requiring authentication must be explicitly marked
+- Environment-specific settings (secrets, DB URLs) must be managed via environment variables only
+
+---
+
+## §1. Layer Directory Structure
 
 ```
 src/{name}/
@@ -57,8 +57,8 @@ src/{name}/
 │   ├── services/{name}_service.py
 │   ├── exceptions/{name}_exceptions.py
 │   ├── events/{name}_events.py
-│   └── value_objects/                    # (필요 시)
-├── application/                           # (선택 — 복잡한 로직 시에만)
+│   └── value_objects/                    # (as needed)
+├── application/                           # (optional — only for complex logic)
 │   ├── __init__.py
 │   └── use_cases/{name}_use_case.py
 ├── infrastructure/
@@ -81,9 +81,9 @@ src/{name}/
         └── bootstrap/{name}_bootstrap.py
 ```
 
-## §2. Base Class Import 경로
+## §2. Base Class Import Path
 
-| 클래스명 | Import 경로 |
+| Class | Import Path |
 |---------|------------|
 | BaseRepositoryProtocol | `src._core.domain.protocols.repository_protocol.BaseRepositoryProtocol` |
 | BaseService | `src._core.domain.services.base_service.BaseService` |
@@ -102,7 +102,7 @@ src/{name}/
 | make_pagination | `src._core.common.pagination.make_pagination` |
 | CoreContainer | `src._core.infrastructure.di.core_container.CoreContainer` |
 
-### 상속 체인
+### Inheritance Chain
 
 - `BaseRequest` → `ApiConfig` → `BaseModel` (camelCase alias, frozen, populate_by_name)
 - `BaseResponse` → `ApiConfig` → `BaseModel`
@@ -110,10 +110,10 @@ src/{name}/
 - `ValueObject` → `BaseModel` (frozen=True)
 - `DomainEvent` → `BaseModel` (event_id: UUID, occurred_at: datetime)
 
-## §3. Generic 타입 시그니처
+## §3. Generic Type Signatures
 
 ```python
-# BaseRepositoryProtocol / BaseRepository / BaseService 공통
+# Shared by BaseRepositoryProtocol / BaseRepository / BaseService
 ReturnDTO = TypeVar("ReturnDTO", bound=BaseModel)
 
 class BaseRepositoryProtocol(Generic[ReturnDTO]): ...
@@ -124,13 +124,13 @@ class BaseService(Generic[ReturnDTO]): ...
 ReturnType = TypeVar("ReturnType")
 class SuccessResponse(ApiConfig, Generic[ReturnType]): ...
 
-# 레퍼런스 도메인 (user) 사용 예:
+# Reference domain (user) usage example:
 class UserRepositoryProtocol(BaseRepositoryProtocol[UserDTO]): pass
 class UserRepository(BaseRepository[UserDTO]): ...
 class UserService(BaseService[UserDTO]): ...
 ```
 
-### BaseRepository.__init__ 시그니처
+### BaseRepository.__init__ Signature
 
 ```python
 def __init__(
@@ -142,11 +142,11 @@ def __init__(
 ) -> None:
 ```
 
-## §4. Base CRUD 메서드
+## §4. Base CRUD Methods
 
-### BaseRepositoryProtocol 메서드
+### BaseRepositoryProtocol Methods
 
-| 메서드 | 시그니처 |
+| Method | Signature |
 |--------|---------|
 | insert_data | `async (entity: BaseModel) -> ReturnDTO` |
 | insert_datas | `async (entities: list[BaseModel]) -> list[ReturnDTO]` |
@@ -158,23 +158,23 @@ def __init__(
 | delete_data_by_data_id | `async (data_id: int) -> bool` |
 | count_datas | `async () -> int` |
 
-### BaseService 메서드 (Repository 위임 매핑)
+### BaseService Methods (Repository Delegation Mapping)
 
-> `BaseService[ReturnDTO]`가 아래 메서드를 모두 제공한다.
-> 도메인 Service는 `BaseService[{Name}DTO]`를 상속하며, 커스텀 로직이 필요한 경우만 오버라이드한다.
+> `BaseService[ReturnDTO]` provides all methods below.
+> Domain Services extend `BaseService[{Name}DTO]` and only override when custom logic is needed.
 
-| BaseService 메서드 | Repository 호출 | 비고 |
+| BaseService Method | Repository Call | Notes |
 |-------------------|----------------|------|
 | create_data(entity) | insert_data(entity=entity) | |
 | create_datas(entities) | insert_datas(entities=entities) | |
-| get_datas(page, page_size) | select_datas_with_count(page, page_size) | `(list[ReturnDTO], PaginationInfo)` 반환 |
+| get_datas(page, page_size) | select_datas_with_count(page, page_size) | Returns `(list[ReturnDTO], PaginationInfo)` |
 | get_data_by_data_id(data_id) | select_data_by_id(data_id=data_id) | |
 | get_datas_by_data_ids(data_ids) | select_datas_by_ids(data_ids=data_ids) | |
 | update_data_by_data_id(data_id, entity) | update_data_by_data_id(data_id, entity) | |
 | delete_data_by_data_id(data_id) | delete_data_by_data_id(data_id=data_id) | |
 | count_datas() | count_datas() | |
 
-## §5. DI 패턴
+## §5. DI Pattern
 
 ```python
 from dependency_injector import containers, providers
@@ -192,31 +192,31 @@ class {Name}Container(containers.DeclarativeContainer):
         {name}_repository={name}_repository,
     )
 
-    # UseCase는 복잡한 비즈니스 로직이 필요할 때만 추가
+    # Add UseCase only when complex business logic is needed
     # {name}_use_case = providers.Factory(
     #     {Name}UseCase,
     #     {name}_service={name}_service,
     # )
 ```
 
-| 컴포넌트 | Provider 타입 | 비고 |
+| Component | Provider Type | Notes |
 |---------|--------------|------|
 | Database | `providers.Singleton` | |
 | Repository | `providers.Singleton` | |
-| Service | `providers.Factory` | Router에서 직접 주입 |
-| UseCase | `providers.Factory` | 복잡한 로직 시에만 추가 |
-| 도메인 Container | `containers.DeclarativeContainer` | |
-| 외부 Container 참조 | `providers.DependenciesContainer()` |
-| App Container (Server/Worker) | `containers.DynamicContainer` (팩토리 함수) |
-| 도메인 자동 발견 | `src._core.infrastructure.discovery.discover_domains()` |
-| Container 동적 로드 | `src._core.infrastructure.discovery.load_domain_container()` |
+| Service | `providers.Factory` | Direct injection from Router |
+| UseCase | `providers.Factory` | Add only for complex logic |
+| Domain Container | `containers.DeclarativeContainer` | |
+| External Container reference | `providers.DependenciesContainer()` |
+| App Container (Server/Worker) | `containers.DynamicContainer` (factory function) |
+| Domain auto-discovery | `src._core.infrastructure.discovery.discover_domains()` |
+| Dynamic Container loading | `src._core.infrastructure.discovery.load_domain_container()` |
 
-### App-level Container (자동 발견)
+### App-level Container (Auto-discovery)
 
-도메인 Container는 `DeclarativeContainer`를 사용하지만,
-Server/Worker의 App-level Container는 `DynamicContainer` + 팩토리 함수를 사용한다.
-`discover_domains()`가 `src/*/` 하위 유효 도메인을 자동 탐지하여 등록하므로,
-**새 도메인 추가 시 App-level container/bootstrap 파일 수정이 불필요하다.**
+Domain Containers use `DeclarativeContainer`,
+but Server/Worker App-level Containers use `DynamicContainer` + factory functions.
+`discover_domains()` automatically detects and registers valid domains under `src/*/`,
+so **no App-level container/bootstrap file modifications are needed when adding a new domain.**
 
 ```python
 # src/_apps/server/di/container.py
@@ -232,56 +232,56 @@ def create_server_container() -> containers.DynamicContainer:
     return container
 ```
 
-## §6. 변환 패턴
+## §6. Conversion Patterns
 
-| 변환 | 패턴 | 예시 |
+| Conversion | Pattern | Example |
 |------|------|------|
 | ORM → DTO | `ReturnDTO.model_validate(data, from_attributes=True)` | `UserDTO.model_validate(data, from_attributes=True)` |
-| Request → Service | `entity=item` 직접 전달 (필드 동일 시) | `create_data(entity=item)` |
-| Request → DTO | `CreateDTO(**item.model_dump(), extra=...)` (필드 다를 시) | `CreateOrderDTO(**item.model_dump(), user_id=current_user.id)` |
+| Request → Service | Direct pass `entity=item` (when fields match) | `create_data(entity=item)` |
+| Request → DTO | `CreateDTO(**item.model_dump(), extra=...)` (when fields differ) | `CreateOrderDTO(**item.model_dump(), user_id=current_user.id)` |
 | DTO → Response | `{Name}Response(**data.model_dump(exclude={...}))` | `UserResponse(**data.model_dump(exclude={"password"}))` |
 
-## §7. 보안 도구
+## §7. Security Tools
 
-### Pre-commit (자동 실행)
+### Pre-commit (Auto-run)
 
 - trailing-whitespace, end-of-file-fixer, check-yaml/json/toml
-- ruff check --fix (E, W, F, UP, I, B, C4, SIM, S 규칙 통합 — pyupgrade, autoflake, isort, flake8, bandit 대체)
-- ruff format (Black 호환 포맷팅)
+- ruff check --fix (Unified rules for E, W, F, UP, I, B, C4, SIM, S -- replaces pyupgrade, autoflake, isort, flake8, bandit)
+- ruff format (Black-compatible formatting)
 
-### Pre-commit (수동 - manual stage)
+### Pre-commit (Manual Stage)
 
 - mypy (--ignore-missing-imports, --check-untyped-defs)
 
-### 아키텍처 위반 검사 (자동 실행)
+### Architecture Violation Check (Auto-run)
 
-- no-domain-infra-import: Domain에서 Infrastructure import 금지
-- no-entity-pattern: Entity 패턴 미사용 — DTO로 통일 (배경: ADR 004)
+- no-domain-infra-import: No Infrastructure imports from Domain layer
+- no-entity-pattern: No Entity pattern -- unified to DTO (background: ADR 004)
 
 ### Claude Hook
 
-- PreToolUse (pre-tool-security): SQL injection, 하드코딩 시크릿, Domain→Infra import, 민감 데이터 로그 검사
-- PostToolUse (post-tool-sync-warning): 코어 파일(_core/, pyproject.toml, .pre-commit-config.yaml, .serena/memories/, .claude/skills/_shared/, .claude/hooks/) 수정 시 /sync-guidelines 실행 권고
-- Stop: 핵심 파일 수정 후 /sync-guidelines 미실행 시 세션 종료 전 경고
+- PreToolUse (pre-tool-security): SQL injection, hardcoded secrets, Domain→Infra import, sensitive data logging check
+- PostToolUse (post-tool-sync-warning): Recommends running /sync-guidelines when core files (_core/, pyproject.toml, .pre-commit-config.yaml, .serena/memories/, .claude/skills/_shared/, .claude/hooks/) are modified
+- Stop: Warns before session end if /sync-guidelines not run after core file changes
 
-## §8. 활성 기능
+## §8. Active Features
 
-| 기능 | 상태 | 비고 |
+| Feature | Status | Notes |
 |------|------|------|
-| Taskiq async tasks | 활성 | SQS 브로커, @broker.task 데코레이터 |
-| SQLAlchemy 2.0+ | 활성 | Mapped[T] + mapped_column() |
-| Pydantic 2.x | 활성 | model_validate, model_dump, ConfigDict |
-| dependency-injector | 활성 | DeclarativeContainer, @inject + Provide |
-| AWS S3 (aioboto3) | 활성 | ObjectStorage + ObjectStorageClient |
-| sqladmin (ModelView) | 활성 | Admin 뷰 등록 |
-| alembic (migrations) | 활성 | DB 마이그레이션 |
-| JWT/Authentication | 미구현 | |
-| File Upload (UploadFile) | 미구현 | |
-| RBAC/Permissions | 미구현 | |
-| Rate Limiting (slowapi) | 미구현 | |
-| WebSocket | 미구현 | |
+| Taskiq async tasks | Active | SQS broker, @broker.task decorator |
+| SQLAlchemy 2.0+ | Active | Mapped[T] + mapped_column() |
+| Pydantic 2.x | Active | model_validate, model_dump, ConfigDict |
+| dependency-injector | Active | DeclarativeContainer, @inject + Provide |
+| AWS S3 (aioboto3) | Active | ObjectStorage + ObjectStorageClient |
+| sqladmin (ModelView) | Active | Admin view registration |
+| alembic (migrations) | Active | DB migrations |
+| JWT/Authentication | Not implemented | |
+| File Upload (UploadFile) | Not implemented | |
+| RBAC/Permissions | Not implemented | |
+| Rate Limiting (slowapi) | Not implemented | |
+| WebSocket | Not implemented | |
 
-## §9. Router 패턴
+## §9. Router Pattern
 
 ```python
 from dependency_injector.wiring import Provide, inject
@@ -305,7 +305,7 @@ async def create_{name}(
     return SuccessResponse(data={Name}Response(**data.model_dump(exclude={...})))
 ```
 
-## §10. Exception 패턴
+## §10. Exception Pattern
 
 ```python
 from src._core.exceptions.base_exception import BaseCustomException
@@ -327,7 +327,7 @@ class {Name}AlreadyExistsException(BaseCustomException):
         )
 ```
 
-## §11. Event 패턴
+## §11. Event Pattern
 
 ```python
 from src._core.domain.events.domain_event import DomainEvent

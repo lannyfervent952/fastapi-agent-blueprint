@@ -1,88 +1,88 @@
-# 경험 레벨별 온보딩 가이드
+# Onboarding Guide by Experience Level
 
-## 1. 경험 레벨 정의
+## 1. Experience Level Definitions
 
-| 레벨 | 대상 | 온보딩 방식 |
-|------|------|------------|
-| 입문 | Python 기초, FastAPI 처음 | 개념 설명 포함, 전 Phase 상세 진행 |
-| 중급 | FastAPI 경험 있음, DDD/레이어드 아키텍처 처음 | 표준 트랙 |
-| 고급 | DDD + DI Container 경험 있음 | 단축 트랙, 프로젝트 특이점만 하이라이트 |
+| Level | Target Audience | Onboarding Approach |
+|-------|----------------|---------------------|
+| Beginner | Python basics, first time with FastAPI | Includes concept explanations, detailed walkthrough of all Phases |
+| Intermediate | Has FastAPI experience, first time with DDD/layered architecture | Standard track |
+| Advanced | Has DDD + DI Container experience | Shortened track, highlight only project-specific aspects |
 
-## 2. 레벨별 Phase 깊이 조정
+## 2. Phase Depth by Level
 
-### Phase 1: 방법론과 진화 히스토리
+### Phase 1: Methodology and Evolution History
 
-| 항목 | 입문 | 중급 | 고급 |
-|------|------|------|------|
-| DDD 개념 | 비유 포함 상세 설명 | 간단히 짚고 넘어감 | 스킵 |
-| 레이어드 아키텍처 기초 | 왜 계층을 나누는지 설명 | 간단히 짚고 넘어감 | 스킵 |
-| 진화 히스토리 (ADR 4편) | 상세 전달 | 상세 전달 | 핵심만 요약 |
-| AIDD 방법론 | 상세 설명 | 상세 설명 | Skills 목록만 |
+| Item | Beginner | Intermediate | Advanced |
+|------|----------|-------------|----------|
+| DDD concepts | Detailed with analogies | Brief overview | Skip |
+| Layered architecture basics | Explain why layers are separated | Brief overview | Skip |
+| Evolution history (4 ADRs) | Detailed delivery | Detailed delivery | Key points only |
+| AIDD methodology | Detailed explanation | Detailed explanation | Skills list only |
 
-### Phase 2: 프로젝트 개요
+### Phase 2: Project Overview
 
-| 항목 | 입문 | 중급 | 고급 |
-|------|------|------|------|
-| 프로젝트 스케일/목적 | 설명 | 설명 | 요약 |
-| 디렉토리 구조 | 상세 | 상세 | 목록만 |
-| 기술 스택 | 각 기술 역할 설명 | 목록 | 목록 |
-| 추가 개념 설명 | DI Container, Protocol, Pydantic 설명 | - | - |
+| Item | Beginner | Intermediate | Advanced |
+|------|----------|-------------|----------|
+| Project scale/purpose | Explain | Explain | Summary |
+| Directory structure | Detailed | Detailed | List only |
+| Tech stack | Explain role of each technology | List | List |
+| Additional concepts | Explain DI Container, Protocol, Pydantic | - | - |
 
-### Phase 3: 아키텍처 규칙
+### Phase 3: Architecture Rules
 
-| 항목 | 입문 | 중급 | 고급 |
-|------|------|------|------|
-| 절대 금지 규칙 6개 | 각각 이유 + 스토리 연결 | 이유 + 스토리 연결 | 목록만 |
-| 용어 정의 | 상세 설명 | 설명 | 스킵 |
+| Item | Beginner | Intermediate | Advanced |
+|------|----------|-------------|----------|
+| 6 Absolute Prohibitions | Reason + story for each | Reason + story | List only |
+| Terminology definitions | Detailed explanation | Explanation | Skip |
 
-### Phase 4: 데이터 흐름
+### Phase 4: Data Flow
 
-| 항목 | 입문 | 중급 | 고급 |
-|------|------|------|------|
-| 변환 패턴 | 다이어그램 + 코드 워크스루 | 다이어그램 + 코드 워크스루 | 패턴 테이블만 |
-| src/user/ 라이브 코드 | 전체 경로 추적 | 전체 경로 추적 | 스킵 |
+| Item | Beginner | Intermediate | Advanced |
+|------|----------|-------------|----------|
+| Conversion Patterns | Diagram + code walkthrough | Diagram + code walkthrough | Pattern table only |
+| src/user/ live code | Full path tracing | Full path tracing | Skip |
 
-### Phase 5: Skills 워크플로우
+### Phase 5: Skills Workflow
 
-| 항목 | 입문 | 중급 | 고급 |
-|------|------|------|------|
-| Skills 안내 | 각 Skill 역할 설명 | 워크플로우 순서로 안내 | 목록만 |
-| 실행 명령어 | 상세 | 상세 | 스킵 |
+| Item | Beginner | Intermediate | Advanced |
+|------|----------|-------------|----------|
+| Skills guide | Explain role of each Skill | Guide in workflow order | List only |
+| Execution commands | Detailed | Detailed | Skip |
 
-### 고급 전용: 프로젝트 특이점 하이라이트
-고급자는 DDD/DI에 이미 익숙하므로, 이 프로젝트만의 차별점만 모아서 전달한다:
-- Entity 패턴 미사용 → DTO로 통일 (배경: ADR 004)
-- Mapper 클래스 금지 → 인라인 변환 (`model_dump()`, `model_validate()`)
-- UseCase 선택적 (강제 아님, 필요할 때만 추가)
-- 도메인 자동 발견 (Container/Bootstrap 수정 불필요)
+### Advanced Only: Project-Specific Highlights
+Advanced users are already familiar with DDD/DI, so deliver only what differentiates this project:
+- No Entity pattern -> unified with DTOs (background: ADR 004)
+- Mapper class prohibited -> inline conversion (`model_dump()`, `model_validate()`)
+- UseCase is optional (not mandatory, add only when needed)
+- Automatic domain discovery (no Container/Bootstrap modification needed)
 
-## 3. 추천 Skills (워크플로우 순서)
+## 3. Recommended Skills (Workflow Order)
 
-1. `/plan-feature` → 기능 설계
-2. `/new-domain` → 도메인 생성
-3. `/add-api` → API 추가
-4. `/add-worker-task` → 비동기 태스크
-5. `/add-cross-domain` → 도메인 간 연결
-6. `/review-architecture` → 아키텍처 검증
-7. `/security-review` → 보안 검사
-8. `/test-domain` → 테스트 생성/실행
-9. `/fix-bug` → 버그 수정
-10. `/sync-guidelines` → 가이드라인 동기화
-11. `/migrate-domain` → DB 마이그레이션
+1. `/plan-feature` -> Feature design
+2. `/new-domain` -> Domain creation
+3. `/add-api` -> API addition
+4. `/add-worker-task` -> Async tasks
+5. `/add-cross-domain` -> Cross-domain connections
+6. `/review-architecture` -> Architecture verification
+7. `/security-review` -> Security audit
+8. `/test-domain` -> Test generation/execution
+9. `/fix-bug` -> Bug fixes
+10. `/sync-guidelines` -> Guideline synchronization
+11. `/migrate-domain` -> DB migration
 
-## 4. 다음 단계 추천 (경험 레벨별)
+## 4. Recommended Next Steps (by Experience Level)
 
-### 입문
-1. `src/user/` 도메인의 전체 디렉토리를 탐색하며 레퍼런스 구현 파악
-2. `/new-domain practice`로 연습 도메인을 만들어 구조 체득
-3. `/add-api "practice에 GET /items 추가"`로 API 추가 연습
+### Beginner
+1. Explore the entire directory structure of `src/user/` domain to understand the reference implementation
+2. Create a practice domain with `/new-domain practice` to internalize the structure
+3. Practice adding an API with `/add-api "add GET /items to practice"`
 
-### 중급
-1. CLAUDE.md의 절대 금지 규칙 숙지
-2. 담당 도메인이 정해지면 `/plan-feature`로 설계부터 시작
-3. 첫 PR 전에 `/review-architecture {domain}` 실행
+### Intermediate
+1. Familiarize yourself with the Absolute Prohibitions in CLAUDE.md
+2. Once assigned a domain, start with `/plan-feature` for design
+3. Run `/review-architecture {domain}` before your first PR
 
-### 고급
-1. `docs/history/`의 ADR 목록 훑어보기 — 구조적 결정의 맥락 파악
-2. `.claude/skills/_shared/project-dna.md` §5(DI), §6(변환) 확인
-3. 바로 작업 시작 가능 — `/plan-feature`로 시작
+### Advanced
+1. Skim the ADR list in `docs/history/` to understand the context of structural decisions
+2. Review `.claude/skills/_shared/project-dna.md` section 5 (DI), section 6 (Conversion Patterns)
+3. Ready to start working immediately — begin with `/plan-feature`

@@ -12,19 +12,19 @@ from sqlalchemy import create_engine
 from migrations.env_utils import create_folder_if_not_exists, load_models
 from src._core.infrastructure.database.database import Base, create_sync_dsn
 
-# Alembic 설정 파일 로드
+# Load Alembic configuration file
 config = context.config
 
 env = config.get_main_option("env")
 if env != "local" and env != "dev" and env != "prod" and env != "stg":
     raise RuntimeError(
-        "alembic.ini 파일에 ENV 환경변수가 지정되지 않았습니다. [local], [dev], [prod], [stg] 중 하나를 입력해주세요."
+        "ENV variable is not set in alembic.ini. Please specify one of [local], [dev], [prod], [stg]."
     )
 else:
     if not os.path.exists(f"_env/{env}.env"):
-        raise RuntimeError(f"환경변수 파일이 존재하지 않습니다. {f'_env/{env}.env'}")
+        raise RuntimeError(f"Environment variable file does not exist: {f'_env/{env}.env'}")
     print("=" * 100)
-    print(f"alembic.ini 파일에 선택된 ENV: {env}")
+    print(f"Selected ENV in alembic.ini: {env}")
     print("=" * 100)
 
 create_folder_if_not_exists("migrations/versions")
@@ -45,11 +45,11 @@ url = create_sync_dsn(
     database_name=os.getenv("DATABASE_NAME") or "",
 )
 
-# Base.metadata로 target_metadata 지정
+# Set target_metadata to Base.metadata
 target_metadata = Base.metadata
 
 
-# Migration 실행 함수
+# Migration execution functions
 def run_migrations_offline() -> None:
     context.configure(
         url=url,

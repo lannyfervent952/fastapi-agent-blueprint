@@ -9,7 +9,7 @@ from tests.factories.user_factory import make_create_user_request, make_user_dto
 
 
 class MockUserRepository:
-    """Protocol 기반 Mock — UserRepository를 상속하지 않아도 됨"""
+    """Protocol-based Mock — no need to inherit UserRepository"""
 
     def __init__(self):
         self._store: dict[int, UserDTO] = {}
@@ -94,7 +94,7 @@ async def test_update_user(user_service):
         data_id=created.id, entity=update_request
     )
     assert result.full_name == "Updated Name"
-    assert result.username == created.username  # 변경 안 됨
+    assert result.username == created.username  # unchanged
 
 
 @pytest.mark.asyncio

@@ -1,25 +1,25 @@
-# 006. 도메인별 레이어드 아키텍처 전환
+# 006. Migration to Per-Domain Layered Architecture
 
-- 상태: Accepted
-- 날짜: 2025-07-16 ~ 2025-08-24
-- 관련 이슈: #19, #10, #9
-- 관련 PR: #20, #14, #15
-- 관련 커밋: `f59e96b`, `e248abf`, `bad7a62`, `88afd88`, `1567ec3`
+- Status: Accepted
+- Date: 2025-07-16 ~ 2025-08-24
+- Related issues: #19, #10, #9
+- Related PRs: #20, #14, #15
+- Related commits: `f59e96b`, `e248abf`, `bad7a62`, `88afd88`, `1567ec3`
 
-## 배경
+## Background
 
-프로젝트 초기에는 `src/apps/`와 `src/domains/`로 애플리케이션 코드와 도메인 코드를 분리했다.
+In the early stages of the project, application code and domain code were separated into `src/apps/` and `src/domains/`.
 
 ```
 src/
 ├── apps/
-│   ├── monolith/app.py       # 모놀리스 서버
-│   ├── gateway/app.py        # API 게이트웨이
+│   ├── monolith/app.py       # Monolith server
+│   ├── gateway/app.py        # API gateway
 │   └── microservices/
 │       ├── user/app.py
 │       └── chat/app.py
 └── domains/
-    ├── core/                  # 공통 인프라
+    ├── core/                  # Common infrastructure
     │   ├── application/
     │   ├── domain/
     │   └── infrastructure/
@@ -28,98 +28,98 @@ src/
         └── server/
 ```
 
-또한 FastAPI의 라우팅 핸들러를 `controller`로 명명하고 있었다.
+Additionally, FastAPI's routing handlers were named `controller`.
 
-## 문제
+## Problem
 
-### 1. 앱/도메인 분리 구조의 관리 복잡성
+### 1. Management Complexity of App/Domain Separation
 
-`apps/`와 `domains/`가 분리되어 있어서, 특정 기능에 문제가 생겼을 때
-두 디렉토리를 오가며 코드를 찾아야 했다.
-예를 들어 user 도메인의 문제를 추적하려면:
-- `src/apps/microservices/user/` — 앱 설정
-- `src/domains/user/` — 비즈니스 로직
-- `src/domains/core/` — 공통 인프라
+With `apps/` and `domains/` separated, tracking down an issue in a specific feature
+required navigating between two directories.
+For example, to trace a problem in the user domain:
+- `src/apps/microservices/user/` — app configuration
+- `src/domains/user/` — business logic
+- `src/domains/core/` — common infrastructure
 
-세 곳을 확인해야 했다.
+Three locations had to be checked.
 
-### 2. Controller 네이밍 불일치
+### 2. Controller Naming Inconsistency
 
-FastAPI 생태계에서는 라우팅 핸들러를 `Router`로 부른다.
-`APIRouter`를 사용하면서 파일명은 `controller`인 것이 혼란을 줬다.
+In the FastAPI ecosystem, routing handlers are called `Router`.
+Using `APIRouter` while naming the files `controller` caused confusion.
 
 ```python
-# 불일치: FastAPI의 APIRouter를 사용하면서 controller로 명명
-router = APIRouter()  # FastAPI 컨벤션: router
-# 파일명: user_controller.py  # 프로젝트 컨벤션: controller
+# Inconsistency: using FastAPI's APIRouter while naming it controller
+router = APIRouter()  # FastAPI convention: router
+# Filename: user_controller.py  # Project convention: controller
 ```
 
-### 3. Gateway 앱의 불필요성
+### 3. Unnecessary Gateway App
 
-API 게이트웨이를 별도 앱(`apps/gateway/`)으로 만들었으나,
-단일 서버로 운영하는 현재 구조에서는 사용되지 않는 코드였다.
+An API gateway was created as a separate app (`apps/gateway/`),
+but it was unused code in the current single-server architecture.
 
-## 결정
+## Decision
 
-3단계에 걸쳐 구조를 개선했다.
+The structure was improved in three stages.
 
-### 1단계: Controller → Router 리네이밍 (#10, 2025-07-16)
+### Stage 1: Rename Controller to Router (#10, 2025-07-16)
 
-FastAPI 컨벤션에 맞춰 `controllers/` 디렉토리를 `routers/`로, 파일명을 `*_router.py`로 변경했다.
+To align with FastAPI conventions, the `controllers/` directory was renamed to `routers/`, and filenames were changed to `*_router.py`.
 
-### 2단계: WebSocket 라우터 추가 (#9, 2025-07-16)
+### Stage 2: Add WebSocket Router (#9, 2025-07-16)
 
-WebSocket 추가와 함께 라우터를 프로토콜별로 분리했다:
+Along with adding WebSocket support, routers were separated by protocol:
 
 ```
 routers/
-├── api/           # HTTP REST 라우터
+├── api/           # HTTP REST routers
 │   └── user/
-└── websocket/     # WebSocket 라우터
+└── websocket/     # WebSocket routers
     └── chat/
 ```
 
-### 3단계: 도메인별 평탄화 (#19, 2025-08-24)
+### Stage 3: Per-Domain Flattening (#19, 2025-08-24)
 
-`apps/`와 `domains/`를 제거하고, 각 도메인을 `src/` 바로 아래에 배치했다.
+`apps/` and `domains/` were removed, and each domain was placed directly under `src/`.
 
 ```
-# After: 도메인별 평탄화
+# After: per-domain flattening
 src/
-├── app.py              # 메인 앱 (monolith 흡수)
-├── core/               # 공통 인프라
+├── app.py              # Main app (absorbed monolith)
+├── core/               # Common infrastructure
 │   ├── application/
 │   ├── domain/
 │   └── infrastructure/
-├── user/               # user 도메인 (앱+도메인 통합)
+├── user/               # user domain (app + domain unified)
 │   ├── domain/
 │   ├── infrastructure/
 │   └── server/
-└── chat/               # chat 도메인
+└── chat/               # chat domain
     ├── domain/
     ├── infrastructure/
     └── server/
 ```
 
-- Gateway 앱 제거 (73줄, 사용되지 않는 코드)
-- Monolith 앱을 `src/app.py`로 흡수
-- Microservices 앱을 각 도메인 내부로 통합
+- Removed the gateway app (73 lines of unused code)
+- Absorbed the monolith app into `src/app.py`
+- Integrated microservices apps into their respective domains
 
-## 근거
+## Rationale
 
-| 기준 | apps/domains 분리 (이전) | 도메인별 평탄화 (현재) |
-|------|------------------------|---------------------|
-| 코드 탐색 | 3곳(apps, domains, core) 확인 필요 | 도메인 폴더 하나만 열면 됨 |
-| 네이밍 | controller (Spring 컨벤션) | router (FastAPI 컨벤션) |
-| 불필요 코드 | gateway 앱 존재 | 제거 |
-| 도메인 독립성 | 앱 설정과 로직이 분리 | 도메인이 자체 앱 설정 포함 |
+| Criteria | apps/domains Separation (before) | Per-Domain Flattening (current) |
+|----------|--------------------------------|-------------------------------|
+| Code navigation | Must check 3 locations (apps, domains, core) | Just open one domain folder |
+| Naming | controller (Spring convention) | router (FastAPI convention) |
+| Unused code | gateway app present | Removed |
+| Domain independence | App config separated from logic | Domain contains its own app config |
 
-1. 도메인 폴더를 최상단에 두면, 문제가 생겼을 때 해당 도메인 폴더를 바로 찾아 열 수 있어 탐색이 빠름
-2. FastAPI의 `APIRouter` 네이밍 컨벤션을 따르면 프레임워크 문서와 코드가 일관됨
-3. 사용하지 않는 gateway 코드를 제거하여 혼란 방지
-4. 87개 파일이 변경된 대규모 리팩토링이었지만, 대부분이 파일 이동이어서 로직 변경은 최소화
+1. Placing domain folders at the top level enables quick navigation directly to the relevant domain folder when issues arise
+2. Following FastAPI's `APIRouter` naming convention keeps framework documentation and code consistent
+3. Removing unused gateway code prevents confusion
+4. Although it was a large-scale refactoring involving 87 files, most changes were file moves, keeping logic changes minimal
 
-## 후속
+## Follow-up
 
-- 이 구조를 기반으로 DI 컨테이너와 shared 인프라 설계가 진행됨 → [007](007-di-container-and-app-separation.md)
-- 이후 도메인 자동 발견 시스템 도입으로, 새 도메인 추가 시 `container.py` 수정이 불필요해짐
+- DI container and shared infrastructure design proceeded based on this structure -> [007](007-di-container-and-app-separation.md)
+- A domain auto-discovery system was later introduced, eliminating the need to modify `container.py` when adding new domains

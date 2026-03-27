@@ -1,8 +1,8 @@
-# 실행 순서: 자동 수정 → 체크만
-# stages로 분리: commit(자동수정), manual(수동 체크)
+# Execution order: auto-fix → check-only
+# Separated by stages: commit (auto-fix), manual (manual check)
 repos:
-  # ==================== STAGE: COMMIT (자동 실행) ====================
-  # 1. 기본 파일 검증 및 자동 수정
+  # ==================== STAGE: COMMIT (auto-run) ====================
+  # 1. Basic file validation and auto-fix
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
@@ -24,7 +24,7 @@ repos:
       - id: mixed-line-ending
         args: ["--fix=lf"]
 
-  # 2. Ruff: 린팅 + 포맷팅 (pyupgrade, autoflake, isort, Black, flake8, bandit 통합)
+  # 2. Ruff: linting + formatting (integrates pyupgrade, autoflake, isort, Black, flake8, bandit)
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.7
     hooks:
@@ -36,8 +36,8 @@ repos:
       - id: ruff-format
         exclude: ^migrations/
 
-  # ==================== STAGE: MANUAL (수동 실행) ====================
-  # 타입 체킹: pre-commit run --hook-stage manual mypy
+  # ==================== STAGE: MANUAL (manual run) ====================
+  # Type checking: pre-commit run --hook-stage manual mypy
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.14.1
     hooks:
@@ -46,26 +46,26 @@ repos:
         exclude: ^(migrations/|tests/|.*test\.py$|run_.*\.py$|force_.*\.py$)
         args:
           - --ignore-missing-imports
-          - --check-untyped-defs  # disallow에서 완화
+          - --check-untyped-defs  # relaxed from disallow
           - --warn-redundant-casts
           - --no-implicit-optional
         additional_dependencies:
           - types-requests
           - pydantic
 
-  # ==================== STAGE: COMMIT (아키텍처 위반 검사) ====================
+  # ==================== STAGE: COMMIT (architecture violation checks) ====================
   - repo: local
     hooks:
-      # Domain 레이어에서 Infrastructure import 금지
+      # Prohibit Domain layer from importing Infrastructure
       - id: no-domain-infra-import
-        name: "Domain → Infrastructure import 금지"
+        name: "Prohibit Domain → Infrastructure import"
         language: pygrep
         entry: "from src\\..*\\.infrastructure"
         files: "src/.*/domain/.*\\.py$"
 
-      # Entity 패턴 잔존 검출 (ADR 004: DTO로 통일)
+      # Detect residual Entity pattern (ADR 004: unified to DTO)
       - id: no-entity-pattern
-        name: "Entity 패턴 미사용 (DTO로 통일)"
+        name: "Entity pattern not allowed (unified to DTO)"
         language: pygrep
         entry: "\\.to_entity\\(|\\.from_entity\\(|from src\\._core\\.domain\\.entities"
         files: "\\.py$"

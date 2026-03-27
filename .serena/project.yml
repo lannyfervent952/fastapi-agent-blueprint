@@ -123,16 +123,16 @@ default_modes:
 # initial prompt for the project. It will always be given to the LLM upon activating the project
 # (contrary to the memories, which are loaded on demand).
 initial_prompt: |
-  이 프로젝트는 DDD 기반 모듈형 레이어드 아키텍처 FastAPI 백엔드 템플릿입니다.
-  3-Tier 하이브리드: Router → Service(BaseService) → Repository(BaseRepository), UseCase는 선택적.
+  This project is a DDD-based modular layered architecture FastAPI backend template.
+  3-Tier hybrid: Router → Service(BaseService) → Repository(BaseRepository), UseCase is optional.
 
-  핵심 규칙:
-  - Domain 레이어에서 Infrastructure import 금지
-  - Model 객체는 Repository 밖으로 노출 금지
-  - Mapper 클래스 별도 생성 금지 (인라인 변환으로 충분)
-  - Entity 패턴 미사용 — DTO로 통일 (배경: ADR 004)
+  Core rules:
+  - No Infrastructure imports from the Domain layer
+  - No exposing Model objects outside the Repository
+  - No separate Mapper classes (inline conversion is sufficient)
+  - No Entity pattern — unified to DTO (background: ADR 004)
 
-  작업 전 refactoring_status 메모리를 확인하세요.
+  Check the refactoring_status memory before starting work.
 # time budget (seconds) per tool call for the retrieval of additional symbol information
 # such as docstrings or parameter information.
 # This overrides the corresponding setting in the global configuration; see the documentation there.

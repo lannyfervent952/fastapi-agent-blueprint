@@ -2,47 +2,47 @@
 name: review-architecture
 argument-hint: domain_name or all
 description: |
-  This skill should be used when the user asks to "아키텍처 리뷰",
-  "아키텍처 검사", "review architecture", "컴플라이언스 감사",
-  or wants to audit architecture compliance for a domain.
+  Audit architecture compliance for a domain.
+  Use when the user asks to "review architecture", "compliance audit",
+  or wants to check if a domain follows project architecture rules.
 ---
 
-# 아키텍처 컴플라이언스 감사
+# Architecture Compliance Audit
 
-대상: $ARGUMENTS (도메인명 또는 "all")
+Target: $ARGUMENTS (domain name or "all")
 
-## 감사 대상
-"all"인 경우 `src/` 하위의 모든 도메인 디렉토리를 대상으로 한다 (`_core`, `_apps` 제외).
-특정 도메인명인 경우 `src/{name}/` 만 대상으로 한다.
+## Audit Target
+When "all", audit all domain directories under `src/` (excluding `_core`, `_apps`).
+When a specific domain name, audit only `src/{name}/`.
 
-## 현재 도메인 목록
+## Current Domain List
 !`ls -d src/*/ 2>/dev/null | grep -v _core | grep -v _apps | sed 's|src/||;s|/||' || echo "(none)"`
 
-## 감사 절차
+## Audit Procedure
 
-6개 카테고리, 총 20+ 항목을 Grep 기반으로 검사한다.
-상세 체크리스트는 `${CLAUDE_SKILL_DIR}/references/checklist.md`를 참조한다.
+Inspect 6 categories with 20+ items using Grep-based checks.
+Refer to `${CLAUDE_SKILL_DIR}/references/checklist.md` for the detailed checklist.
 
-**카테고리 요약**:
-1. **레이어 의존성 규칙** — domain → infrastructure/interface import 위반
-2. **변환 패턴 준수** — Mapper 클래스, Entity 패턴 잔존 여부
-3. **DTO/Response 무결성** — 민감 필드 노출
-4. **DI Container 정확성** — Singleton/Factory 구분
-5. **테스트 커버리지** — 필수 테스트 파일 존재 여부
-6. **Bootstrap 와이어링** — 앱 레벨 등록 여부
+**Category Summary**:
+1. **Layer Dependency Rules** — domain -> infrastructure/interface import violations
+2. **Conversion Patterns Compliance** — Mapper class, Entity pattern remnants
+3. **DTO/Response Integrity** — sensitive field exposure
+4. **DI Container Correctness** — Singleton/Factory distinction
+5. **Test Coverage** — required test file existence
+6. **Bootstrap Wiring** — app-level registration status
 
-## 출력 형식
+## Output Format
 
 ```
-[PASS] 레이어 의존성: domain → infrastructure import 없음
-[FAIL] 테스트 커버리지: tests/unit/{name}/domain/test_{name}_service.py 누락
-       → 권장: `/test-domain {name} generate`로 생성
+[PASS] Layer dependency: no domain -> infrastructure imports found
+[FAIL] Test coverage: tests/unit/{name}/domain/test_{name}_service.py missing
+       -> Recommended: generate with `/test-domain {name} generate`
 ```
 
-최종 요약: `통과: XX/20 | 실패: XX/20`
+Final summary: `Passed: XX/20 | Failed: XX/20`
 
-## 실패 시 권장 조치
-- 레이어 의존성 위반 → Protocol 기반으로 변경
-- 변환 패턴 위반 → 인라인 변환으로 교체 (model_dump, model_validate)
-- 테스트 누락 → `/test-domain {name} generate` 실행
-- Bootstrap 미등록 → `/new-domain` 레퍼런스의 Layer 5 참고
+## Recommended Actions on Failure
+- Layer dependency violation -> Refactor to Protocol-based approach
+- Conversion Patterns violation -> Replace with inline conversion (model_dump, model_validate)
+- Missing tests -> Run `/test-domain {name} generate`
+- Bootstrap not registered -> Refer to Layer 5 in `/new-domain` reference

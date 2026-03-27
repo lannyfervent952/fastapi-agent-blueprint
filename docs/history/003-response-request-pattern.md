@@ -1,30 +1,30 @@
-# 003. Response/Request 패턴 설계
+# 003. Response/Request Pattern Design
 
-- 상태: Accepted
-- 날짜: 2025-03-19 ~ 2025-09-09
-- 관련 이슈: #1, #5, #22
-- 관련 PR: #2, #24
-- 관련 커밋: `cdcbf59`, `42fc118`, `204e325`, `2d4c6fe`, `fd191b3`, `3b69806`, `a05ced4`
+- Status: Accepted
+- Date: 2025-03-19 ~ 2025-09-09
+- Related issues: #1, #5, #22
+- Related PRs: #2, #24
+- Related commits: `cdcbf59`, `42fc118`, `204e325`, `2d4c6fe`, `fd191b3`, `3b69806`, `a05ced4`
 
-## 배경
+## Background
 
-API 응답 형식은 프론트엔드와의 계약이다.
-프로젝트 초기에 조회 API가 단건/다건 모두 존재했고,
-다건 조회 시 클라이언트가 오버헤드를 직접 조절할 수 있어야 했다.
-프론트엔드에서 페이지네이션 UI를 제공할 수 있으므로, 서버 측에서 페이지네이션 정보를 응답에 포함해야 했다.
+The API response format is a contract with the frontend.
+In the early stages of the project, both single-item and multi-item query APIs existed,
+and clients needed to be able to control overhead directly for multi-item queries.
+Since the frontend could provide a pagination UI, the server needed to include pagination information in the response.
 
-또한 에러 발생 시 응답 형식이 통일되지 않아,
-의도된 에러와 예상치 못한 에러를 클라이언트가 구분하기 어려웠다.
+Additionally, error response formats were not standardized,
+making it difficult for clients to distinguish between intentional errors and unexpected errors.
 
-## 문제
+## Problem
 
-### 1. 페이지네이션 응답 분산 (#1)
+### 1. Scattered Pagination Responses (#1)
 
-초기에 `PaginationResponse`를 별도 클래스로 만들었으나,
-이렇게 하면 일반 응답과 페이지네이션 응답이 분리되어 API마다 응답 구조가 달라졌다.
+Initially, `PaginationResponse` was created as a separate class,
+but this meant that regular responses and pagination responses were separated, resulting in different response structures per API.
 
 ```python
-# 초기 구조 (커밋 cdcbf59) — 별도 클래스
+# Initial structure (commit cdcbf59) — separate class
 class PaginationResponse(BaseModel):
     current_page: int
     page_size: int
@@ -36,31 +36,31 @@ class PaginationResponse(BaseModel):
     previous_page: int
 ```
 
-### 2. Response 포맷 책임 위치 (#1)
+### 2. Response Format Responsibility Location (#1)
 
-response format 로직이 `base_usecase`에 있었는데,
-use case는 비즈니스 로직을 담당하는 계층이지 응답 형식을 결정하는 계층이 아니었다.
+Response format logic was in `base_usecase`,
+but the use case is a layer responsible for business logic, not for determining response formats.
 
-### 3. Return Type과 response_model 혼재 (#5)
+### 3. Mixed Return Type and response_model (#5)
 
-FastAPI의 `response_model` 파라미터와 함수 return type annotation이 혼재하여,
-Swagger 문서에 표시되는 응답 스키마와 실제 반환 데이터가 불일치했다.
-또한 `data` 필드가 `Any` 타입이어서 타입 안전성이 없었다.
+FastAPI's `response_model` parameter and function return type annotations were mixed,
+causing discrepancies between the response schema displayed in Swagger documentation and the actual returned data.
+Additionally, the `data` field was of type `Any`, providing no type safety.
 
-### 4. 에러 응답 비표준화 (#22)
+### 4. Non-Standardized Error Responses (#22)
 
-에러 발생 시 응답 형식이 통일되지 않아,
-Swagger 문서에 에러 응답 스키마가 표시되지 않았고,
-프론트엔드에서 에러 핸들링 로직을 일관되게 작성할 수 없었다.
+Error response formats were not standardized,
+so error response schemas were not displayed in Swagger documentation,
+and frontend developers could not write error handling logic consistently.
 
-## 결정
+## Decision
 
-### 1. PaginationInfo를 BaseResponse에 Optional로 통합
+### 1. Integrate PaginationInfo into BaseResponse as Optional
 
-페이지네이션이 필요 없는 API도 있으므로 `Optional[PaginationInfo]`로 통합했다.
+Since not all APIs need pagination, it was integrated as `Optional[PaginationInfo]`.
 
 ```python
-# 통합 후 (커밋 42fc118)
+# After integration (commit 42fc118)
 class PaginationInfo(BaseModel):
     current_page: int
     page_size: int
@@ -78,19 +78,19 @@ class BaseResponse(ABC, BaseModel):
     pagination: Optional[PaginationInfo] = None
 ```
 
-### 2. Response 포맷 책임을 Controller(Router)로 이동
+### 2. Move Response Format Responsibility to Controller (Router)
 
-응답 형식은 인터페이스 관심사이므로 controller(후에 router로 개명)가 담당하도록 변경했다 (커밋 `204e325`).
-Use case는 비즈니스 데이터만 반환하고, 이를 응답 형식으로 감싸는 것은 router의 책임이 되었다.
+Since response formatting is an interface concern, the controller (later renamed to router) was made responsible (commit `204e325`).
+The use case returns only business data, and wrapping it in a response format became the router's responsibility.
 
-### 3. SuccessResponse와 ErrorResponse 분리
+### 3. Separate SuccessResponse and ErrorResponse
 
-정상 응답에는 `error_code`, `error_details`가 불필요하고,
-에러 응답에는 `data`, `pagination`이 불필요하다.
-이를 분리하여 각 응답 타입에 필요한 필드만 포함하도록 했다.
+Success responses don't need `error_code` or `error_details`,
+and error responses don't need `data` or `pagination`.
+These were separated so each response type contains only the fields it needs.
 
 ```python
-# 현재 구조
+# Current structure
 class SuccessResponse(ApiConfig, Generic[ReturnType]):
     success: bool = True
     message: str = "Request processed successfully"
@@ -104,39 +104,39 @@ class ErrorResponse(ApiConfig):
     error_details: dict | None = None
 ```
 
-### 4. 글로벌 에러 응답 모델 등록
+### 4. Register Global Error Response Models
 
-FastAPI app 설정에 공통 에러 응답(400/401/403/404/500)을 등록하여,
-Swagger 문서에 에러 응답 스키마가 자동 표시되도록 했다 (커밋 `a05ced4`).
+Common error responses (400/401/403/404/500) were registered in the FastAPI app settings
+so that error response schemas are automatically displayed in Swagger documentation (commit `a05ced4`).
 
 ```python
 # src/app.py
 app = FastAPI(
     responses={
-        400: {"model": ErrorResponse, "description": "잘못된 요청"},
-        401: {"model": ErrorResponse, "description": "인증 필요 또는 토큰 불일치"},
-        403: {"model": ErrorResponse, "description": "권한 없음"},
-        404: {"model": ErrorResponse, "description": "해당 리소스 없음"},
-        500: {"model": ErrorResponse, "description": "서버 오류"},
+        400: {"model": ErrorResponse, "description": "Bad request"},
+        401: {"model": ErrorResponse, "description": "Authentication required or token mismatch"},
+        403: {"model": ErrorResponse, "description": "Forbidden"},
+        404: {"model": ErrorResponse, "description": "Resource not found"},
+        500: {"model": ErrorResponse, "description": "Internal server error"},
     },
 )
 ```
 
-에러 응답 생성은 ExceptionMiddleware가 담당하여,
-의도된 에러(비즈니스 예외)와 가드레일로 잡지 못하는 에러(시스템 예외) 모두를
-통합적으로 `ErrorResponse` 형식으로 변환한다.
+Error response generation is handled by ExceptionMiddleware,
+which uniformly converts both intentional errors (business exceptions) and uncaught errors (system exceptions)
+into the `ErrorResponse` format.
 
-## 근거
+## Rationale
 
-| 결정 | 이유 |
-|------|------|
-| PaginationInfo Optional 통합 | 단건/다건 조회의 응답 구조 통일. 클라이언트가 pagination 필드 유무로 분기 가능 |
-| Response 포맷 → Controller | 응답 형식은 인터페이스 관심사. Use case의 재사용성 보장 (API/Worker 간 공유) |
-| Success/Error 응답 분리 | 각 응답에 필요한 필드만 포함하여 의미 명확화. 에러에 data 없고, 성공에 error_code 없음 |
-| 글로벌 에러 응답 등록 | Swagger 자동 문서화로 프론트엔드 개발자가 에러 형식을 즉시 확인 가능 |
-| data 필드 Generic 타입화 | `Any` → `ReturnType`으로 변경하여 타입 안전성과 Swagger 스키마 정확도 향상 |
+| Decision | Reason |
+|----------|--------|
+| PaginationInfo Optional integration | Unifies response structure for single/multi-item queries. Clients can branch based on the presence of the pagination field |
+| Response format -> Controller | Response formatting is an interface concern. Ensures use case reusability (shared between API/Worker) |
+| Success/Error response separation | Each response contains only necessary fields for clear semantics. Errors have no data, successes have no error_code |
+| Global error response registration | Swagger auto-documentation lets frontend developers immediately check error formats |
+| data field Generic typing | Changed from `Any` to `ReturnType` for improved type safety and Swagger schema accuracy |
 
-## 후속
+## Follow-up
 
-- `data` 필드의 `Any` → `ReturnType` Generic 타입 변경으로 DTO 타입이 Swagger에 정확히 표시되게 됨
-- 이후 DTO/Entity 책임 재정의(→ [004](004-dto-entity-responsibility.md))와 맞물려, 응답 DTO가 도메인 Entity와 분리됨
+- Changing the `data` field from `Any` to `ReturnType` Generic type made DTO types display accurately in Swagger
+- This later intersected with the DTO/Entity responsibility redefinition (-> [004](004-dto-entity-responsibility.md)), where response DTOs were separated from domain Entities
