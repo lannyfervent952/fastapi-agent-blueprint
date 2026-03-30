@@ -91,7 +91,7 @@ Inspect whether the content of each Skill's references/ files matches the curren
 ### Manual Inspection (Change-history-based — [REVIEW] targets)
 
 - [ ] **`review-architecture` checklist** (`checklist.md`):
-  - Count the items in CLAUDE.md's "Absolute Prohibitions" section and compare against the number of related inspection items in checklist.md
+  - Count the items in CLAUDE.md's "Absolute Prohibitions" section (expected: 5) and compare against the number of related inspection items in checklist.md
   - On mismatch: confirm with the user whether Grep patterns need to be added for new rules
 
 - [ ] **`security-review` security checklist** (`security-checklist.md`):
