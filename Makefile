@@ -1,8 +1,16 @@
-.PHONY: setup dev test lint format check clean
+.PHONY: help setup dev test lint format check clean
+
+## Show available commands
+help:
+	@echo "Usage: make <command>"
+	@echo ""
+	@awk '/^## /{desc=substr($$0,4)} /^[a-zA-Z_-]+:/{if(desc){printf "  \033[36m%-15s\033[0m %s\n", $$1, desc; desc=""}}' $(MAKEFILE_LIST)
+
+.DEFAULT_GOAL := help
 
 ## Setup development environment
 setup:
-	uv venv && uv sync --group dev && uv run pre-commit install
+	uv venv && uv sync --group dev && uv run pre-commit install && uv run pre-commit install --hook-type commit-msg
 
 ## Start local development (postgres + server)
 dev:
