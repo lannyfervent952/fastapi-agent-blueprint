@@ -13,6 +13,8 @@ All proposals and designs must consider scalability, maintainability, and team c
 - No exposing Model objects outside the Repository
 - No separate Mapper classes (inline conversion is sufficient)
 - No Entity pattern — unified to DTO (background: [ADR 004](docs/history/004-dto-entity-responsibility.md))
+- No modifying/deleting CLAUDE.md or project-dna.md rules without cross-reference verification
+  (Run: `grep -rl "KEYWORD" .claude/skills/` to check skill dependencies before any change)
 
 ## Layer Architecture (3-Tier Hybrid)
 - Default: Router → Service (extends BaseService) → Repository (extends BaseRepository)
@@ -27,7 +29,9 @@ All proposals and designs must consider scalability, maintainability, and team c
 
 ## Claude Collaboration Rules
 - If diagnosis/review result is "adequate", do not force improvement suggestions
-- Before proposing, verify existing 4-layer coverage (CLAUDE.md / project-dna / Serena / auto-memory)
+- Before proposing changes to project rules or structure:
+  1. Grep `.claude/skills/` for keywords from the rule being changed
+  2. If any skill references the rule, it is project-level — do not relocate or weaken
 - Only propose modifying/deleting existing structures when benefits of the new structure are clear
 - Skill SKILL.md frontmatter supported attributes: name, argument-hint, description, disable-model-invocation, compatibility (allowed-tools not supported)
 - **Update related documentation when changing code** — before committing, check:
@@ -73,6 +77,8 @@ All proposals and designs must consider scalability, maintainability, and team c
 - Domain Containers themselves use `DeclarativeContainer`
 
 ## Tool Selection Guidelines
+
+> Serena and context7 are project-required MCP servers (configured via `.mcp.json`).
 
 ### Code Exploration / Reading (by priority)
 1. **Serena symbol tools** (default): `get_symbols_overview` → `find_symbol(include_body=True)`

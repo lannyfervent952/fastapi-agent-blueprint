@@ -1,6 +1,6 @@
 # Architecture Conventions
 
-> For Absolute Prohibitions, Conversion Patterns, and Write DTO criteria, refer to CLAUDE.md.
+> For Absolute Prohibitions (including CLAUDE.md modification rules), Conversion Patterns, and Write DTO criteria, refer to CLAUDE.md.
 > This memory only contains **structural context** not covered in CLAUDE.md.
 
 ## Data Flow (3-Tier Hybrid)
