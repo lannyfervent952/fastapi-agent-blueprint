@@ -19,11 +19,11 @@ All proposals and designs must consider scalability, maintainability, and team c
 ## Layer Architecture (3-Tier Hybrid)
 - Default: Router → Service (extends BaseService) → Repository (extends BaseRepository)
 - Complex logic: Router → UseCase (manually written) → Service → Repository
-- UseCase criteria: multiple Service composition, cross-transaction boundaries, event publishing, etc.
+- UseCase criteria: multiple Service composition, cross-transaction boundaries, etc.
 - When in doubt: start without UseCase, add when complexity grows
 
 ## Terminology
-- **Request/Response**: API communication schema (`interface/server/dtos/`)
+- **Request/Response**: API communication schema (`interface/server/schemas/`)
 - **DTO**: Internal data carrier between layers — Repository→Router (`domain/dtos/`)
 - **Model**: DB table mapping, never exposed outside Repository (`infrastructure/database/models/`)
 
@@ -62,7 +62,7 @@ All proposals and designs must consider scalability, maintainability, and team c
 
 ## Skills (slash commands)
 - `/plan-feature {description}` — Feature implementation planning (requirements interview → architecture analysis → security check → task decomposition)
-- `/new-domain {name}` — Full domain scaffolding (14 content + 22 `__init__.py` + 3 tests = 39 files)
+- `/new-domain {name}` — Full domain scaffolding (13 content + 21 `__init__.py` + 3 tests = 37 files)
 - `/add-api {description}` — Add API endpoint to existing domain
 - `/add-worker-task {domain} {task}` — Add async Taskiq task
 - `/add-cross-domain from:{a} to:{b}` — Wire cross-domain dependency

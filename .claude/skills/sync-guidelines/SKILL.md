@@ -42,8 +42,7 @@ Sync required: X items / Total: Y items
 ```
 
 ## Post-run Cleanup
-After completing the sync, clear the Stop hook flag file:
-!`rm -f /tmp/.claude-sync-pending`
+After completing the sync, clear the Stop hook flag file by running: `rm -f .sync-pending`
 
 ## Actions When DRIFT Is Found
 1. Show the list of discovered mismatches to the user
@@ -106,7 +105,7 @@ Policy/standard-based content. Only detect whether related sources have changed 
 --- References Drift Inspection ---
 
 [AUTO-FIX] scaffolding-layers.md: File list
-  -> Addition required: src/{name}/domain/events/__init__.py
+  -> Missing file detected: src/{name}/domain/value_objects/__init__.py
   -> Fix suggestion generated -- Would you like to apply it?
 
 [OK] test-patterns.md: Factory pattern -- No changes

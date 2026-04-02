@@ -96,7 +96,7 @@ Router -> UseCase -> Service -> Repository -> DB
 | 계층 | 역할 | Base 클래스 |
 |------|------|------------|
 | **Interface** | Router, Request/Response, Admin, Worker Task | - |
-| **Domain** | Service (비즈니스 로직), Protocol, DTO, Event | `BaseService[ReturnDTO]` |
+| **Domain** | Service (비즈니스 로직), Protocol, DTO | `BaseService[ReturnDTO]` |
 | **Infrastructure** | Repository (DB 접근), Model, DI Container | `BaseRepository[ReturnDTO]` |
 | **Application** | UseCase (복합 로직 조율) -- **선택적** | - |
 
@@ -115,7 +115,7 @@ Read:  Response <-- Service <-- Repository <-- DTO <-- Model
 
 | 객체 | 역할 | 위치 |
 |------|------|------|
-| **Request/Response** | API 통신 규격 | `interface/server/dtos/` |
+| **Request/Response** | API 통신 규격 | `interface/server/schemas/` |
 | **DTO** | 내부 레이어 간 데이터 운반 | `domain/dtos/` |
 | **Model** | DB 테이블 매핑 (Repository 밖으로 노출 금지) | `infrastructure/database/models/` |
 
@@ -378,8 +378,7 @@ src/
 │   │   ├── dtos/                # UserDTO
 │   │   ├── protocols/           # UserRepositoryProtocol
 │   │   ├── services/            # UserService(BaseService[UserDTO])
-│   │   ├── exceptions/          # UserNotFoundException
-│   │   └── events/              # UserCreated, UserUpdated
+│   │   └── exceptions/          # UserNotFoundException
 │   ├── infrastructure/
 │   │   ├── database/models/     # UserModel
 │   │   ├── repositories/        # UserRepository(BaseRepository[UserDTO])

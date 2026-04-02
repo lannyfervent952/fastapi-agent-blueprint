@@ -1,8 +1,8 @@
 # Domain Scaffolding Layer Details
 
 ## File Count Summary
-- **Default (no UseCase)**: 14 content + 22 `__init__.py` + 3 tests = **39 files**
-- **With UseCase**: 15 content + 24 `__init__.py` + 4 tests = **43 files**
+- **Default (no UseCase)**: 13 content + 21 `__init__.py` + 3 tests = **37 files**
+- **With UseCase**: 14 content + 23 `__init__.py` + 4 tests = **41 files**
 
 > Every Python package directory gets an empty `__init__.py`.
 > The numbered items below are **content files only** — `__init__.py` files are created automatically
@@ -29,12 +29,9 @@ src/{name}/
     ├── services/
     │   ├── __init__.py
     │   └── {name}_service.py              ← #3
-    ├── exceptions/
-    │   ├── __init__.py
-    │   └── {name}_exceptions.py           ← #4
-    └── events/
+    └── exceptions/
         ├── __init__.py
-        └── {name}_events.py               ← #5
+        └── {name}_exceptions.py           ← #4
 ```
 
 1. `src/{name}/domain/dtos/{name}_dto.py`
@@ -54,12 +51,6 @@ src/{name}/
    - `from src._core.exceptions.base_exception import BaseCustomException`
    - `{Name}NotFoundException(status_code=404, error_code="{NAME}_NOT_FOUND")`
    - `{Name}AlreadyExistsException(status_code=409, error_code="{NAME}_ALREADY_EXISTS")`
-5. `src/{name}/domain/events/{name}_events.py`
-   - `from src._core.domain.events.domain_event import DomainEvent`
-   - `{Name}Created(DomainEvent)` — event_type="{name}.created", {name}_id
-   - `{Name}Updated(DomainEvent)` — event_type="{name}.updated", {name}_id
-   - `{Name}Deleted(DomainEvent)` — event_type="{name}.deleted", {name}_id
-
 ## Layer 2: Application (Optional — only when complex business logic exists)
 
 > Do not create UseCases for basic CRUD domains.
@@ -121,9 +112,9 @@ src/{name}/
     ├── __init__.py
     ├── server/
     │   ├── __init__.py
-    │   ├── dtos/
+    │   ├── schemas/
     │   │   ├── __init__.py
-    │   │   └── {name}_dto.py              ← #10
+    │   │   └── {name}_schema.py           ← #10
     │   ├── routers/
     │   │   ├── __init__.py
     │   │   └── {name}_router.py           ← #11
@@ -145,7 +136,7 @@ src/{name}/
             └── {name}_bootstrap.py        ← #15
 ```
 
-10. `src/{name}/interface/server/dtos/{name}_dto.py`
+10. `src/{name}/interface/server/schemas/{name}_schema.py`
     - `from src._core.application.dtos.base_response import BaseResponse`
     - `from src._core.application.dtos.base_request import BaseRequest`
     - `{Name}Response(BaseResponse)` — exclude sensitive fields

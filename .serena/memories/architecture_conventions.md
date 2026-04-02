@@ -13,7 +13,7 @@ Complex logic:
   Write: Request → UseCase → Service → Repository → Model → DB
   Read:  Response ← UseCase ← Service ← Repository ← DTO ← Model
 ```
-> UseCase is added only when combining multiple Services, crossing transaction boundaries, or publishing events
+> UseCase is added only when combining multiple Services or crossing transaction boundaries
 > For detailed Conversion Patterns: refer to the "Conversion Patterns" section in CLAUDE.md
 
 ## Object Roles
@@ -25,7 +25,7 @@ Complex logic:
 - Create/Update DTO is only created separately when fields differ from Request
 
 ### API Schema (Interface DTO)
-- Location: `src/{domain}/interface/server/dtos/{domain}_dto.py`
+- Location: `src/{domain}/interface/server/schemas/{domain}_schema.py`
 - Inherits `BaseRequest` / `BaseResponse`
 - Explicit field declarations
 - Intentionally excludes sensitive fields (Response)

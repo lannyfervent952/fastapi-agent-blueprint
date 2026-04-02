@@ -3,13 +3,13 @@
 > This file is auto-extracted/updated from `src/user/` (reference domain) and `src/_core/` (Base classes)
 > when `/sync-guidelines` is run. **Run `/sync-guidelines` instead of editing manually.**
 >
-> Last updated: 2026-03-19
+> Last updated: 2026-04-02
 
 ## Section Index
 §0 Project Scale and Design Philosophy |
 §1 Directory Structure | §2 Base Class Path | §3 Generic Type Signatures | §4 CRUD Methods
 §5 DI Pattern | §6 Conversion Patterns | §7 Security Tools | §8 Active Features
-§9 Router Pattern | §10 Exception Pattern | §11 Event Pattern
+§9 Router Pattern | §10 Exception Pattern
 
 ---
 
@@ -56,7 +56,6 @@ src/{name}/
 │   ├── protocols/{name}_repository_protocol.py
 │   ├── services/{name}_service.py
 │   ├── exceptions/{name}_exceptions.py
-│   ├── events/{name}_events.py
 │   └── value_objects/                    # (as needed)
 ├── application/                           # (optional — only for complex logic)
 │   ├── __init__.py
@@ -71,7 +70,7 @@ src/{name}/
 └── interface/
     ├── __init__.py
     ├── server/
-    │   ├── dtos/{name}_dto.py
+    │   ├── schemas/{name}_schema.py
     │   ├── routers/{name}_router.py
     │   └── bootstrap/{name}_bootstrap.py
     ├── admin/
@@ -97,7 +96,6 @@ src/{name}/
 | PaginationInfo | `src._core.application.dtos.base_response.PaginationInfo` |
 | ApiConfig | `src._core.application.dtos.base_config.ApiConfig` |
 | BaseCustomException | `src._core.exceptions.base_exception.BaseCustomException` |
-| DomainEvent | `src._core.domain.events.domain_event.DomainEvent` |
 | ValueObject | `src._core.domain.value_objects.value_object.ValueObject` |
 | make_pagination | `src._core.common.pagination.make_pagination` |
 | CoreContainer | `src._core.infrastructure.di.core_container.CoreContainer` |
@@ -108,7 +106,6 @@ src/{name}/
 - `BaseResponse` → `ApiConfig` → `BaseModel`
 - `SuccessResponse` → `ApiConfig`, `Generic[ReturnType]`
 - `ValueObject` → `BaseModel` (frozen=True)
-- `DomainEvent` → `BaseModel` (event_id: UUID, occurred_at: datetime)
 
 ## §3. Generic Type Signatures
 
@@ -327,21 +324,3 @@ class {Name}AlreadyExistsException(BaseCustomException):
         )
 ```
 
-## §11. Event Pattern
-
-```python
-from src._core.domain.events.domain_event import DomainEvent
-
-class {Name}Created(DomainEvent):
-    event_type: str = "{name}.created"
-    {name}_id: int
-    # ... domain-specific fields
-
-class {Name}Updated(DomainEvent):
-    event_type: str = "{name}.updated"
-    {name}_id: int
-
-class {Name}Deleted(DomainEvent):
-    event_type: str = "{name}.deleted"
-    {name}_id: int
-```
