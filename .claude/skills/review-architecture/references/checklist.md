@@ -44,7 +44,16 @@ Check tests/ directory:
 - [ ] `tests/unit/{name}/application/test_{name}_use_case.py` exists **(only when UseCase exists)**
 - [ ] `tests/integration/{name}/infrastructure/test_{name}_repository.py` exists
 
-## 6. Bootstrap Wiring
+## 6. Worker Payload Compliance
+Check interface/worker/ files:
+
+- [ ] Worker tasks validate `**kwargs` via a Payload class (not directly via domain DTO)
+- [ ] Payload classes inherit from `BasePayload` (not `BaseModel` or `BaseRequest`)
+- [ ] Payload files live in `interface/worker/payloads/` (not in domain layer)
+- [ ] When fields match: Payload passed directly to Service (same as Request pattern)
+- [ ] When fields differ: explicit DTO conversion in task
+
+## 7. Bootstrap Wiring
 Check app-level files and auto-discovery mechanism:
 
 - [ ] `src/{name}/interface/server/bootstrap/{name}_bootstrap.py` exists
