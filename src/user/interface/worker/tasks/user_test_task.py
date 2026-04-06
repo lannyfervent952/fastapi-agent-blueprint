@@ -5,6 +5,7 @@ from src._core.config import settings
 from src.user.domain.dtos.user_dto import UserDTO
 from src.user.domain.services.user_service import UserService
 from src.user.infrastructure.di.user_container import UserContainer
+from src.user.interface.worker.payloads.user_payload import UserTestPayload
 
 
 @broker.task(task_name=f"{settings.task_name_prefix}.user.test")
@@ -13,6 +14,7 @@ async def consume_task(
     user_service: UserService = Provide[UserContainer.user_service],
     **kwargs,
 ) -> None:
-    dto = UserDTO.model_validate(kwargs)
+    payload = UserTestPayload.model_validate(kwargs)
+    dto = UserDTO(**payload.model_dump())
 
     await user_service.process_user(dto=dto)
