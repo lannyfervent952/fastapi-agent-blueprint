@@ -16,6 +16,11 @@ INTERNAL_CONFIG = ConfigDict(
     # frozen=False,
 )
 
+PAYLOAD_CONFIG = ConfigDict(
+    extra="forbid",
+    frozen=True,
+)
+
 
 class BaseConfig(BaseModel):
     pass
@@ -27,3 +32,7 @@ class ApiConfig(BaseConfig):
 
 class InternalConfig(BaseConfig):
     model_config = INTERNAL_CONFIG
+
+
+class PayloadConfig(BaseConfig):
+    model_config = PAYLOAD_CONFIG
