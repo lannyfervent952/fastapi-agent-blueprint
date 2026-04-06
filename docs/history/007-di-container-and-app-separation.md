@@ -136,8 +136,32 @@ while sharing the domain's Service/Repository layers.
 - [x] Will a reader understand "why" 6 months from now without additional context?
 - [x] Am I recording the decision process, or justifying a conclusion I already reached?
 
+## Supplementary: DynamicContainer vs DeclarativeContainer
+
+The project uses two different container types for different purposes:
+
+| Level | Container Type | Reason |
+|-------|---------------|--------|
+| Domain (`user_container.py`) | `DeclarativeContainer` | Static structure — each domain's dependencies are known at definition time. Schema is explicit and type-checkable |
+| App (`_apps/*/di/container.py`) | `DynamicContainer` via factory function | Dynamic structure — the set of domains is determined at runtime by `discover_domains()`. Cannot be declared statically since domain count is not fixed |
+
+The factory function (`create_server_container()`) calls `discover_domains()`, dynamically loads each domain's `DeclarativeContainer`, and attaches it to a `DynamicContainer`:
+
+```python
+def create_server_container():
+    container = containers.DynamicContainer()
+    container.core_container = providers.Container(CoreContainer)
+    for name in discover_domains():
+        domain_container_cls = load_domain_container(name)
+        setattr(container, f"{name}_container",
+                providers.Container(domain_container_cls, core_container=container.core_container))
+    return container
+```
+
+**Why not `DeclarativeContainer` for apps too?** `DeclarativeContainer` requires all sub-containers to be declared as class attributes at import time. Since the domain list is discovered at runtime, a declarative approach would need code generation or manual registration — exactly what auto-discovery was designed to eliminate ([019](019-domain-auto-discovery.md)).
+
 ## Follow-up
 
 - Celery was later replaced with Taskiq ([001](001-celery-to-taskiq.md)), which also changed the Worker app structure
 - consumer was renamed to worker (done together in commit `aafdcd4`)
-- Domain auto-discovery system introduced in #57, eliminating the need to modify containers in `_apps/` when adding new domains
+- Domain auto-discovery system introduced in #57, eliminating the need to modify containers in `_apps/` when adding new domains ([019](019-domain-auto-discovery.md))

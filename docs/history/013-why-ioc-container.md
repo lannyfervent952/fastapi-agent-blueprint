@@ -220,6 +220,29 @@ The "rigid structure" limitation of layered architecture is overcome through the
 - [x] Will a reader understand "why" 6 months from now without additional context?
 - [x] Am I recording the decision process, or justifying a conclusion I already reached?
 
+## Supplementary: Why Protocol over ABC for Cross-Domain DIP
+
+The project uses `typing.Protocol` (structural subtyping) instead of `abc.ABC` (nominal subtyping) for dependency inversion between layers:
+
+```python
+# domain/protocols/user_repository_protocol.py
+class UserRepositoryProtocol(BaseRepositoryProtocol[UserDTO], Protocol):
+    ...
+```
+
+**Why Protocol over ABC?**
+
+| Criterion | `abc.ABC` | `typing.Protocol` |
+|-----------|-----------|-------------------|
+| Subtyping | Nominal — must explicitly inherit | Structural — any class with matching methods qualifies |
+| Import direction | Implementation must import the ABC | Implementation does not need to import Protocol |
+| Domain layer purity | ABC definition in Domain, but implementation in Infrastructure must `import` it — creating a reverse dependency | Protocol in Domain is never imported by Infrastructure. Container wires them at runtime |
+| Duck typing alignment | Requires explicit `register()` or inheritance | Natural fit for Python's duck typing philosophy |
+
+The key benefit is **import direction**: with ABC, `UserRepository(UserRepositoryABC)` in the Infrastructure layer must import from the Domain layer, creating a dependency from Infrastructure → Domain. With Protocol, `UserRepository` simply implements the same method signatures — no import needed. The Container handles the wiring, keeping the dependency graph clean: Domain ← Infrastructure (via Container), never Domain → Infrastructure.
+
+This is why the pre-commit hook (`no-domain-infra-import`) can enforce "no Infrastructure imports in Domain" without exceptions for interface imports — Protocol-based DIP requires no such imports.
+
 ## Trade-offs
 
 | Benefit | Cost |
