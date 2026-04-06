@@ -41,13 +41,34 @@ Each document captures the context and decision criteria for "why this technolog
 | #35 | Add data CRUD validation | - |
 | #36 | Add vector DB | enhancement |
 | #45 | Add Vercel | enhancement |
-| #46 | Add DynamoDB | enhancement |
+| #46 | Improve ADR template for clearer intent communication | enhancement |
 | #47 | Adopt Replex and build internal admin page | enhancement |
 | #51 | Adopt PydanticAI | enhancement |
 | #52 | Per-environment Alembic separation | refactor |
 | #55 | Slack/Discord alerts on error | enhancement |
 
 ## Writing Guide
+
+### Writing Principles
+
+An ADR is **not** a document that justifies a decision already made.
+It is a record of the **decision-making process** — the problem, the options, and why one was chosen.
+
+**Anti-patterns (rationalization):**
+- Starting from the conclusion and gathering evidence to support it
+- "We chose X. Here's why X is good..." (conclusion → evidence)
+- Omitting alternatives that were seriously considered
+- Writing rationale that only lists benefits without trade-offs
+
+**Correct approach (decision record):**
+- "We faced problem Y. We considered A, B, C. Given our context, we chose X because..."
+  (problem → process → conclusion)
+- Being honest about the decision type: was this designed upfront, or corrected after experience?
+- Acknowledging trade-offs and what was sacrificed
+
+### Language
+
+ADRs must be written in English.
 
 ### File Naming
 ```
@@ -63,11 +84,31 @@ e.g.: 001-celery-to-taskiq.md
 - Date: YYYY-MM-DD
 - Related issue: #{number}
 
+## Summary
+<!-- 1-2 sentences: "To solve {problem}, we chose {approach}" -->
+
 ## Background
+<!-- Must include: -->
+<!-- - Trigger: what made this decision necessary NOW -->
+<!-- - Decision type: upfront design / experience-based correction / external factor -->
+
 ## Problem
+
 ## Alternatives Considered
+<!-- For each alternative: why it does not fit the current project context -->
+### A. {alternative}
+### B. {alternative}
+
 ## Decision
+
 ## Rationale
+<!-- Lead with architectural "why", not implementation details -->
+
+### Self-check
+- [ ] Does this decision address the root cause, not just the symptom?
+- [ ] Is this the right approach for the current project scale and team situation?
+- [ ] Will a reader understand "why" 6 months from now without additional context?
+- [ ] Am I recording the decision process, or justifying a conclusion I already reached?
 ```
 
 ### Status Values
