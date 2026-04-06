@@ -24,6 +24,15 @@ Each document captures the context and decision criteria for "why this technolog
 | [014](014-omc-vs-native-orchestration.md) | OMC vs Native Orchestration Decision | Accepted | Done | 2026-03-24 ~ 2026-04-05 |
 | [015](015-rebrand-agent-platform.md) | Rebrand to AI Agent Backend Platform | Accepted | Done | 2026-04-03 |
 | [016](016-worker-payload-schema.md) | Worker Payload Schema | Accepted | Done | 2026-04-06 |
+| [017](017-exception-handling-strategy.md) | Exception Handling Strategy: Native Handler over Middleware | Accepted | Done | 2025-09 ~ 2026-03 |
+| [018](018-domain-event-removal.md) | Domain Event Infrastructure Removal | Accepted | Done | 2026-04-02 |
+| [019](019-domain-auto-discovery.md) | Domain Auto-Discovery System | Accepted | Done | 2026-03 |
+| [020](020-aidd-skills-governance.md) | AIDD Methodology and Skills Governance System | Accepted | Done | 2026-03 |
+| [021](021-architecture-governance-hooks-ci.md) | Architecture Governance via Pre-commit Hooks and CI | Accepted | Done | 2026-03 ~ 2026-04 |
+| [022](022-underscore-prefix-convention.md) | Underscore Prefix Convention for Internal Modules | Accepted | Done | 2025-10 ~ 2025-11 |
+| [023](023-object-storage-unification.md) | Object Storage Unification: MinIO to S3 via aioboto3 | Accepted | Done | 2025-10 |
+| [024](024-session-lifecycle-management.md) | Session Lifecycle Management: Context Manager over Factory | Accepted | Done | 2025-08 ~ 2025-10 |
+| [025](025-oss-preparation-strategy.md) | OSS Preparation and Internationalization Strategy | Accepted | Done | 2026-03 ~ 2026-04 |
 
 ## Future Considerations (Open Issues)
 
