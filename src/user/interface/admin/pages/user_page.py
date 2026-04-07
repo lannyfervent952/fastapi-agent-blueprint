@@ -6,7 +6,10 @@ from src._core.infrastructure.admin.base_admin_page import (
     ColumnConfig,
 )
 from src._core.infrastructure.admin.layout import admin_layout
-from src._core.infrastructure.admin.renderers import render_list_page
+from src._core.infrastructure.admin.renderers import (
+    render_detail_page,
+    render_list_page,
+)
 
 user_admin_page = BaseAdminPage(
     domain_name="user",
@@ -32,10 +35,23 @@ def register_pages(all_page_configs, admin_container) -> None:
     user_container = admin_container.user_container
 
     @ui.page("/admin/user")
-    async def user_list_page(page: int = 1):
+    async def user_list_page(page: int = 1, search: str = ""):
         if not require_auth():
             return
         admin_layout(all_page_configs, current_domain="user")
 
         service = user_container.user_service()
-        await render_list_page(page_config=user_admin_page, service=service, page=page)
+        await render_list_page(
+            page_config=user_admin_page, service=service, page=page, search=search
+        )
+
+    @ui.page("/admin/user/{record_id}")
+    async def user_detail_page(record_id: int):
+        if not require_auth():
+            return
+        admin_layout(all_page_configs, current_domain="user")
+
+        service = user_container.user_service()
+        await render_detail_page(
+            page_config=user_admin_page, service=service, record_id=record_id
+        )
