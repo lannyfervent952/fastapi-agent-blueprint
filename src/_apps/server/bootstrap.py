@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from src._apps.admin.bootstrap import bootstrap_admin
 from src._apps.server.di.container import create_server_container
 from src._core.application.routers.api import docs_router, health_check_router
 from src._core.config import settings
@@ -54,6 +55,9 @@ def bootstrap_app(app: FastAPI) -> None:
 
     # Bootstrap each domain
     _bootstrap_domains(app=app, server_container=server_container)
+
+    # Bootstrap admin dashboard (NiceGUI)
+    bootstrap_admin(app)
 
 
 def _bootstrap_domains(app: FastAPI, server_container) -> None:
