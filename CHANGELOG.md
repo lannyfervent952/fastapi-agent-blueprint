@@ -9,7 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- NiceGUI admin dashboard with auto-discovery, env-var auth, AG Grid CRUD, and field masking ([#14](https://github.com/Mr-DooSun/fastapi-agent-blueprint/issues/14))
+- ADR 026: NiceGUI adoption for admin dashboard
 - Branch name validation in CI for pull requests (`{type}/{description}` format enforcement)
+
+### Changed
+
+- Replace SQLAdmin with NiceGUI for admin interface ([#14](https://github.com/Mr-DooSun/fastapi-agent-blueprint/issues/14))
+- Admin views moved from `interface/admin/views/` to `interface/admin/pages/`
 
 ### Removed
 

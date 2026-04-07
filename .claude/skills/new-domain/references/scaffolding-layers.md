@@ -156,11 +156,10 @@ src/{name}/
 12. `src/{name}/interface/server/bootstrap/{name}_bootstrap.py`
     - `create_{name}_container()` — `wire(packages=["src.{name}.interface.server.routers"])`
     - `setup_{name}_routes(app)` — `app.include_router(prefix="/v1", tags=["{name}"])`
-    - `setup_{name}_admin(app, database)` — Admin view registration
     - `bootstrap_{name}_domain(app, database, {name}_container)`
-13. `src/{name}/interface/admin/views/{name}_view.py`
-    - `from sqladmin import ModelView`
-    - `class {Name}View(ModelView, model={Name}Model)`
+13. `src/{name}/interface/admin/pages/{name}_page.py`
+    - `from src._core.infrastructure.admin.base_admin_page import BaseAdminPage, ColumnConfig`
+    - `{name}_admin_page = BaseAdminPage(domain_name="{name}", display_name="{Name}", ...)`
 14. `src/{name}/interface/worker/payloads/{name}_payload.py`
     - `from src._core.application.dtos.base_payload import BasePayload`
     - `class {Name}TestPayload(BasePayload)` — worker message contract

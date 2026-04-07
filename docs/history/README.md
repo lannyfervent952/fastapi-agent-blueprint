@@ -33,6 +33,7 @@ Each document captures the context and decision criteria for "why this technolog
 | [023](023-object-storage-unification.md) | Object Storage Unification: MinIO to S3 via aioboto3 | Accepted | Done | 2025-10 |
 | [024](024-session-lifecycle-management.md) | Session Lifecycle Management: Context Manager over Factory | Accepted | Done | 2025-08 ~ 2025-10 |
 | [025](025-oss-preparation-strategy.md) | OSS Preparation and Internationalization Strategy | Accepted | Done | 2026-03 ~ 2026-04 |
+| [026](026-nicegui-admin-dashboard.md) | NiceGUI Adoption for Admin Dashboard | Accepted | Done | 2026-04-08 |
 
 ## Future Considerations (Open Issues)
 
@@ -51,7 +52,7 @@ Each document captures the context and decision criteria for "why this technolog
 | #36 | Add vector DB | enhancement |
 | #45 | Add Vercel | enhancement |
 | #46 | Improve ADR template for clearer intent communication | enhancement |
-| #47 | Adopt Replex and build internal admin page | enhancement |
+| #14 | Implement admin dashboard with NiceGUI | enhancement |
 | #51 | Adopt PydanticAI | enhancement |
 | #52 | Per-environment Alembic separation | refactor |
 | #55 | Slack/Discord alerts on error | enhancement |

@@ -275,7 +275,7 @@ def create_server_container() -> containers.DynamicContainer:
 | Pydantic 2.x | Active | model_validate, model_dump, ConfigDict |
 | dependency-injector | Active | DeclarativeContainer, @inject + Provide |
 | AWS S3 (aioboto3) | Active | ObjectStorage + ObjectStorageClient |
-| sqladmin (ModelView) | Active | Admin view registration |
+| NiceGUI (BaseAdminPage) | Active | Admin dashboard (AG Grid, auto-discovery) |
 | alembic (migrations) | Active | DB migrations |
 | JWT/Authentication | Not implemented | |
 | File Upload (UploadFile) | Not implemented | |
