@@ -1,7 +1,12 @@
+from nicegui import ui
+
+from src._core.infrastructure.admin.auth import require_auth
 from src._core.infrastructure.admin.base_admin_page import (
     BaseAdminPage,
     ColumnConfig,
 )
+from src._core.infrastructure.admin.layout import admin_layout
+from src._core.infrastructure.admin.renderers import render_list_page
 
 user_admin_page = BaseAdminPage(
     domain_name="user",
@@ -20,3 +25,17 @@ user_admin_page = BaseAdminPage(
     sortable_fields=["id", "username", "created_at"],
     default_sort_field="id",
 )
+
+
+def register_pages(all_page_configs, admin_container) -> None:
+    """Register user domain admin pages."""
+    user_container = admin_container.user_container
+
+    @ui.page("/admin/user")
+    async def user_list_page(page: int = 1):
+        if not require_auth():
+            return
+        admin_layout(all_page_configs, current_domain="user")
+
+        service = user_container.user_service()
+        await render_list_page(page_config=user_admin_page, service=service, page=page)
