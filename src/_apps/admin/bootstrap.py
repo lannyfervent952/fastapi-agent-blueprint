@@ -93,7 +93,7 @@ def _register_domain_page(
     domain_name = page_config.domain_name
 
     @ui.page(f"/admin/{domain_name}")
-    async def domain_list_page():
+    async def domain_list_page(page: int = 1):
         if not require_auth():
             return
         admin_layout(all_page_configs, current_domain=domain_name)
@@ -101,4 +101,4 @@ def _register_domain_page(
         domain_container = getattr(admin_container, f"{domain_name}_container")
         service = getattr(domain_container, f"{domain_name}_service")()
 
-        await render_list_page(page_config=page_config, service=service)
+        await render_list_page(page_config=page_config, service=service, page=page)
