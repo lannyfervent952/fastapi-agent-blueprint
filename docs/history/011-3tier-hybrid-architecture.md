@@ -150,8 +150,50 @@ Criteria for adding a UseCase:
 - [x] Will a reader understand "why" 6 months from now without additional context?
 - [x] Am I recording the decision process, or justifying a conclusion I already reached?
 
+## Post-decision Update (2026-04-09): Restore CreateDTO/UpdateDTO to BaseService
+
+### Condition Change
+
+The original Generic simplification (3 → 1) was based on the premise that "CreateDTO and UpdateDTO were always set to BaseModel, providing no practical type safety." This was correct at the time — domain Services were pure delegation layers.
+
+However, after introducing domain-specific business logic in Service overrides (e.g., password hashing in `UserService.create_data`), Services now access concrete fields like `entity.password`. This requires narrowing the parameter type from `BaseModel` to `CreateUserRequest`, which violates the Liskov Substitution Principle.
+
+### What Changed
+
+With 10+ domains planned, every domain Service would repeat the same LSP-violating pattern:
+
+```python
+# Before (LSP violation — BaseService says BaseModel, override says CreateUserRequest)
+class BaseService(Generic[ReturnDTO]):
+    async def create_data(self, entity: BaseModel) -> ReturnDTO: ...
+
+class UserService(BaseService[UserDTO]):
+    async def create_data(self, entity: CreateUserRequest) -> UserDTO: ...  # narrows BaseModel
+```
+
+### Correction
+
+Restored `CreateDTO` and `UpdateDTO` TypeVars to **BaseService only** (Repository stays at 1 TypeVar — it only calls `model_dump()` and doesn't benefit from typed inputs):
+
+```python
+# After (LSP-compliant — override matches parent signature)
+class BaseService(Generic[CreateDTO, UpdateDTO, ReturnDTO]):
+    async def create_data(self, entity: CreateDTO) -> ReturnDTO: ...
+
+class UserService(BaseService[CreateUserRequest, UpdateUserRequest, UserDTO]):
+    async def create_data(self, entity: CreateUserRequest) -> UserDTO: ...  # matches parent
+```
+
+### Why Not Repository Too?
+
+BaseRepositoryProtocol and BaseRepository remain `Generic[ReturnDTO]` with `entity: BaseModel`:
+- Repository methods only call `entity.model_dump(exclude_none=True)` — no field-specific access
+- `CreateDTO` is bounded by `BaseModel`, so passing it to `entity: BaseModel` is type-safe
+- Keeps Repository layer simple; the original ADR 011 rationale still holds at this layer
+
 ## Lessons Learned
 
 - More layers do not mean better architecture. Each layer must be validated for providing practical value
 - "Let's build it in advance in case we need it later" violates YAGNI. Add it when the need arises
 - CRUD automation through base classes is a proven pattern in enterprise frameworks (Spring, NestJS, Django)
+- Architecture decisions have preconditions. When preconditions change (e.g., Services gain domain logic), revisit the decision rather than working around it
