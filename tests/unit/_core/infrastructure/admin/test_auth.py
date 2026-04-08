@@ -39,6 +39,7 @@ class TestAdminAuthProviderImport:
     @patch.dict(
         os.environ,
         {
+            "ENV": "local",
             "ADMIN_ID": "admin",
             "ADMIN_PASSWORD": "admin",
             "ADMIN_STORAGE_SECRET": "test-secret",
