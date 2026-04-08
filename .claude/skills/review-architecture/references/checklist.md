@@ -53,7 +53,20 @@ Check interface/worker/ files:
 - [ ] When fields match: Payload passed directly to Service (same as Request pattern)
 - [ ] When fields differ: explicit DTO conversion in task
 
-## 7. Bootstrap Wiring
+## 7. Admin Page Compliance
+Check interface/admin/ files (expected pattern: refer to **project-dna.md section 11**):
+
+- [ ] Config file exists: `src/{name}/interface/admin/configs/{name}_admin_config.py`
+- [ ] Config variable named `{name}_admin_page` (discovery convention)
+- [ ] Page file exists: `src/{name}/interface/admin/pages/{name}_page.py`
+- [ ] Page file imports config from the configs module (not defined inline)
+- [ ] No direct Service import in page file (service resolved via BaseAdminPage internally)
+  - Grep: No `from src.{name}.domain.services` in `interface/admin/pages/` files
+- [ ] `page_configs: list[BaseAdminPage] = []` declared at module level in page file
+- [ ] `require_auth()` called at the top of every `@ui.page` function
+- [ ] Sensitive fields use `masked=True` in ColumnConfig (password, secret, token)
+
+## 8. Bootstrap Wiring
 Check app-level files and auto-discovery mechanism:
 
 - [ ] `src/{name}/interface/server/bootstrap/{name}_bootstrap.py` exists

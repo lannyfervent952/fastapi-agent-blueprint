@@ -1,8 +1,8 @@
 # Domain Scaffolding Layer Details
 
 ## File Count Summary
-- **Default (no UseCase)**: 14 content + 22 `__init__.py` + 3 tests = **39 files**
-- **With UseCase**: 15 content + 24 `__init__.py` + 4 tests = **43 files**
+- **Default (no UseCase)**: 15 content + 23 `__init__.py` + 3 tests = **41 files**
+- **With UseCase**: 16 content + 25 `__init__.py` + 4 tests = **45 files**
 
 > Every Python package directory gets an empty `__init__.py`.
 > The numbered items below are **content files only** — `__init__.py` files are created automatically
@@ -123,20 +123,23 @@ src/{name}/
     │       └── {name}_bootstrap.py        ← #12
     ├── admin/
     │   ├── __init__.py
+    │   ├── configs/
+    │   │   ├── __init__.py
+    │   │   └── {name}_admin_config.py     ← #13
     │   └── pages/
     │       ├── __init__.py
-    │       └── {name}_page.py             ← #13
+    │       └── {name}_page.py             ← #14
     └── worker/
         ├── __init__.py
         ├── payloads/
         │   ├── __init__.py
-        │   └── {name}_payload.py          ← #14
+        │   └── {name}_payload.py          ← #15
         ├── tasks/
         │   ├── __init__.py
-        │   └── {name}_test_task.py        ← #15
+        │   └── {name}_test_task.py        ← #16
         └── bootstrap/
             ├── __init__.py
-            └── {name}_bootstrap.py        ← #16
+            └── {name}_bootstrap.py        ← #17
 ```
 
 10. `src/{name}/interface/server/schemas/{name}_schema.py`
@@ -157,25 +160,26 @@ src/{name}/
     - `create_{name}_container()` — `wire(packages=["src.{name}.interface.server.routers"])`
     - `setup_{name}_routes(app)` — `app.include_router(prefix="/v1", tags=["{name}"])`
     - `bootstrap_{name}_domain(app, database, {name}_container)`
-13. `src/{name}/interface/admin/pages/{name}_page.py`
-    - `from src._core.infrastructure.admin.base_admin_page import BaseAdminPage, ColumnConfig`
-    - `{name}_admin_page = BaseAdminPage(domain_name="{name}", display_name="{Name}", ...)`
-    - `page_configs: list[BaseAdminPage] = []` — injected by bootstrap_admin()
-    - Module-level `@ui.page` routes — no `@inject`/`Provide` needed (service is resolved internally by `BaseAdminPage`)
-    - `bootstrap_admin()` injects `_service_provider` into `{name}_admin_page` at startup
-    - Calls `{name}_admin_page.render_list(page=..., search=...)` — Template Method pattern
-    - For custom rendering: subclass `BaseAdminPage` and override hook methods (e.g., `render_grid`, `render_detail_card`)
-14. `src/{name}/interface/worker/payloads/{name}_payload.py`
+13. `src/{name}/interface/admin/configs/{name}_admin_config.py`
+    - Admin page config: refer to **project-dna.md section 11**
+    - `{name}_admin_page = BaseAdminPage(...)` with `ColumnConfig` for each DTO field
+    - Mark sensitive fields with `masked=True` (e.g., password)
+14. `src/{name}/interface/admin/pages/{name}_page.py`
+    - Admin page routes: refer to **project-dna.md section 11**
+    - `page_configs: list[BaseAdminPage] = []` — injected by `bootstrap_admin()`
+    - `@ui.page` routes for list and detail views
+    - No `@inject`/`Provide` needed (service resolved internally by `BaseAdminPage`)
+15. `src/{name}/interface/worker/payloads/{name}_payload.py`
     - `from src._core.application.dtos.base_payload import BasePayload`
     - `class {Name}TestPayload(BasePayload)` — worker message contract
     - Define only the fields needed for the test task message
     - Does NOT inherit from domain DTO (independent contract)
-15. `src/{name}/interface/worker/tasks/{name}_test_task.py`
+16. `src/{name}/interface/worker/tasks/{name}_test_task.py`
     - `@broker.task(task_name=f"{settings.task_name_prefix}.{name}.test")`
     - Requires `from src._core.config import settings` import
     - `@inject` + `Provide[{Name}Container.{name}_service]`
     - `**kwargs` → `{Name}TestPayload.model_validate(kwargs)` → pass payload to Service directly
-16. `src/{name}/interface/worker/bootstrap/{name}_bootstrap.py`
+17. `src/{name}/interface/worker/bootstrap/{name}_bootstrap.py`
     - `wire(modules=[{name}_test_task])`
     - Function name: `bootstrap_{name}_domain` (unified convention with server)
 
@@ -193,7 +197,7 @@ src/{name}/
 
 ## Layer 6: Tests
 
-17. `tests/factories/{name}_factory.py` — `make_{name}_dto()`, `make_create_{name}_request()`, `make_{name}_test_payload()`
-18. `tests/unit/{name}/domain/test_{name}_service.py` — MockRepository + CRUD tests
-19. `tests/unit/{name}/application/test_{name}_use_case.py` — **only when UseCase exists** MockService + tests
-20. `tests/integration/{name}/infrastructure/test_{name}_repository.py` — uses test_db fixture
+18. `tests/factories/{name}_factory.py` — `make_{name}_dto()`, `make_create_{name}_request()`, `make_{name}_test_payload()`
+19. `tests/unit/{name}/domain/test_{name}_service.py` — MockRepository + CRUD tests
+20. `tests/unit/{name}/application/test_{name}_use_case.py` — **only when UseCase exists** MockService + tests
+21. `tests/integration/{name}/infrastructure/test_{name}_repository.py` — uses test_db fixture

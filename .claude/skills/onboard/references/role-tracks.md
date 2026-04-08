@@ -72,13 +72,14 @@ Advanced users are already familiar with DDD/DI, so deliver only what differenti
 2. `/new-domain` -> Domain creation
 3. `/add-api` -> API addition
 4. `/add-worker-task` -> Async tasks
-5. `/add-cross-domain` -> Cross-domain connections
-6. `/review-architecture` -> Architecture verification
-7. `/security-review` -> Security audit
-8. `/test-domain` -> Test generation/execution
-9. `/fix-bug` -> Bug fixes
-10. `/sync-guidelines` -> Guideline synchronization
-11. `/migrate-domain` -> DB migration
+5. `/add-admin-page` -> Admin page for existing domain
+6. `/add-cross-domain` -> Cross-domain connections
+7. `/review-architecture` -> Architecture verification
+8. `/security-review` -> Security audit
+9. `/test-domain` -> Test generation/execution
+10. `/fix-bug` -> Bug fixes
+11. `/sync-guidelines` -> Guideline synchronization
+12. `/migrate-domain` -> DB migration
 
 ## 4. Recommended Next Steps (by Experience Level)
 

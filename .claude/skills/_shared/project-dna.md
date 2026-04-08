@@ -9,7 +9,7 @@
 §0 Project Scale and Design Philosophy |
 §1 Directory Structure | §2 Base Class Path | §3 Generic Type Signatures | §4 CRUD Methods
 §5 DI Pattern | §6 Conversion Patterns | §7 Security Tools | §8 Active Features
-§9 Router Pattern | §10 Exception Pattern
+§9 Router Pattern | §10 Exception Pattern | §11 Admin Page Pattern
 
 ---
 
@@ -74,6 +74,7 @@ src/{name}/
     │   ├── routers/{name}_router.py
     │   └── bootstrap/{name}_bootstrap.py
     ├── admin/
+    │   ├── configs/{name}_admin_config.py
     │   └── pages/{name}_page.py
     └── worker/
         ├── payloads/{name}_payload.py
@@ -342,3 +343,88 @@ class {Name}AlreadyExistsException(BaseCustomException):
         )
 ```
 
+## §11. Admin Page Pattern
+
+### File Structure & Naming Convention
+
+```
+interface/admin/
+├── configs/{name}_admin_config.py   # Config declaration
+└── pages/{name}_page.py            # Route handlers
+```
+
+- Config variable: `{name}_admin_page = BaseAdminPage(...)` — name must match `{name}_admin_page` for auto-discovery
+- Config module path: `src.{name}.interface.admin.configs.{name}_admin_config`
+- Page module path: `src.{name}.interface.admin.pages.{name}_page`
+
+### Config File Pattern (`configs/{name}_admin_config.py`)
+
+```python
+from src._core.infrastructure.admin.base_admin_page import (
+    BaseAdminPage,
+    ColumnConfig,
+)
+
+{name}_admin_page = BaseAdminPage(
+    domain_name="{name}",
+    display_name="{Name}",
+    icon="person",                    # Material icon name
+    columns=[
+        ColumnConfig(field_name="id", header_name="ID", width=80),
+        ColumnConfig(field_name="username", header_name="Username", searchable=True),
+        ColumnConfig(field_name="password", header_name="Password", masked=True),
+        ColumnConfig(field_name="created_at", header_name="Created At"),
+    ],
+    searchable_fields=["username", "email"],
+    sortable_fields=["id", "username", "created_at"],
+    default_sort_field="id",
+)
+```
+
+- `ColumnConfig` options: `field_name`, `header_name`, `sortable`, `searchable`, `hidden`, `masked`, `width`
+- Sensitive fields (password, secret, token): always set `masked=True`
+- Config only — no route logic, no `ui` import
+
+### Page File Pattern (`pages/{name}_page.py`)
+
+```python
+from nicegui import ui
+
+from src._core.infrastructure.admin.auth import require_auth
+from src._core.infrastructure.admin.base_admin_page import BaseAdminPage
+from src._core.infrastructure.admin.layout import admin_layout
+from src.{name}.interface.admin.configs.{name}_admin_config import {name}_admin_page
+
+# Injected by bootstrap_admin() after discovery
+page_configs: list[BaseAdminPage] = []
+
+
+@ui.page("/admin/{name}")
+async def {name}_list_page(page: int = 1, search: str = ""):
+    if not require_auth():
+        return
+    admin_layout(page_configs, current_domain="{name}")
+    await {name}_admin_page.render_list(page=page, search=search)
+
+
+@ui.page("/admin/{name}/{record_id}")
+async def {name}_detail_page(record_id: int):
+    if not require_auth():
+        return
+    admin_layout(page_configs, current_domain="{name}")
+    await {name}_admin_page.render_detail(record_id=record_id)
+```
+
+### DI & Auto-discovery
+
+- No `@inject`/`Provide` needed — service is resolved internally by `BaseAdminPage._service_provider`
+- `bootstrap_admin()` auto-discovers domains via `discover_domains()`, loads config module, wires `_service_provider` from DI container, and imports page module (triggers `@ui.page` registration)
+- `page_configs` list is injected by bootstrap into each page module (shared reference for navigation rendering)
+- **No manual bootstrap registration needed** when adding admin pages to a domain
+
+### Custom Rendering
+
+For domain-specific rendering, subclass `BaseAdminPage` in the config file and override hook methods:
+- `render_grid(dtos)` — custom AG Grid rendering
+- `render_detail_card(dto)` — custom detail view
+- `_fetch_list_data(page, search)` / `_fetch_detail_data(record_id)` — custom data fetching
