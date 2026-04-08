@@ -11,17 +11,19 @@ from src._core.domain.protocols.repository_protocol import BaseRepositoryProtoco
 if TYPE_CHECKING:
     from src._core.domain.value_objects.query_filter import QueryFilter
 
+CreateDTO = TypeVar("CreateDTO", bound=BaseModel)
+UpdateDTO = TypeVar("UpdateDTO", bound=BaseModel)
 ReturnDTO = TypeVar("ReturnDTO", bound=BaseModel)
 
 
-class BaseService(Generic[ReturnDTO]):
+class BaseService(Generic[CreateDTO, UpdateDTO, ReturnDTO]):
     def __init__(self, repository: BaseRepositoryProtocol[ReturnDTO]) -> None:
         self.repository = repository
 
-    async def create_data(self, entity: BaseModel) -> ReturnDTO:
+    async def create_data(self, entity: CreateDTO) -> ReturnDTO:
         return await self.repository.insert_data(entity=entity)
 
-    async def create_datas(self, entities: list[BaseModel]) -> list[ReturnDTO]:
+    async def create_datas(self, entities: list[CreateDTO]) -> list[ReturnDTO]:
         return await self.repository.insert_datas(entities=entities)
 
     async def get_datas(
@@ -47,7 +49,7 @@ class BaseService(Generic[ReturnDTO]):
         return await self.repository.select_datas_by_ids(data_ids=data_ids)
 
     async def update_data_by_data_id(
-        self, data_id: int, entity: BaseModel
+        self, data_id: int, entity: UpdateDTO
     ) -> ReturnDTO:
         return await self.repository.update_data_by_data_id(
             data_id=data_id, entity=entity
