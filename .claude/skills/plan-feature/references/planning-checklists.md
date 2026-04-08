@@ -85,10 +85,13 @@
 | Test generation | `/test-domain` | `{domain} generate` | 4 required test files |
 | Test execution | `/test-domain` | `{domain} run` | unit + integration + e2e |
 | Architecture verification | `/review-architecture` | `{domain}` or `all` | 20+ item inspection |
-| Security audit | `/security-review` | `{domain}`, `{file}`, or `all` | OWASP 6 categories, 24+ items |
+| Security audit | `/security-review` | `{domain}`, `{file}`, or `all` | OWASP 8 categories, 32+ items |
 | Guideline sync | `/sync-guidelines` | (none) | Run after design changes |
 | Bug fix | `/fix-bug` | `"{description}"` | Reproduce -> Trace -> Fix -> Verify |
 | DB migration | `/migrate-domain` | `generate\|upgrade\|downgrade\|status` | Manual review required after autogenerate |
+| New member onboarding | `/onboard` | (none) | Experience-level adaptive (Beginner/Intermediate/Advanced) |
+| Sub-feature design | `/plan-feature` | `"{description}"` | Recursive use when splitting large features |
+| PR review | `/review-pr` | `{number\|URL}` | Architecture-aware review against project rules |
 | **Unmappable** items | Manual implementation | — | External API integrations, middleware, etc. |
 
 ## 4. Supervision Level Definitions
