@@ -15,4 +15,4 @@ async def consume_task(
 ) -> None:
     payload = UserTestPayload.model_validate(kwargs)
 
-    await user_service.process_user(dto=payload)
+    await user_service.get_data_by_data_id(data_id=payload.id)

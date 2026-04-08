@@ -62,7 +62,6 @@ def make_user_test_payload(
     username: str = "testuser",
     full_name: str = "Test User",
     email: str = "test@example.com",
-    password: str = "hashed_password",
     created_at: datetime | None = None,
     updated_at: datetime | None = None,
 ) -> UserTestPayload:
@@ -72,7 +71,6 @@ def make_user_test_payload(
         username=username,
         full_name=full_name,
         email=email,
-        password=password,
         created_at=created_at or now,
         updated_at=updated_at or now,
     )
