@@ -41,8 +41,19 @@ Check router files and configuration files:
 - [ ] [Always][CRITICAL] POST/PUT/DELETE endpoints have authentication dependency
   - Grep: `@router\.(post|put|delete|patch)` -> verify `Depends(.*auth|.*current_user|.*token)` in the function
   - When not implemented: [FAIL] + "Authentication not implemented — must be implemented before production deployment" warning
+### Admin Dashboard Security
 - [ ] [Always][HIGH] Admin endpoint access restriction verified
-  - Grep: Verify authentication settings in `interface/admin/` files
+  - Grep: Every `@ui.page("/admin/` function calls `require_auth()` before any rendering
+- [ ] [Always][HIGH] Admin authentication uses timing-safe comparison
+  - Grep: Verify `hmac.compare_digest` in `src/_core/infrastructure/admin/auth.py` (not `==` for password comparison)
+- [ ] [Always][HIGH] Sensitive fields masked in admin grid
+  - Grep: Fields containing `password`, `secret`, `token`, `key` in ColumnConfig use `masked=True`
+- [ ] [Always][MEDIUM] Admin credentials managed via environment variables
+  - Grep: `settings.admin_id` and `settings.admin_password` (not hardcoded in auth.py)
+- [ ] [Always][MEDIUM] Admin session storage secret is non-default
+  - Grep: `admin_storage_secret` loaded from environment settings (not hardcoded string)
+- [ ] [Always][LOW] Admin pages do not directly import domain Services
+  - Grep: No `from src.*.domain.services` in `interface/admin/pages/` files
 
 ### Credential Management
 - [ ] [Always][CRITICAL] No hardcoded password/secret/api_key/token

@@ -19,6 +19,16 @@ class Settings(BaseSettings):
     )
 
     # ----------------------------------------------------------------
+    # Admin Dashboard
+    # ----------------------------------------------------------------
+    admin_id: str = Field(default="admin", validation_alias="ADMIN_ID")
+    admin_password: str = Field(default="admin", validation_alias="ADMIN_PASSWORD")
+    admin_storage_secret: str = Field(
+        default="change-me-in-production",
+        validation_alias="ADMIN_STORAGE_SECRET",
+    )
+
+    # ----------------------------------------------------------------
     # Database
     # ----------------------------------------------------------------
     database_user: str = Field(default="postgres", validation_alias="DATABASE_USER")

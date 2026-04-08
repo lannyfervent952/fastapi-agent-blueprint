@@ -24,7 +24,9 @@ Execute the following to understand the current project state (do not output to 
 4. Glob `src/*/` to identify current domain list (excluding `_core`, `_apps`)
 5. `git log --oneline -5` to check recent activity
 
-## Phase 0: Welcome -- Assess Experience Level
+## Phase 0: Welcome -- Assess Experience Level and Format
+
+### Step 1: Experience Level
 
 Ask the user about their experience level:
 
@@ -35,17 +37,62 @@ Ask the user about their experience level:
 > - **(2) Intermediate** -- FastAPI experience, first time with DDD/layered architecture
 > - **(3) Advanced** -- DDD + DI Container experience, just need to understand this project's structure
 
-After receiving the user's response, refer to the level-specific adjustment criteria in `${CLAUDE_SKILL_DIR}/references/role-tracks.md`
+### Step 2: Onboarding Format
+
+After receiving the experience level, ask about the preferred format:
+
+> **How would you like to proceed?**
+> - **(A) Guided** -- Structured walkthrough, Phase by Phase
+> - **(B) Q&A** -- Topic map provided, you explore by asking questions
+> - **(C) Explore** -- Point at any code/file/directory and ask freely, uncovered essentials flagged at the end
+
+After receiving both responses, refer to the level-specific adjustment criteria in `${CLAUDE_SKILL_DIR}/references/role-tracks.md`
 to adjust the depth of each Phase. Track overview:
 
 ```
 === Onboarding Track ===
 Experience: {selected level}
+Format: {Guided | Q&A | Explore}
 Phase: 1(Methodology) -> 2(Project Overview) -> 3(Architecture Rules) -> 4(Data Flow) -> 5(Skills) -> 6(Next Steps)
 Depth Adjustment: {adjustment summary based on level}
 ```
 
 Proceed to the next Phase after user confirmation.
+
+### Q&A Mode Rules
+
+When the user selects **Q&A** format, apply the following rules to **all Phases (1-6)**:
+
+1. **Topic Map**: At the start of each Phase, present a brief overview with a numbered list of explorable topics.
+   Each topic should include a one-line description so the user can judge what to ask about.
+2. **User-Driven**: Wait for the user's questions. Answer by referencing the same sources as Guided mode
+   (ADR, code, Serena memory, project-dna.md, CLAUDE.md, etc.).
+3. **Coverage Tracking**: Internally track which topics have been addressed by the user's questions.
+4. **Gap Check**: When the user says 'next' (or equivalent), check for any **critical uncovered topics**.
+   If found, briefly mention them: "Before moving on, these are worth knowing: ..." (1-2 sentences each).
+   If all critical topics are covered, move on immediately.
+5. **Depth Adjustment**: Experience-level depth adjustments from `role-tracks.md` still apply.
+   For example, Advanced + Q&A skips DDD basics but still offers project-specific ADR topics to ask about.
+
+### Explore Mode Rules
+
+When the user selects **Explore** format, Phase 1-5 boundaries are removed. The user freely navigates the codebase:
+
+1. **Entry Point**: Show the project directory tree (`src/` top-level structure) as a starting point.
+   The user points at any file, directory, class, or function to ask about.
+2. **On-Demand Explanation**: When the user points at code, explain it using the same sources as Guided mode
+   (ADR, Serena memory, project-dna.md, CLAUDE.md, live code reading, etc.).
+   Connect to design decisions and architecture context where relevant.
+3. **Coverage Tracking**: Internally map the user's questions to the critical topics across all Phases:
+   - Phase 1 critical: structural evolution (ADR 006), Entity→DTO (ADR 004), 3-Tier Hybrid (ADR 011), IoC Container (ADR 013)
+   - Phase 2 critical: domain directory structure, tech stack
+   - Phase 3 critical: Absolute Prohibitions (4 rules)
+   - Phase 4 critical: Write/Read conversion patterns
+   - Phase 5 critical: Skills overview
+4. **Gap Check**: When the user says 'done' (or equivalent), review uncovered critical topics.
+   If found, briefly present them grouped by theme (1-2 sentences each).
+   If all covered, skip directly to Phase 6 (Next Steps).
+5. **Depth Adjustment**: Experience-level adjustments from `role-tracks.md` still apply to explanations.
 
 ## Phase 1: Methodology and Architecture Evolution History
 
@@ -53,6 +100,21 @@ Proceed to the next Phase after user confirmation.
 
 > The purpose of this Phase is to help understand "why it was built this way."
 > Before explaining rules and structure, the background must be conveyed first so the rules resonate.
+
+**Q&A Mode**: Present the following topic map and wait for questions.
+> **Phase 1 Topics -- Architecture Evolution**
+> 1. DDD concepts (Bounded Context, Layered Architecture, Dependency Direction)
+> 2. Structural evolution -- why `src/{domain}/` flat structure? (ADR 006)
+> 3. Entity → DTO unification -- why no Entity pattern? (ADR 004)
+> 4. 4-Tier → 3-Tier Hybrid -- why is UseCase optional? (ADR 011)
+> 5. IoC Container -- why not FastAPI Depends()? (ADR 013)
+> 6. AIDD -- how does AI pair programming work here?
+>
+> Ask about any topic, or say 'next' to move on.
+>
+> Critical topics (will be flagged if skipped): 2, 3, 4, 5
+
+**Guided Mode**: Proceed with the sections below.
 
 ### 1.1 DDD (Domain-Driven Design) Core Concepts
 
@@ -108,6 +170,20 @@ Read the **AI Pair Programming (AIDD)** section of `README.md` and explain the f
 
 **Information Source**: `project-dna.md sections 0-1`, Serena `project_overview` memory
 
+**Q&A Mode**: Present the following topic map and wait for questions.
+> **Phase 2 Topics -- Project Structure**
+> 1. Project purpose and scale
+> 2. Architecture diagram (3-Tier Hybrid)
+> 3. Domain directory structure -- what files make up a domain?
+> 4. Current domain list and recent activity
+> 5. Tech stack overview
+>
+> Ask about any topic, or say 'next' to move on.
+>
+> Critical topics (will be flagged if skipped): 3, 5
+
+**Guided Mode**:
+
 1. Read the **section 0 Project Scale** of `.claude/skills/_shared/project-dna.md`
    and explain the project's purpose and scale.
 
@@ -133,6 +209,17 @@ Read the **AI Pair Programming (AIDD)** section of `README.md` and explain the f
 
 **Information Source**: `CLAUDE.md` Absolute Prohibitions section
 
+**Q&A Mode**: Present the following topic map and wait for questions.
+> **Phase 3 Topics -- Rules & Terminology**
+> 1. Absolute Prohibitions -- 4 rules and their ADR origins
+> 2. Terminology -- Request/Response vs DTO vs Model roles and locations
+>
+> Ask about any topic, or say 'next' to move on.
+>
+> Critical topics (will be flagged if skipped): 1
+
+**Guided Mode**:
+
 1. Read the **Absolute Prohibitions** section of `CLAUDE.md` and present the 4 rules.
    Since the history was already conveyed in Phase 1, connect each rule to **which story it originated from**:
    - "No Infrastructure import in Domain" <- Story 4 (IoC Container enables this)
@@ -150,6 +237,19 @@ Read the **AI Pair Programming (AIDD)** section of `README.md` and explain the f
 ## Phase 4: Data Flow Walkthrough
 
 **Information Source**: `CLAUDE.md` Conversion Patterns section, `src/user/` live code
+
+**Q&A Mode**: Present the following topic map and wait for questions.
+> **Phase 4 Topics -- Data Flow**
+> 1. Write path (Request → Service → Repository → DB) conversion pattern
+> 2. Read path (DB → Repository → Service → Router) conversion pattern
+> 3. Live code example -- `src/user/` create flow
+> 4. Live code example -- `src/user/` query flow
+>
+> Ask about any topic, or say 'next' to move on.
+>
+> Critical topics (will be flagged if skipped): 1, 2
+
+**Guided Mode**:
 
 1. Read the **Conversion Patterns** section of `CLAUDE.md` (Write direction, Read direction) and show the overall flow.
 
@@ -172,6 +272,17 @@ Read the **AI Pair Programming (AIDD)** section of `README.md` and explain the f
 ## Phase 5: Development Workflow and Skills
 
 **Information Source**: `CLAUDE.md` Skills section, Serena `suggested_commands` memory
+
+**Q&A Mode**: Present the following topic map and wait for questions.
+> **Phase 5 Topics -- Workflow & Skills**
+> 1. Skills overview -- 11 slash commands and their workflow order
+> 2. Frequently used CLI commands (server start, tests, lint)
+>
+> Ask about any topic, or say 'next' to move on.
+>
+> Critical topics (will be flagged if skipped): 1
+
+**Guided Mode**:
 
 1. Read the **Task-specific Skills** section of `CLAUDE.md` and present the full Skills list in workflow order:
    > "When developing a new feature, use Skills in this order:"

@@ -72,3 +72,34 @@ def make_update_{name}_request(
         # ... fields
     )
 ```
+
+### Admin Config Tests — `tests/unit/{name}/interface/admin/test_{name}_admin_config.py`
+
+> Only when `src/{name}/interface/admin/configs/{name}_admin_config.py` exists.
+> Reference: `tests/unit/_core/infrastructure/admin/test_base_admin_page.py`
+
+```python
+from src.{name}.interface.admin.configs.{name}_admin_config import {name}_admin_page
+
+
+def test_domain_name_matches():
+    assert {name}_admin_page.domain_name == "{name}"
+
+
+def test_visible_columns_excludes_hidden():
+    visible = {name}_admin_page.get_visible_columns()
+    for col in visible:
+        assert not col.hidden
+
+
+def test_sensitive_fields_masked():
+    """Fields like password, secret, token must use masked=True."""
+    sensitive_keywords = {"password", "secret", "token", "key"}
+    for col in {name}_admin_page.columns:
+        if any(kw in col.field_name.lower() for kw in sensitive_keywords):
+            assert col.masked, f"{col.field_name} should be masked"
+
+
+def test_searchable_fields_configured():
+    assert len({name}_admin_page.searchable_fields) > 0
+```

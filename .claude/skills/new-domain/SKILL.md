@@ -12,7 +12,7 @@ description: |
 Domain name: $ARGUMENTS
 
 ## Currently existing domains
-!`ls -d src/*/ 2>/dev/null | grep -v _core | grep -v _apps | sed 's|src/||;s|/||' || echo "(none)"`
+Identify domains using Glob pattern `src/*/` and exclude `_core`, `_apps` prefixes
 
 ## Pre-check
 1. Verify `$ARGUMENTS` is a valid Python identifier (lowercase, underscores allowed, hyphens prohibited)
@@ -29,7 +29,7 @@ Refer to `${CLAUDE_SKILL_DIR}/references/scaffolding-layers.md` for the detailed
 
 **Layer order**: Domain -> Application -> Infrastructure -> Interface -> App Wiring -> Tests
 
-Default 39 files (14 content + 22 `__init__.py` + 3 tests), with UseCase 43 files.
+Default 41 files (15 content + 23 `__init__.py` + 3 tests), with UseCase 45 files.
 
 ## Architecture Rules
 Follow the "Absolute Prohibitions" and "Conversion Patterns" from CLAUDE.md.

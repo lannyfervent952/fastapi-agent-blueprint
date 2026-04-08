@@ -31,8 +31,13 @@ Read each skill's SKILL.md and compare against reference code:
   - DI wiring patterns
 - [ ] **`/review-architecture`**: Verify checklist items cover all current rules
 - [ ] **`/test-domain`**: Verify test patterns match actual test code
+- [ ] **`/add-admin-page`**: Verify config/page patterns match current code
+  - Config pattern: compare against `src/user/interface/admin/configs/user_admin_config.py`
+  - Page pattern: compare against `src/user/interface/admin/pages/user_page.py`
+  - Compare both against project-dna.md §11
 - [ ] **`/add-cross-domain`**: Verify Protocol-based dependency patterns match current implementation
 - [ ] **`/onboard`**: Verify the recommended Skills list in role-tracks.md matches the actual skill list
+- [ ] **`/onboard`**: Verify format options (Guided, Q&A, Explore) are consistent between SKILL.md and role-tracks.md
 
 ## 3. Serena Memory ↔ Current State Check
 
@@ -60,6 +65,10 @@ Compare each section of `.claude/skills/_shared/project-dna.md` against actual c
   - In particular, check bandit skip list and flake8 ignore list
 - [ ] **Active features**: Verify feature status in §8 is up to date
   - Use Grep to check whether imports for `jwt`, `UploadFile`, `RBAC`, `slowapi`, etc. exist
+- [ ] **Admin Page Pattern**: Verify §11 matches actual admin infrastructure
+  - Compare BaseAdminPage fields against `src/_core/infrastructure/admin/base_admin_page.py`
+  - Compare file structure convention against `src/user/interface/admin/` layout (configs/ + pages/)
+  - Verify auto-discovery convention in `src/_apps/admin/bootstrap.py`
 - [ ] **Inheritance chain**: Verify BaseRequest/BaseResponse parent classes in §2 are accurate
   - Check the `ApiConfig` → `BaseModel` chain
 
@@ -72,9 +81,15 @@ Inspect whether the content of each Skill's references/ files matches the curren
 
 - [ ] **`new-domain` file list** (`scaffolding-layers.md`):
   - Exclude `__init__.py` from `Glob src/user/**/*.py` results
-  - Extract `src/{name}/` paths from the numbered list (1~26) in scaffolding-layers.md
+  - Extract `src/{name}/` paths from the numbered list (1~21) in scaffolding-layers.md
   - Replace `{name}` → `user` and compare both sides
   - On drift: suggest adding missing files to the appropriate Layer section, suggest removing deleted files
+
+- [ ] **`new-domain` admin file structure** (`scaffolding-layers.md`):
+  - Verify admin uses two-directory pattern: `configs/` + `pages/` (not single-file)
+  - Glob `src/user/interface/admin/configs/*.py` → must include `user_admin_config.py`
+  - Glob `src/user/interface/admin/pages/*.py` → must include `user_page.py`
+  - On drift: update scaffolding-layers.md Layer 4 admin section and project-dna.md §11
 
 - [ ] **`test-domain` Factory patterns** (`test-patterns.md`):
   - Read `tests/factories/user_factory.py` and extract the function list (def lines)

@@ -16,11 +16,11 @@ When "all", audit all domain directories under `src/` (excluding `_core`, `_apps
 When a specific domain name, audit only `src/{name}/`.
 
 ## Current Domain List
-!`ls -d src/*/ 2>/dev/null | grep -v _core | grep -v _apps | sed 's|src/||;s|/||' || echo "(none)"`
+Identify domains using Glob pattern `src/*/` and exclude `_core`, `_apps` prefixes
 
 ## Audit Procedure
 
-Inspect 6 categories with 20+ items using Grep-based checks.
+Inspect 8 categories with 28+ items using Grep-based checks.
 Refer to `${CLAUDE_SKILL_DIR}/references/checklist.md` for the detailed checklist.
 
 **Category Summary**:
@@ -29,7 +29,9 @@ Refer to `${CLAUDE_SKILL_DIR}/references/checklist.md` for the detailed checklis
 3. **DTO/Response Integrity** — sensitive field exposure
 4. **DI Container Correctness** — Singleton/Factory distinction
 5. **Test Coverage** — required test file existence
-6. **Bootstrap Wiring** — app-level registration status
+6. **Worker Payload Compliance** — Payload class usage and location
+7. **Admin Page Compliance** — config/page separation, naming conventions, auth guard, field masking
+8. **Bootstrap Wiring** — app-level registration status
 
 ## Output Format
 
@@ -39,7 +41,7 @@ Refer to `${CLAUDE_SKILL_DIR}/references/checklist.md` for the detailed checklis
        -> Recommended: generate with `/test-domain {name} generate`
 ```
 
-Final summary: `Passed: XX/20 | Failed: XX/20`
+Final summary: `Passed: XX/28 | Failed: XX/28`
 
 ## Recommended Actions on Failure
 - Layer dependency violation -> Refactor to Protocol-based approach

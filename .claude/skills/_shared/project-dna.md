@@ -3,13 +3,13 @@
 > This file is auto-extracted/updated from `src/user/` (reference domain) and `src/_core/` (Base classes)
 > when `/sync-guidelines` is run. **Run `/sync-guidelines` instead of editing manually.**
 >
-> Last updated: 2026-04-02
+> Last updated: 2026-04-08
 
 ## Section Index
 §0 Project Scale and Design Philosophy |
 §1 Directory Structure | §2 Base Class Path | §3 Generic Type Signatures | §4 CRUD Methods
 §5 DI Pattern | §6 Conversion Patterns | §7 Security Tools | §8 Active Features
-§9 Router Pattern | §10 Exception Pattern
+§9 Router Pattern | §10 Exception Pattern | §11 Admin Page Pattern
 
 ---
 
@@ -74,7 +74,8 @@ src/{name}/
     │   ├── routers/{name}_router.py
     │   └── bootstrap/{name}_bootstrap.py
     ├── admin/
-    │   └── views/{name}_view.py
+    │   ├── configs/{name}_admin_config.py
+    │   └── pages/{name}_page.py
     └── worker/
         ├── payloads/{name}_payload.py
         ├── tasks/{name}_test_task.py
@@ -100,6 +101,7 @@ src/{name}/
 | ApiConfig | `src._core.application.dtos.base_config.ApiConfig` |
 | BaseCustomException | `src._core.exceptions.base_exception.BaseCustomException` |
 | ValueObject | `src._core.domain.value_objects.value_object.ValueObject` |
+| QueryFilter | `src._core.domain.value_objects.query_filter.QueryFilter` |
 | make_pagination | `src._core.common.pagination.make_pagination` |
 | CoreContainer | `src._core.infrastructure.di.core_container.CoreContainer` |
 
@@ -154,7 +156,7 @@ def __init__(
 | select_datas | `async (page: int, page_size: int) -> list[ReturnDTO]` |
 | select_data_by_id | `async (data_id: int) -> ReturnDTO` |
 | select_datas_by_ids | `async (data_ids: list[int]) -> list[ReturnDTO]` |
-| select_datas_with_count | `async (page: int, page_size: int) -> tuple[list[ReturnDTO], int]` |
+| select_datas_with_count | `async (page: int, page_size: int, query_filter: QueryFilter \| None = None) -> tuple[list[ReturnDTO], int]` |
 | update_data_by_data_id | `async (data_id: int, entity: BaseModel) -> ReturnDTO` |
 | delete_data_by_data_id | `async (data_id: int) -> bool` |
 | count_datas | `async () -> int` |
@@ -168,7 +170,7 @@ def __init__(
 |-------------------|----------------|------|
 | create_data(entity) | insert_data(entity=entity) | |
 | create_datas(entities) | insert_datas(entities=entities) | |
-| get_datas(page, page_size) | select_datas_with_count(page, page_size) | Returns `(list[ReturnDTO], PaginationInfo)` |
+| get_datas(page, page_size, query_filter) | select_datas_with_count(page, page_size, query_filter) | Returns `(list[ReturnDTO], PaginationInfo)` |
 | get_data_by_data_id(data_id) | select_data_by_id(data_id=data_id) | |
 | get_datas_by_data_ids(data_ids) | select_datas_by_ids(data_ids=data_ids) | |
 | update_data_by_data_id(data_id, entity) | update_data_by_data_id(data_id, entity) | |
@@ -233,6 +235,18 @@ def create_server_container() -> containers.DynamicContainer:
     return container
 ```
 
+### Interface-Specific DI Pattern
+
+| Interface | Outer decorator | Inner decorator | Service default | Wiring |
+|-----------|----------------|-----------------|-----------------|--------|
+| Server router | `@router.verb(...)` | `@inject` | `Depends(Provide[...])` | `wire(packages=[...routers])` |
+| Admin page | `@ui.page(...)` | — | — | `bootstrap` injects `_service_provider` into `BaseAdminPage` |
+| Worker task | `@broker.task(...)` | `@inject` | `Provide[...]` | `wire(modules=[...task])` |
+
+- `Depends()` 래퍼는 FastAPI Router 전용 (FastAPI가 파라미터를 query/body로 해석하는 것을 방지)
+- Worker는 bare `Provide[...]` 사용 (프레임워크가 자체적으로 DI 파라미터를 해석하지 않음)
+- Admin은 `BaseAdminPage._service_provider`에 provider를 주입하여 내부에서 service를 resolve
+
 ## §6. Conversion Patterns
 
 | Conversion | Pattern | Example |
@@ -275,7 +289,7 @@ def create_server_container() -> containers.DynamicContainer:
 | Pydantic 2.x | Active | model_validate, model_dump, ConfigDict |
 | dependency-injector | Active | DeclarativeContainer, @inject + Provide |
 | AWS S3 (aioboto3) | Active | ObjectStorage + ObjectStorageClient |
-| sqladmin (ModelView) | Active | Admin view registration |
+| NiceGUI (BaseAdminPage) | Active | Admin dashboard (AG Grid, auto-discovery, Template Method rendering) |
 | alembic (migrations) | Active | DB migrations |
 | JWT/Authentication | Not implemented | |
 | File Upload (UploadFile) | Not implemented | |
@@ -329,3 +343,88 @@ class {Name}AlreadyExistsException(BaseCustomException):
         )
 ```
 
+## §11. Admin Page Pattern
+
+### File Structure & Naming Convention
+
+```
+interface/admin/
+├── configs/{name}_admin_config.py   # Config declaration
+└── pages/{name}_page.py            # Route handlers
+```
+
+- Config variable: `{name}_admin_page = BaseAdminPage(...)` — name must match `{name}_admin_page` for auto-discovery
+- Config module path: `src.{name}.interface.admin.configs.{name}_admin_config`
+- Page module path: `src.{name}.interface.admin.pages.{name}_page`
+
+### Config File Pattern (`configs/{name}_admin_config.py`)
+
+```python
+from src._core.infrastructure.admin.base_admin_page import (
+    BaseAdminPage,
+    ColumnConfig,
+)
+
+{name}_admin_page = BaseAdminPage(
+    domain_name="{name}",
+    display_name="{Name}",
+    icon="person",                    # Material icon name
+    columns=[
+        ColumnConfig(field_name="id", header_name="ID", width=80),
+        ColumnConfig(field_name="username", header_name="Username", searchable=True),
+        ColumnConfig(field_name="password", header_name="Password", masked=True),
+        ColumnConfig(field_name="created_at", header_name="Created At"),
+    ],
+    searchable_fields=["username", "email"],
+    sortable_fields=["id", "username", "created_at"],
+    default_sort_field="id",
+)
+```
+
+- `ColumnConfig` options: `field_name`, `header_name`, `sortable`, `searchable`, `hidden`, `masked`, `width`
+- Sensitive fields (password, secret, token): always set `masked=True`
+- Config only — no route logic, no `ui` import
+
+### Page File Pattern (`pages/{name}_page.py`)
+
+```python
+from nicegui import ui
+
+from src._core.infrastructure.admin.auth import require_auth
+from src._core.infrastructure.admin.base_admin_page import BaseAdminPage
+from src._core.infrastructure.admin.layout import admin_layout
+from src.{name}.interface.admin.configs.{name}_admin_config import {name}_admin_page
+
+# Injected by bootstrap_admin() after discovery
+page_configs: list[BaseAdminPage] = []
+
+
+@ui.page("/admin/{name}")
+async def {name}_list_page(page: int = 1, search: str = ""):
+    if not require_auth():
+        return
+    admin_layout(page_configs, current_domain="{name}")
+    await {name}_admin_page.render_list(page=page, search=search)
+
+
+@ui.page("/admin/{name}/{record_id}")
+async def {name}_detail_page(record_id: int):
+    if not require_auth():
+        return
+    admin_layout(page_configs, current_domain="{name}")
+    await {name}_admin_page.render_detail(record_id=record_id)
+```
+
+### DI & Auto-discovery
+
+- No `@inject`/`Provide` needed — service is resolved internally by `BaseAdminPage._service_provider`
+- `bootstrap_admin()` auto-discovers domains via `discover_domains()`, loads config module, wires `_service_provider` from DI container, and imports page module (triggers `@ui.page` registration)
+- `page_configs` list is injected by bootstrap into each page module (shared reference for navigation rendering)
+- **No manual bootstrap registration needed** when adding admin pages to a domain
+
+### Custom Rendering
+
+For domain-specific rendering, subclass `BaseAdminPage` in the config file and override hook methods:
+- `render_grid(dtos)` — custom AG Grid rendering
+- `render_detail_card(dto)` — custom detail view
+- `_fetch_list_data(page, search)` / `_fetch_detail_data(record_id)` — custom data fetching
