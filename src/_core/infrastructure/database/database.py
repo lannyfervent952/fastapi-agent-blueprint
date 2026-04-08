@@ -1,5 +1,6 @@
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from typing import Any
 from urllib.parse import quote_plus
 
 from sqlalchemy import create_engine, text
@@ -10,25 +11,100 @@ from sqlalchemy.orm import DeclarativeBase, sessionmaker
 from src._core.infrastructure.database.config import DatabaseConfig
 from src._core.infrastructure.database.exceptions import DatabaseException
 
+# ---------------------------------------------------------------------------
+# Driver mappings per engine
+# ---------------------------------------------------------------------------
+ASYNC_DRIVERS: dict[str, str] = {
+    "postgresql": "asyncpg",
+    "mysql": "aiomysql",
+    "sqlite": "aiosqlite",
+}
 
-def create_async_dsn(
+SYNC_DRIVERS: dict[str, str] = {
+    "postgresql": "psycopg",
+    "mysql": "pymysql",
+    "sqlite": "",
+}
+
+# Pool kwargs that SQLite does not support
+_SQLITE_EXCLUDED_POOL_KEYS = frozenset({"pool_size", "max_overflow", "pool_pre_ping"})
+
+
+# ---------------------------------------------------------------------------
+# DSN builders
+# ---------------------------------------------------------------------------
+def _build_dsn(
+    engine: str,
+    driver: str,
     database_user: str,
     database_password: str,
     database_host: str,
     database_port: int,
     database_name: str,
-):
-    return f"postgresql+asyncpg://{database_user}:{database_password}@{database_host}:{database_port}/{database_name}"
+) -> str:
+    dialect = f"{engine}+{driver}" if driver else engine
+    if engine == "sqlite":
+        return f"{dialect}:///{database_name}"
+    return (
+        f"{dialect}://{database_user}:{database_password}"
+        f"@{database_host}:{database_port}/{database_name}"
+    )
+
+
+def create_async_dsn(
+    engine: str,
+    database_user: str,
+    database_password: str,
+    database_host: str,
+    database_port: int,
+    database_name: str,
+) -> str:
+    return _build_dsn(
+        engine=engine,
+        driver=ASYNC_DRIVERS[engine],
+        database_user=database_user,
+        database_password=database_password,
+        database_host=database_host,
+        database_port=database_port,
+        database_name=database_name,
+    )
 
 
 def create_sync_dsn(
+    engine: str,
     database_user: str,
     database_password: str,
     database_host: str,
     database_port: int,
     database_name: str,
-):
-    return f"postgresql+psycopg://{database_user}:{database_password}@{database_host}:{database_port}/{database_name}"
+) -> str:
+    return _build_dsn(
+        engine=engine,
+        driver=SYNC_DRIVERS[engine],
+        database_user=database_user,
+        database_password=database_password,
+        database_host=database_host,
+        database_port=database_port,
+        database_name=database_name,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Engine kwargs helper
+# ---------------------------------------------------------------------------
+def _engine_kwargs(
+    config: DatabaseConfig,
+    engine: str,
+    *,
+    exclude_connect_args: bool = False,
+) -> dict[str, Any]:
+    """Build SQLAlchemy create_engine kwargs from DatabaseConfig."""
+    exclude: set[str] = set()
+    if exclude_connect_args:
+        exclude.add("connect_args")
+    if engine == "sqlite":
+        exclude.update(_SQLITE_EXCLUDED_POOL_KEYS)
+    return config.model_dump(exclude=exclude)
 
 
 class Base(DeclarativeBase):
@@ -38,6 +114,7 @@ class Base(DeclarativeBase):
 class Database:
     def __init__(
         self,
+        database_engine: str,
         database_user: str,
         database_password: str,
         database_host: str,
@@ -45,7 +122,10 @@ class Database:
         database_name: str,
         config: DatabaseConfig,
     ) -> None:
+        engine = database_engine.lower()
+
         dsn = create_sync_dsn(
+            engine=engine,
             database_user=quote_plus(database_user),
             database_password=quote_plus(database_password),
             database_host=database_host,
@@ -54,6 +134,7 @@ class Database:
         )
 
         async_dsn = create_async_dsn(
+            engine=engine,
             database_user=quote_plus(database_user),
             database_password=quote_plus(database_password),
             database_host=database_host,
@@ -61,13 +142,14 @@ class Database:
             database_name=database_name,
         )
 
-        # Exclude connect_args when creating the sync engine (asyncpg-specific options)
-        sync_config = config.model_dump(exclude={"connect_args"})
-        self.engine = create_engine(url=dsn, **sync_config)
+        self.engine = create_engine(
+            url=dsn,
+            **_engine_kwargs(config, engine, exclude_connect_args=True),
+        )
 
         self.async_engine = create_async_engine(
             url=async_dsn,
-            **config.model_dump(),
+            **_engine_kwargs(config, engine),
         )
 
         self.async_session_factory = sessionmaker(

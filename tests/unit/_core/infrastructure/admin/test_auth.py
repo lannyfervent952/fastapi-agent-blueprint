@@ -39,6 +39,15 @@ class TestAdminAuthProviderImport:
     @patch.dict(
         os.environ,
         {
+            "ADMIN_ID": "admin",
+            "ADMIN_PASSWORD": "admin",
+            "ADMIN_STORAGE_SECRET": "test-secret",
+            "DATABASE_ENGINE": "postgresql",
+            "DATABASE_USER": "postgres",
+            "DATABASE_PASSWORD": "postgres",
+            "DATABASE_HOST": "localhost",
+            "DATABASE_PORT": "5432",
+            "DATABASE_NAME": "postgres",
             "AWS_SQS_ACCESS_KEY": "test",
             "AWS_SQS_SECRET_KEY": "test",
             "AWS_SQS_URL": "http://localhost",

@@ -4,7 +4,8 @@ from typing import Self
 from pydantic import AliasChoices, Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-KNOWN_ENVS = ("local", "dev", "test", "stg", "prod")
+KNOWN_ENVS = ("local", "dev", "stg", "prod")
+KNOWN_ENGINES = ("postgresql", "mysql", "sqlite")
 STRICT_ENVS = frozenset({"stg", "prod"})
 
 _UNSAFE_DEFAULTS: dict[str, str] = {
@@ -38,23 +39,29 @@ class Settings(BaseSettings):
     # ----------------------------------------------------------------
     # Admin Dashboard
     # ----------------------------------------------------------------
-    admin_id: str = Field(default="admin", validation_alias="ADMIN_ID")
-    admin_password: str = Field(default="admin", validation_alias="ADMIN_PASSWORD")
-    admin_storage_secret: str = Field(
-        default="change-me-in-production",
-        validation_alias="ADMIN_STORAGE_SECRET",
-    )
+    admin_id: str = Field(validation_alias="ADMIN_ID")
+    admin_password: str = Field(validation_alias="ADMIN_PASSWORD")
+    admin_storage_secret: str = Field(validation_alias="ADMIN_STORAGE_SECRET")
 
     # ----------------------------------------------------------------
     # Database
     # ----------------------------------------------------------------
-    database_user: str = Field(default="postgres", validation_alias="DATABASE_USER")
-    database_password: str = Field(
-        default="postgres", validation_alias="DATABASE_PASSWORD"
+    database_engine: str = Field(validation_alias="DATABASE_ENGINE")
+    database_user: str = Field(validation_alias="DATABASE_USER")
+    database_password: str = Field(validation_alias="DATABASE_PASSWORD")
+    database_host: str = Field(validation_alias="DATABASE_HOST")
+    database_port: int = Field(validation_alias="DATABASE_PORT")
+    database_name: str = Field(validation_alias="DATABASE_NAME")
+    database_pool_size: int | None = Field(
+        default=None, validation_alias="DATABASE_POOL_SIZE"
     )
-    database_host: str = Field(default="localhost", validation_alias="DATABASE_HOST")
-    database_port: int = Field(default=5432, validation_alias="DATABASE_PORT")
-    database_name: str = Field(default="postgres", validation_alias="DATABASE_NAME")
+    database_max_overflow: int | None = Field(
+        default=None, validation_alias="DATABASE_MAX_OVERFLOW"
+    )
+    database_pool_recycle: int | None = Field(
+        default=None, validation_alias="DATABASE_POOL_RECYCLE"
+    )
+    database_echo: bool | None = Field(default=None, validation_alias="DATABASE_ECHO")
 
     # ----------------------------------------------------------------
     # Storage (AWS S3)
@@ -110,6 +117,13 @@ class Settings(BaseSettings):
             errors.append(
                 f"[env] Unknown environment '{self.env}'. "
                 f"Expected one of: {', '.join(KNOWN_ENVS)}"
+            )
+
+        engine = self.database_engine.lower()
+        if engine not in KNOWN_ENGINES:
+            errors.append(
+                f"[database_engine] Unknown engine '{self.database_engine}'. "
+                f"Expected one of: {', '.join(KNOWN_ENGINES)}"
             )
 
         if env in STRICT_ENVS:
