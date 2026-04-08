@@ -109,9 +109,7 @@ class BaseAdminPage:
                 self.domain_name,
                 record_id,
             )
-            ui.notify(
-                "Failed to load record. Please try again later.", type="negative"
-            )
+            ui.notify("Failed to load record. Please try again later.", type="negative")
             self._render_back_button()
             return
 
@@ -217,9 +215,7 @@ class BaseAdminPage:
             ui.label(f"{pagination.current_page} / {pagination.total_pages}")
             ui.button(
                 "Next",
-                on_click=lambda: ui.navigate.to(
-                    _build_page_url(pagination.next_page)
-                ),
+                on_click=lambda: ui.navigate.to(_build_page_url(pagination.next_page)),
             ).props("flat" if pagination.has_next else "flat disable")
 
     # ── Detail page hooks ──

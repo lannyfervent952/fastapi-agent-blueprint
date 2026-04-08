@@ -43,9 +43,7 @@ def _discover_and_register_pages(
 
             # 2) DI: 서비스 프로바이더 주입
             domain_container = getattr(admin_container, f"{name}_container")
-            page_config._service_provider = getattr(
-                domain_container, f"{name}_service"
-            )
+            page_config._service_provider = getattr(domain_container, f"{name}_service")
 
             # 3) Routes: 모듈 import로 @ui.page 등록 트리거 + page_configs 주입
             page_module_path = f"src.{name}.interface.admin.pages.{name}_page"
