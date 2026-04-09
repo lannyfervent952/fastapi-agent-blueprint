@@ -18,10 +18,16 @@ class CoreContainer(containers.DeclarativeContainer):
     db_config = providers.Factory(
         DatabaseConfig.from_env,
         env=settings.env,
+        engine=settings.database_engine,
+        pool_size=settings.database_pool_size,
+        max_overflow=settings.database_max_overflow,
+        pool_recycle=settings.database_pool_recycle,
+        echo=settings.database_echo,
     )
 
     database = providers.Singleton(
         Database,
+        database_engine=settings.database_engine,
         database_user=settings.database_user,
         database_password=settings.database_password,
         database_host=settings.database_host,

@@ -169,3 +169,45 @@ Check middleware and exception handling files:
 - [ ] [When applicable][MEDIUM] Request body size limit configuration status
   - Detection condition: Check **project-dna.md section 8** "File Upload (UploadFile)" status -> [SKIP] if "not implemented"
   - Grep: `max_content_length|body_limit|RequestSizeLimitMiddleware`
+
+## 7. Async Worker Security (Taskiq)
+
+Check worker task files and broker configuration:
+
+### Payload Validation
+- [ ] [When applicable][HIGH] Task payload validated via `BasePayload` (not raw `**kwargs` access)
+  - Detection condition: Check **project-dna.md section 8** "Taskiq async tasks" status -> [SKIP] if "not implemented"
+  - Grep: `@broker.task` -> verify corresponding `BasePayload.model_validate(kwargs)` in function body
+- [ ] [When applicable][HIGH] Payload uses `extra="forbid"` (inherited from `PayloadConfig`)
+  - Detection condition: Same as above
+  - Grep: Payload classes inherit from `BasePayload` (not `BaseModel` or `BaseRequest`)
+
+### Message Security
+- [ ] [When applicable][MEDIUM] Sensitive data (PII, credentials) not included in task message payload
+  - Detection condition: Same as above
+  - Grep: `password|secret|token|ssn|credit` fields in Payload class definitions
+- [ ] [When applicable][MEDIUM] Task idempotency considered for retryable operations
+  - Detection condition: Same as above
+  - Manual review: CUD operations in tasks should handle duplicate execution gracefully
+
+## 8. Object Storage Security (AWS S3)
+
+Check storage client and related configuration files:
+
+### Access Control
+- [ ] [When applicable][HIGH] S3 bucket policy does not allow public access
+  - Detection condition: Check **project-dna.md section 8** "AWS S3 (aioboto3)" status -> [SKIP] if "not implemented"
+  - Manual review: Verify bucket policy configuration in infrastructure/deployment settings
+- [ ] [When applicable][HIGH] Pre-signed URL expiration time is appropriately short
+  - Detection condition: Same as above
+  - Grep: `generate_presigned_url|presigned` -> verify `ExpiresIn` value (recommended: <=3600)
+
+### Upload Validation
+- [ ] [When applicable][MEDIUM] Uploaded file Content-Type and size validated server-side before S3 upload
+  - Detection condition: Same as above
+  - Grep: `content_type|file_size|content_length` validation logic in upload handlers
+
+### Encryption
+- [ ] [When applicable][MEDIUM] S3 server-side encryption enabled (SSE-S3 or SSE-KMS)
+  - Detection condition: Same as above
+  - Grep: `ServerSideEncryption|SSECustomerAlgorithm` in S3 client configuration or put_object calls

@@ -21,7 +21,7 @@ Identify domains using Glob pattern `src/*/` (include all directories)
 
 ## Audit Procedure
 
-Inspect 6 security categories with 24+ items using Grep-based checks.
+Inspect 8 security categories with 32+ items using Grep-based checks.
 Refer to `${CLAUDE_SKILL_DIR}/references/security-checklist.md` for the detailed checklist.
 
 **Category Summary**:
@@ -31,6 +31,8 @@ Refer to `${CLAUDE_SKILL_DIR}/references/security-checklist.md` for the detailed
 4. **Input Validation** — Pydantic validation, file uploads, Path Traversal
 5. **Dependencies & Configuration** — vulnerable packages, debug mode, CORS, secret management
 6. **Error Handling & Logging** — stack trace exposure, Rate Limiting
+7. **Async Worker Security (Taskiq)** — payload validation, message security, idempotency
+8. **Object Storage Security (AWS S3)** — access control, upload validation, encryption
 
 ## Audit Execution Method
 

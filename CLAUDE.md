@@ -15,6 +15,8 @@ All proposals and designs must consider scalability, maintainability, and team c
 - No Entity pattern — unified to DTO (background: [ADR 004](docs/history/004-dto-entity-responsibility.md))
 - No modifying/deleting CLAUDE.md or project-dna.md rules without cross-reference verification
   (Run: `grep -rl "KEYWORD" .claude/skills/` to check skill dependencies before any change)
+- Note: Domain → Interface **schema** imports (Request/Response types) are permitted
+  (When fields match, Request is passed directly to Service — creating a separate DTO is prohibited per ADR 004)
 
 ## Layer Architecture (3-Tier Hybrid)
 - Default: Router → Service (extends BaseService) → Repository (extends BaseRepository)
@@ -48,7 +50,7 @@ All proposals and designs must consider scalability, maintainability, and team c
 ## Conversion Patterns
 ### Write Direction (Request → DB)
 - Router → Service: `entity=item` (pass Request directly)
-- Service → Repository: pass entity as-is
+- Service → Repository: pass entity as-is, or transform via `entity.model_copy(update={...})` when domain logic requires it (e.g., password hashing)
 - Repository → DB: `Model(**entity.model_dump(exclude_none=True))`
 
 ### Read Direction (DB → Response)

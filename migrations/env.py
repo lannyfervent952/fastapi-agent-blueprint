@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # ruff: noqa: F401, F403
 
 import os
@@ -15,33 +14,40 @@ from src._core.infrastructure.database.database import Base, create_sync_dsn
 # Load Alembic configuration file
 config = context.config
 
-env = config.get_main_option("env")
-if env != "local" and env != "dev" and env != "prod" and env != "stg":
+# Resolve environment: ENV variable > alembic.ini > default "local"
+env = os.getenv("ENV") or config.get_main_option("env") or "local"
+valid_envs = {"local", "dev", "stg", "prod"}
+if env not in valid_envs:
     raise RuntimeError(
-        "ENV variable is not set in alembic.ini. Please specify one of [local], [dev], [prod], [stg]."
+        f"Invalid ENV '{env}'. Expected one of: {', '.join(sorted(valid_envs))}. "
+        "Usage: ENV=local alembic upgrade head"
     )
-else:
-    if not os.path.exists(f"_env/{env}.env"):
-        raise RuntimeError(f"Environment variable file does not exist: {f'_env/{env}.env'}")
-    print("=" * 100)
-    print(f"Selected ENV in alembic.ini: {env}")
-    print("=" * 100)
+
+env_file = f"_env/{env}.env"
+if not os.path.exists(env_file):
+    raise RuntimeError(f"Environment file not found: {env_file}")
+
+print("=" * 100)
+print(f"Alembic ENV: {env}")
+print("=" * 100)
 
 create_folder_if_not_exists("migrations/versions")
 
 load_models()
 
-load_dotenv(dotenv_path=f"_env/{env}.env", override=True)
+load_dotenv(dotenv_path=env_file, override=True)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
+engine_type = os.getenv("DATABASE_ENGINE") or "postgresql"
 
 url = create_sync_dsn(
+    engine=engine_type,
     database_user=quote_plus(os.getenv("DATABASE_USER") or ""),
     database_password=quote_plus(os.getenv("DATABASE_PASSWORD") or ""),
     database_host=os.getenv("DATABASE_HOST") or "",
-    database_port=int(os.getenv("DATABASE_PORT") or ""),
+    database_port=int(os.getenv("DATABASE_PORT") or "5432"),
     database_name=os.getenv("DATABASE_NAME") or "",
 )
 

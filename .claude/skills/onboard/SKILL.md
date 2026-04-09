@@ -86,7 +86,7 @@ When the user selects **Explore** format, Phase 1-5 boundaries are removed. The 
 3. **Coverage Tracking**: Internally map the user's questions to the critical topics across all Phases:
    - Phase 1 critical: structural evolution (ADR 006), Entity→DTO (ADR 004), 3-Tier Hybrid (ADR 011), IoC Container (ADR 013)
    - Phase 2 critical: domain directory structure, tech stack
-   - Phase 3 critical: Absolute Prohibitions (4 rules)
+   - Phase 3 critical: Absolute Prohibitions (5 rules)
    - Phase 4 critical: Write/Read conversion patterns
    - Phase 5 critical: Skills overview
 4. **Gap Check**: When the user says 'done' (or equivalent), review uncovered critical topics.
@@ -211,7 +211,7 @@ Read the **AI Pair Programming (AIDD)** section of `README.md` and explain the f
 
 **Q&A Mode**: Present the following topic map and wait for questions.
 > **Phase 3 Topics -- Rules & Terminology**
-> 1. Absolute Prohibitions -- 4 rules and their ADR origins
+> 1. Absolute Prohibitions -- 5 rules and their ADR origins
 > 2. Terminology -- Request/Response vs DTO vs Model roles and locations
 >
 > Ask about any topic, or say 'next' to move on.
@@ -220,12 +220,13 @@ Read the **AI Pair Programming (AIDD)** section of `README.md` and explain the f
 
 **Guided Mode**:
 
-1. Read the **Absolute Prohibitions** section of `CLAUDE.md` and present the 4 rules.
+1. Read the **Absolute Prohibitions** section of `CLAUDE.md` and present the 5 rules.
    Since the history was already conveyed in Phase 1, connect each rule to **which story it originated from**:
    - "No Infrastructure import in Domain" <- Story 4 (IoC Container enables this)
    - "No Model exposure outside Repository" <- Story 2 (DTO handles inter-layer data transfer)
    - "No Mapper class" <- Inline conversion is sufficient (Story 2)
    - "No Entity pattern, DTO unification" <- Story 2 (ADR 004)
+   - "No modifying/deleting CLAUDE.md or project-dna.md rules without cross-reference verification" <- Meta-rule for consistency maintenance across Skills and guidelines
 
 2. Read the **Terminology Definitions** section of `CLAUDE.md` and explain the roles and locations of Request/Response, DTO, and Model.
 

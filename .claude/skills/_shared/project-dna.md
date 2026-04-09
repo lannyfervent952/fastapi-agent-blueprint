@@ -3,7 +3,7 @@
 > This file is auto-extracted/updated from `src/user/` (reference domain) and `src/_core/` (Base classes)
 > when `/sync-guidelines` is run. **Run `/sync-guidelines` instead of editing manually.**
 >
-> Last updated: 2026-04-08
+> Last updated: 2026-04-09
 
 ## Section Index
 §0 Project Scale and Design Philosophy |
@@ -103,6 +103,8 @@ src/{name}/
 | ValueObject | `src._core.domain.value_objects.value_object.ValueObject` |
 | QueryFilter | `src._core.domain.value_objects.query_filter.QueryFilter` |
 | make_pagination | `src._core.common.pagination.make_pagination` |
+| hash_password | `src._core.common.security.hash_password` |
+| verify_password | `src._core.common.security.verify_password` |
 | CoreContainer | `src._core.infrastructure.di.core_container.CoreContainer` |
 
 ### Inheritance Chain
@@ -116,12 +118,20 @@ src/{name}/
 ## §3. Generic Type Signatures
 
 ```python
-# Shared by BaseRepositoryProtocol / BaseRepository / BaseService
+# BaseRepositoryProtocol / BaseRepository — 1 TypeVar (ReturnDTO only)
+# Repository only calls entity.model_dump(), no field-specific access needed
 ReturnDTO = TypeVar("ReturnDTO", bound=BaseModel)
 
 class BaseRepositoryProtocol(Generic[ReturnDTO]): ...
 class BaseRepository(Generic[ReturnDTO], ABC): ...
-class BaseService(Generic[ReturnDTO]): ...
+
+# BaseService — 3 TypeVars (CreateDTO, UpdateDTO, ReturnDTO)
+# Service overrides access specific fields (e.g., entity.password), so typed inputs are required
+# Background: ADR 011 Post-decision Update (2026-04-09)
+CreateDTO = TypeVar("CreateDTO", bound=BaseModel)
+UpdateDTO = TypeVar("UpdateDTO", bound=BaseModel)
+
+class BaseService(Generic[CreateDTO, UpdateDTO, ReturnDTO]): ...
 
 # SuccessResponse
 ReturnType = TypeVar("ReturnType")
@@ -130,7 +140,7 @@ class SuccessResponse(ApiConfig, Generic[ReturnType]): ...
 # Reference domain (user) usage example:
 class UserRepositoryProtocol(BaseRepositoryProtocol[UserDTO]): pass
 class UserRepository(BaseRepository[UserDTO]): ...
-class UserService(BaseService[UserDTO]): ...
+class UserService(BaseService[CreateUserRequest, UpdateUserRequest, UserDTO]): ...
 ```
 
 ### BaseRepository.__init__ Signature
@@ -163,19 +173,19 @@ def __init__(
 
 ### BaseService Methods (Repository Delegation Mapping)
 
-> `BaseService[ReturnDTO]` provides all methods below.
-> Domain Services extend `BaseService[{Name}DTO]` and only override when custom logic is needed.
+> `BaseService[CreateDTO, UpdateDTO, ReturnDTO]` provides all methods below.
+> Domain Services extend `BaseService[Create{Name}Request, Update{Name}Request, {Name}DTO]` and only override when custom logic is needed.
 
-| BaseService Method | Repository Call | Notes |
-|-------------------|----------------|------|
-| create_data(entity) | insert_data(entity=entity) | |
-| create_datas(entities) | insert_datas(entities=entities) | |
-| get_datas(page, page_size, query_filter) | select_datas_with_count(page, page_size, query_filter) | Returns `(list[ReturnDTO], PaginationInfo)` |
-| get_data_by_data_id(data_id) | select_data_by_id(data_id=data_id) | |
-| get_datas_by_data_ids(data_ids) | select_datas_by_ids(data_ids=data_ids) | |
-| update_data_by_data_id(data_id, entity) | update_data_by_data_id(data_id, entity) | |
-| delete_data_by_data_id(data_id) | delete_data_by_data_id(data_id=data_id) | |
-| count_datas() | count_datas() | |
+| BaseService Method | Signature | Repository Call |
+|-------------------|-----------|----------------|
+| create_data | `(entity: CreateDTO) -> ReturnDTO` | insert_data(entity=entity) |
+| create_datas | `(entities: list[CreateDTO]) -> list[ReturnDTO]` | insert_datas(entities=entities) |
+| get_datas | `(page, page_size, query_filter) -> (list[ReturnDTO], PaginationInfo)` | select_datas_with_count(...) |
+| get_data_by_data_id | `(data_id: int) -> ReturnDTO` | select_data_by_id(data_id=data_id) |
+| get_datas_by_data_ids | `(data_ids: list[int]) -> list[ReturnDTO]` | select_datas_by_ids(data_ids=data_ids) |
+| update_data_by_data_id | `(data_id: int, entity: UpdateDTO) -> ReturnDTO` | update_data_by_data_id(data_id, entity) |
+| delete_data_by_data_id | `(data_id: int) -> bool` | delete_data_by_data_id(data_id=data_id) |
+| count_datas | `() -> int` | count_datas() |
 
 ## §5. DI Pattern
 
@@ -291,6 +301,7 @@ def create_server_container() -> containers.DynamicContainer:
 | AWS S3 (aioboto3) | Active | ObjectStorage + ObjectStorageClient |
 | NiceGUI (BaseAdminPage) | Active | Admin dashboard (AG Grid, auto-discovery, Template Method rendering) |
 | alembic (migrations) | Active | DB migrations |
+| Password hashing (bcrypt) | Active | hash_password(), verify_password() in src._core.common.security |
 | JWT/Authentication | Not implemented | |
 | File Upload (UploadFile) | Not implemented | |
 | RBAC/Permissions | Not implemented | |

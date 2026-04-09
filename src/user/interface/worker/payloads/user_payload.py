@@ -8,6 +8,5 @@ class UserTestPayload(BasePayload):
     username: str
     full_name: str
     email: str
-    password: str
     created_at: datetime
     updated_at: datetime

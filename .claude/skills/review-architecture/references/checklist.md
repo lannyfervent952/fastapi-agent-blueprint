@@ -6,7 +6,7 @@
 Grep-check Python files in each domain:
 
 - [ ] No `from src.{name}.infrastructure` imports in `src/{name}/domain/` files
-- [ ] No `from src.{name}.interface` imports in `src/{name}/domain/` files
+- [ ] No `from src.{name}.interface` imports in `src/{name}/domain/` files — **except** `schemas/` (Request types are passed directly when fields match, per CLAUDE.md Write DTO criteria)
 - [ ] No `from src.{name}.infrastructure` imports in `src/{name}/application/` files (excluding DI)
 - [ ] No `from sqlalchemy` imports in `src/{name}/domain/` files
 - [ ] No `from dependency_injector` imports in `src/{name}/domain/` files
@@ -18,6 +18,8 @@ Check across all domain files:
 - [ ] No Entity pattern remnants (`to_entity(`, `from_entity(`, `Entity` class definitions)
 - [ ] Repository method return values are DTO types (no Model object exposure)
 - [ ] Model -> DTO conversion uses `model_validate(..., from_attributes=True)`
+- [ ] Service classes use 3 TypeVars: `BaseService[Create{Name}Request, Update{Name}Request, {Name}DTO]` (not `BaseService[{Name}DTO]`)
+- [ ] Service method overrides match parent signature types (no LSP-violating parameter narrowing)
 
 ## 3. DTO/Response Integrity
 Check interface/server/schemas/ files:

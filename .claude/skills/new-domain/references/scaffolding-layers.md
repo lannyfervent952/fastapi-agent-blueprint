@@ -44,9 +44,11 @@ src/{name}/
    - `class {Name}RepositoryProtocol(BaseRepositoryProtocol[{Name}DTO]): pass`
 3. `src/{name}/domain/services/{name}_service.py`
    - `from src._core.domain.services.base_service import BaseService`
-   - `class {Name}Service(BaseService[{Name}DTO])` — BaseService provides all CRUD delegation methods
+   - `class {Name}Service(BaseService[Create{Name}Request, Update{Name}Request, {Name}DTO])`
+   - BaseService uses 3 TypeVars: `Generic[CreateDTO, UpdateDTO, ReturnDTO]` (background: ADR 011 update)
    - CRUD methods (create_data, get_datas, get_data_by_data_id, etc.) are inherited from BaseService
    - Override methods only when custom business logic is needed
+   - Import Request types from `src/{name}/interface/server/schemas/{name}_schema.py`
 4. `src/{name}/domain/exceptions/{name}_exceptions.py`
    - `from src._core.exceptions.base_exception import BaseCustomException`
    - `{Name}NotFoundException(status_code=404, error_code="{NAME}_NOT_FOUND")`

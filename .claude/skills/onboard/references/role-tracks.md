@@ -42,7 +42,7 @@
 
 | Item | Beginner | Intermediate | Advanced |
 |------|----------|-------------|----------|
-| 6 Absolute Prohibitions | Reason + story for each | Reason + story | List only |
+| 5 Absolute Prohibitions | Reason + story for each | Reason + story | List only |
 | Terminology definitions | Detailed explanation | Explanation | Skip |
 
 ### Phase 4: Data Flow

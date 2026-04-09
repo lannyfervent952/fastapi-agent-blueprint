@@ -16,6 +16,12 @@ Complex logic:
 > UseCase is added only when combining multiple Services or crossing transaction boundaries
 > For detailed Conversion Patterns: refer to the "Conversion Patterns" section in CLAUDE.md
 
+## BaseService Generic Structure
+- `BaseService(Generic[CreateDTO, UpdateDTO, ReturnDTO])` — 3 TypeVars (ADR 011 update, 2026-04-09)
+- `BaseRepositoryProtocol(Generic[ReturnDTO])` / `BaseRepository(Generic[ReturnDTO])` — 1 TypeVar (Repository only calls model_dump, no field-specific access)
+- Domain Service example: `UserService(BaseService[CreateUserRequest, UpdateUserRequest, UserDTO])`
+- DO NOT simplify back to 1 TypeVar — this was tried and reverted (see ADR 011 Post-decision Update)
+
 ## Object Roles
 
 ### DTO (Domain DTO)

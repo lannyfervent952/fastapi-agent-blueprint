@@ -2,6 +2,7 @@ import pytest
 from pydantic import BaseModel
 
 from src._core.application.dtos.base_response import PaginationInfo
+from src._core.common.security import verify_password
 from src.user.domain.dtos.user_dto import UserDTO
 from src.user.domain.services.user_service import UserService
 from src.user.interface.server.schemas.user_schema import UpdateUserRequest
@@ -74,7 +75,7 @@ async def test_create_user(user_service):
     assert result.id == 1
     assert result.username == request.username
     assert result.email == request.email
-    assert result.password == request.password
+    assert verify_password(request.password, result.password)
 
 
 @pytest.mark.asyncio
