@@ -101,9 +101,6 @@ class Settings(BaseSettings):
     dynamodb_endpoint_url: str | None = Field(
         default=None, validation_alias="DYNAMODB_ENDPOINT_URL"
     )
-    dynamodb_table_prefix: str | None = Field(
-        default=None, validation_alias="DYNAMODB_TABLE_PREFIX"
-    )
 
     # ----------------------------------------------------------------
     # Messaging (AWS SQS)

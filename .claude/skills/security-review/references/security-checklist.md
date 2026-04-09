@@ -225,10 +225,6 @@ Check DynamoDB client, model, and configuration files:
 - [ ] [When applicable][MEDIUM] DynamoDB `endpoint_url` is not `localhost` in production
   - Detection condition: Same as above
   - Grep: `endpoint_url` in Settings -> verify `DYNAMODB_ENDPOINT_URL` is None or AWS endpoint in stg/prod
-- [ ] [When applicable][MEDIUM] DynamoDB `table_prefix` properly separates environments
-  - Detection condition: Same as above
-  - Grep: `DYNAMODB_TABLE_PREFIX` set to environment-specific value (not shared across envs)
-
 ### Access Control
 - [ ] [When applicable][MEDIUM] DynamoDB IAM credentials managed via environment variables (not hardcoded)
   - Detection condition: Same as above

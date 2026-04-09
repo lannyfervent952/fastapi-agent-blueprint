@@ -41,21 +41,16 @@ class BaseDynamoRepository(Generic[ReturnDTO], ABC):
         *,
         model: type[DynamoModel],
         return_entity: type[ReturnDTO],
-        table_prefix: str | None = None,
     ) -> None:
         self.dynamodb_client = dynamodb_client
         self.model = model
         self.return_entity = return_entity
-        self._table_prefix = table_prefix
         self._serializer = TypeSerializer()
         self._deserializer = TypeDeserializer()
 
     @property
     def table_name(self) -> str:
-        tablename = self.model.__dynamo_meta__.tablename
-        if self._table_prefix:
-            return self._table_prefix + "_" + tablename
-        return tablename
+        return self.model.__dynamo_meta__.tablename
 
     # ------------------------------------------------------------------
     # CRUD
