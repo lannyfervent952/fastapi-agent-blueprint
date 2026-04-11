@@ -17,7 +17,7 @@ Identify domains using Glob pattern `src/*/` and exclude `_core`, `_apps` prefix
 ## Pre-check
 1. Verify `$ARGUMENTS` is a valid Python identifier (lowercase, underscores allowed, hyphens prohibited)
 2. Verify `src/$ARGUMENTS/` directory does not already exist -- abort if it does
-3. Read Serena `architecture_conventions` memory -- confirm object roles and data flow
+3. Read `.claude/rules/architecture-conventions.md` -- confirm object roles and data flow
 4. Ask the user about the domain's **key fields** (e.g., name, description, price, etc.)
 
 ## Scaffolding Procedure
@@ -29,7 +29,7 @@ Refer to `${CLAUDE_SKILL_DIR}/references/scaffolding-layers.md` for the detailed
 
 **Layer order**: Domain -> Application -> Infrastructure -> Interface -> App Wiring -> Tests
 
-Default 41 files (15 content + 23 `__init__.py` + 3 tests), with UseCase 45 files.
+Default 44 files (15 content + 25 `__init__.py` + 4 tests), with UseCase 46 files.
 
 ## Architecture Rules
 Follow the "Absolute Prohibitions" and "Conversion Patterns" from CLAUDE.md.

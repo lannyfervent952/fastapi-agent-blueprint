@@ -1,7 +1,7 @@
 # Suggested Commands
 
-> Last synced: 2026-04-09 via /sync-guidelines
-> Purpose: Quick reference for Serena/Claude when executing shell commands.
+> Last synced: 2026-04-11 via /sync-guidelines
+> Purpose: Quick reference for Claude Code when executing shell commands.
 > Also referenced when running Skills.
 
 ## Run

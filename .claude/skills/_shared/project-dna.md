@@ -3,7 +3,7 @@
 > This file is auto-extracted/updated from `src/user/` (reference domain) and `src/_core/` (Base classes)
 > when `/sync-guidelines` is run. **Run `/sync-guidelines` instead of editing manually.**
 >
-> Last updated: 2026-04-09
+> Last updated: 2026-04-11
 
 ## Section Index
 §0 Project Scale and Design Philosophy |
@@ -377,12 +377,17 @@ broker = providers.Selector(
 ### Pre-commit (Auto-run)
 
 - trailing-whitespace, end-of-file-fixer, check-yaml/json/toml
+- check-added-large-files (1MB), check-merge-conflict, debug-statements, mixed-line-ending (LF)
 - ruff check --fix (Unified rules for E, W, F, UP, I, B, C4, SIM, S -- replaces pyupgrade, autoflake, isort, flake8, bandit)
 - ruff format (Black-compatible formatting)
 
 ### Pre-commit (Manual Stage)
 
 - mypy (--ignore-missing-imports, --check-untyped-defs)
+
+### Commit Message
+
+- conventional-pre-commit (feat, fix, refactor, docs, chore, test, ci, perf, style, i18n)
 
 ### Architecture Violation Check (Auto-run)
 
@@ -391,7 +396,9 @@ broker = providers.Selector(
 
 ### Claude Hook
 
+- SessionStart (check-required-plugins): pyright-lsp 플러그인 설치 확인, CONTEXT7_API_KEY 환경변수 검증
 - PreToolUse (pre-tool-security): SQL injection, hardcoded secrets, Domain→Infra import, sensitive data logging check
+- PostToolUse (post-tool-format): Edit/Write 후 `.py` 파일 자동 포맷팅 (ruff format + ruff check)
 - Stop (stop-sync-reminder): git diff 기반으로 변경 파일을 Foundation/Structure로 분류하여 /sync-guidelines 실행 권고
 
 ## §8. Active Features

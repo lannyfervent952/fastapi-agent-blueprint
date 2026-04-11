@@ -195,21 +195,18 @@ The `/onboard` skill adapts to your experience and learning style:
 | `/sync-guidelines` | Sync docs after design changes |
 | `/migrate-domain {command}` | Alembic migration management |
 
-### MCP Server Setup
+### Plugin Setup (Required)
 
-To use AIDD features, configure these MCP servers:
+Install the pyright-lsp plugin for code intelligence (symbol navigation, references, diagnostics):
 
-**Serena** -- Symbolic code navigation/editing (LSP-level rename, reference analysis)
-```json
-{
-  "mcpServers": {
-    "serena": {
-      "command": "uvx",
-      "args": ["--from", "serena-mcp", "serena", "--project-root", "."]
-    }
-  }
-}
+```bash
+uv sync                              # installs pyright binary as dev dependency
+claude plugin install pyright-lsp    # installs Claude Code plugin
 ```
+
+> `enabledPlugins` in `.claude/settings.json` will prompt installation automatically on first run.
+
+### MCP Server Setup
 
 **context7** -- Up-to-date library documentation
 ```json

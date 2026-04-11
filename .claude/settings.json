@@ -1,5 +1,21 @@
 {
+  "env": {
+    "ENABLE_LSP_TOOL": "1"
+  },
+  "enabledPlugins": {
+    "pyright-lsp@claude-plugins-official": true
+  },
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/check-required-plugins.sh"
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Edit|Write|Bash",
@@ -7,6 +23,17 @@
           {
             "type": "command",
             "command": "bash .claude/hooks/pre-tool-security.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/post-tool-format.sh"
           }
         ]
       }
