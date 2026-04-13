@@ -42,18 +42,18 @@
 
 ### 프로덕션 레디 아키텍처
 
-- **4가지 인터페이스** — HTTP API (FastAPI) + 비동기 Worker (Taskiq) + Admin UI (SQLAdmin) + MCP Server (예정)
-- **보일러플레이트 제로 CRUD** — `BaseRepository[DTO]` + `BaseService[DTO]` 상속으로 7개 비동기 CRUD 메서드 즉시 제공
+- **4가지 인터페이스** — HTTP API (FastAPI) + 비동기 Worker (Taskiq) + Admin UI (NiceGUI) + MCP Server (예정)
+- **보일러플레이트 제로 CRUD** — `BaseRepository[DTO]` + `BaseService[CreateRequest, UpdateRequest, DTO]` 상속으로 핵심 비동기 CRUD와 pagination helper 즉시 제공
 - **도메인 자동 발견** — 도메인 폴더를 추가하면 자동 등록. Container나 bootstrap 수정 불필요
 - **비동기 우선** — DB(asyncpg)부터 HTTP(aiohttp), 태스크 큐(Taskiq)까지 진정한 async
 
 ### 개발자 경험
 
-- **13개 AI 개발 스킬** — 스캐폴딩, 테스트, 아키텍처 리뷰 등을 위한 Claude Code 슬래시 커맨드
+- **공통 규칙 + 도구별 하네스** — `AGENTS.md`, Claude 스킬, Codex CLI 설정으로 AI 협업 구조화
 - **아키텍처 자동 강제** — Pre-commit hook이 커밋 시점에 `Domain -> Infrastructure` import를 차단
-- **타입 안전 제네릭** — `BaseRepository[ProductDTO]`, `BaseService[ProductDTO]`, `SuccessResponse[ProductResponse]`
+- **타입 안전 제네릭** — `BaseRepository[ProductDTO]`, `BaseService[CreateProductRequest, UpdateProductRequest, ProductDTO]`, `SuccessResponse[ProductResponse]`
 - **DDD 레이어드 구조** — 각 도메인이 완전히 독립된 계층 보유 (Domain / Infrastructure / Interface / Application)
-- **14개 Architecture Decision Records** — 모든 주요 설계 결정을 근거와 함께 문서화
+- **Architecture Decision Records** — 주요 설계 결정을 근거와 함께 문서화
 
 ---
 
@@ -65,7 +65,9 @@
 
 ```python
 # 1. 서비스 정의
-class DocumentService(BaseService[DocumentDTO]):
+class DocumentService(
+    BaseService[CreateDocumentRequest, UpdateDocumentRequest, DocumentDTO]
+):
     async def analyze(self, document_id: int) -> AnalysisDTO:
         ...  # 비즈니스 로직
 
@@ -113,11 +115,11 @@ class ProductRepository(BaseRepository[ProductDTO]):
     def __init__(self, database: Database):
         super().__init__(database=database, model=ProductModel, return_entity=ProductDTO)
 
-class ProductService(BaseService[ProductDTO]):
+class ProductService(BaseService[CreateProductRequest, UpdateProductRequest, ProductDTO]):
     def __init__(self, product_repository: ProductRepositoryProtocol):
         super().__init__(repository=product_repository)
 
-# 7개 CRUD 메서드 자동 제공 — 커스텀 로직만 추가하면 됨
+# 핵심 CRUD 메서드와 pagination helper 자동 제공 — 커스텀 로직만 추가하면 됨
 ```
 
 ---
@@ -137,7 +139,7 @@ Router -> UseCase -> Service -> Repository -> DB
 | 계층 | 역할 | Base 클래스 |
 |------|------|------------|
 | **Interface** | Router, Request/Response, Admin, Worker Task, MCP Tool | - |
-| **Domain** | Service (비즈니스 로직), Protocol, DTO, Event | `BaseService[ReturnDTO]` |
+| **Domain** | Service (비즈니스 로직), Protocol, DTO, Exception | `BaseService[CreateDTO, UpdateDTO, ReturnDTO]` |
 | **Infrastructure** | Repository (DB 접근), Model, DI Container | `BaseRepository[ReturnDTO]` |
 | **Application** | UseCase (복합 로직 조율) -- **선택적** | - |
 
@@ -164,9 +166,33 @@ Read:  Response <-- Service <-- Repository <-- DTO <-- Model
 
 ## AI 네이티브 개발 (AIDD)
 
-이 템플릿은 단독으로도 충분히 사용할 수 있습니다. **[Claude Code](https://docs.anthropic.com/en/docs/claude-code)와 함께라면 마법이 됩니다.**
+이 템플릿은 단독으로도 충분히 사용할 수 있습니다. 이제 AI 협업 구조는 **공통 규칙 + 공통 레퍼런스 + 도구별 하네스**로 정리되어 있습니다.
 
-### 러닝 커브 제로
+| 파일 | 역할 |
+|------|------|
+| `AGENTS.md` | 모든 AI 도구가 따라야 하는 공통 규칙의 canonical source |
+| `docs/ai/shared/` | Claude와 Codex가 함께 읽는 공통 workflow 레퍼런스와 체크리스트 |
+| `CLAUDE.md` | Claude 전용 hooks, plugins, slash skills, workflow 안내 |
+| `.mcp.json` | Claude 전용 MCP 설정 |
+| `.codex/config.toml` | Codex CLI 전용 프로젝트 설정, profile, feature, MCP 구성 |
+| `.codex/hooks.json` | Codex 명령 훅 설정 |
+| `.agents/skills/` | repo-local Codex workflow skill |
+
+### 공통 규칙 우선
+
+모든 도구는 먼저 `AGENTS.md`를 기준으로 다음을 따른다:
+- 프로젝트 규모 전제
+- 절대 금지 규칙
+- 레이어 용어와 conversion pattern
+- DTO 생성 기준
+- 기본 run/test/lint/migration 명령
+- 문서와 규칙 drift 관리 원칙
+
+루트 `AGENTS.md`에 다 담기 어려운 workflow 세부사항은 `docs/ai/shared/`에 둡니다. 예: `project-dna.md`, planning/security/review checklist, test pattern.
+
+### Claude Code
+
+#### 러닝 커브 제로
 
 복잡한 아키텍처? `/onboard`를 입력하세요 -- 당신의 수준에 맞춰 모든 것을 설명해줍니다.
 
@@ -175,7 +201,7 @@ Read:  Response <-- Service <-- Repository <-- DTO <-- Model
 - **중급**: 이 프로젝트 고유의 패턴에 집중
 - **고급**: 아키텍처 규칙과 컨벤션으로 바로 이동
 
-### 13개 내장 스킬
+#### 14개 내장 스킬
 
 | 명령어 | 기능 |
 |--------|------|
@@ -183,6 +209,7 @@ Read:  Response <-- Service <-- Repository <-- DTO <-- Model
 | `/new-domain {name}` | 도메인 전체 스캐폴딩 (21개 이상 소스 파일 + 테스트) |
 | `/add-api {description}` | 기존 도메인에 API 엔드포인트 추가 |
 | `/add-worker-task {domain} {task}` | 비동기 Taskiq 백그라운드 태스크 추가 |
+| `/add-admin-page {domain}` | 기존 도메인에 NiceGUI admin 페이지 추가 |
 | `/add-cross-domain from:{a} to:{b}` | Protocol DIP를 통한 도메인 간 의존성 연결 |
 | `/plan-feature {description}` | 요구사항 인터뷰 -> 아키텍처 -> 보안 -> 태스크 분해 |
 | `/review-architecture {domain}` | 아키텍처 컴플라이언스 감사 (20개 이상 검사) |
@@ -193,7 +220,7 @@ Read:  Response <-- Service <-- Repository <-- DTO <-- Model
 | `/sync-guidelines` | 설계 변경 후 문서 동기화 |
 | `/migrate-domain {command}` | Alembic 마이그레이션 관리 |
 
-### 플러그인 설정 (필수)
+#### 플러그인 설정 (필수)
 
 코드 인텔리전스(심볼 탐색, 참조 추적, 진단)를 위해 pyright-lsp 플러그인을 설치하세요:
 
@@ -204,21 +231,56 @@ claude plugin install pyright-lsp    # Claude Code 플러그인 설치
 
 > `.claude/settings.json`의 `enabledPlugins`가 첫 실행 시 자동으로 설치를 안내합니다.
 
-### MCP 서버 설정
+#### MCP 서버 설정 (`.mcp.json`)
 
 **context7** -- 라이브러리 최신 문서 조회
 ```json
 {
   "mcpServers": {
     "context7": {
-      "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp@latest"]
+      "url": "https://mcp.context7.com/mcp"
     }
   }
 }
 ```
 
-> MCP 서버 없이도 프로젝트 자체는 정상 동작합니다. AIDD 스킬을 활용하려면 MCP 서버 설정이 필요합니다.
+> `.mcp.json`은 Claude 측 MCP 진입점입니다. MCP 서버 없이도 프로젝트 자체는 정상 동작하지만, Claude 스킬은 이 설정을 기대합니다.
+
+### Codex CLI
+
+Codex는 `.codex/config.toml`의 project-shared 설정을 사용합니다:
+
+```toml
+sandbox_mode = "workspace-write"
+approval_policy = "on-request"
+web_search = "disabled"
+
+[features]
+codex_hooks = true
+
+[profiles.research]
+web_search = "live"
+
+[mcp_servers.context7]
+url = "https://mcp.context7.com/mcp"
+```
+
+> Codex는 원격 Context7 MCP 엔드포인트를 사용합니다. 로컬 stdio 서버(npx) 방식은 샌드박스 네트워크 제한에 의해 차단되므로, HTTP 전송 방식을 사용합니다.
+
+Codex의 레포 workflow layer는 다음으로 나뉩니다:
+- `.codex/config.toml` — base config와 profile
+- `.codex/hooks.json` + `.codex/hooks/` — command hook
+- `.agents/skills/` — `$onboard`, `$plan-feature`, `$review-pr` 같은 repo-local workflow
+- `docs/ai/shared/` — Claude/Codex 공통 reference
+
+권장 검증 흐름:
+1. Codex에서 이 프로젝트를 trusted 상태로 만든다.
+2. `codex mcp list`, `codex mcp get context7`를 실행한다.
+3. `codex debug prompt-input -c 'project_doc_max_bytes=400' "healthcheck" | rg "Shared Collaboration Rules|AGENTS\\.md"`로 `AGENTS.md`가 실제 prompt input에 포함되는지 확인한다.
+4. 최신 외부 정보가 정말 필요할 때만 `codex -p research` 또는 `codex --search`를 사용한다.
+5. Codex memories는 개인/세션 최적화용으로만 보고, 팀 규칙 저장소로 쓰지 않는다.
+
+> `.codex/config.toml`은 Codex 측 하네스 진입점입니다. 웹 검색은 기본 비활성화되어 있으므로, 최신 외부 정보가 필요할 때만 명시적으로 활성화하세요.
 
 ---
 
@@ -284,7 +346,9 @@ class ProductRepositoryProtocol(BaseRepositoryProtocol[ProductDTO]):
     pass
 
 # src/product/domain/services/product_service.py
-class ProductService(BaseService[ProductDTO]):
+class ProductService(
+    BaseService[CreateProductRequest, UpdateProductRequest, ProductDTO]
+):
     def __init__(self, product_repository: ProductRepositoryProtocol):
         super().__init__(repository=product_repository)
     # CRUD 자동 제공. 커스텀 로직만 추가.
@@ -348,8 +412,8 @@ async def create_product(
 | 인터페이스 | 기술 | 상태 | 용도 |
 |-----------|------|------|------|
 | **HTTP API** | FastAPI | Stable | REST API 엔드포인트 |
-| **비동기 Worker** | Taskiq + SQS | Stable | 백그라운드 태스크 처리 |
-| **Admin UI** | SQLAdmin | Stable | 데이터베이스 관리 대시보드 |
+| **비동기 Worker** | Taskiq + SQS/RabbitMQ/InMemory | Stable | 백그라운드 태스크 처리 |
+| **Admin UI** | NiceGUI | Stable | 자동 발견 기반 admin CRUD 대시보드 |
 | **MCP Server** | FastMCP | Planned | AI 에이전트 도구 인터페이스 |
 
 모든 인터페이스는 동일한 Domain/Infrastructure 계층을 공유합니다 -- 비즈니스 로직을 한 번 작성하고, 어디서든 노출하세요.
@@ -392,7 +456,7 @@ async def create_product(
 | **Ruff** | 린팅 + 포맷팅 ([6개 도구 통합](../docs/history/012-ruff-migration.md)) |
 | **pre-commit** | Git hook 자동화 + 아키텍처 강제 |
 | **UV** | Python 패키지 관리 ([왜 Poetry가 아닌가?](../docs/history/005-poetry-to-uv.md)) |
-| **SQLAdmin** | DB 관리 UI |
+| **NiceGUI** | Admin 대시보드 UI |
 
 ---
 
@@ -403,16 +467,16 @@ src/
 ├── _apps/                        # App-level 진입점
 │   ├── server/                  # FastAPI HTTP 서버
 │   ├── worker/                  # Taskiq 비동기 워커
-│   └── admin/                   # SQLAdmin 대시보드
+│   └── admin/                   # NiceGUI admin 앱
 │
 ├── _core/                        # 공통 인프라
 │   ├── domain/
 │   │   ├── protocols/           # BaseRepositoryProtocol[ReturnDTO]
-│   │   └── services/            # BaseService[ReturnDTO]
+│   │   └── services/            # BaseService[CreateDTO, UpdateDTO, ReturnDTO]
 │   ├── infrastructure/
 │   │   ├── database/            # Database, BaseRepository[ReturnDTO]
 │   │   ├── http/                # HttpClient, BaseHttpGateway
-│   │   ├── taskiq/              # SQS Broker, TaskiqManager
+│   │   ├── taskiq/              # Broker adapter, TaskiqManager
 │   │   ├── storage/             # S3/MinIO
 │   │   ├── di/                  # CoreContainer
 │   │   └── discovery.py         # 도메인 자동 발견
@@ -424,17 +488,16 @@ src/
 │   ├── domain/
 │   │   ├── dtos/                # UserDTO
 │   │   ├── protocols/           # UserRepositoryProtocol
-│   │   ├── services/            # UserService(BaseService[UserDTO])
+│   │   ├── services/            # UserService(BaseService[CreateUserRequest, UpdateUserRequest, UserDTO])
 │   │   ├── exceptions/          # UserNotFoundException
-│   │   └── events/              # UserCreated, UserUpdated
 │   ├── infrastructure/
 │   │   ├── database/models/     # UserModel
 │   │   ├── repositories/        # UserRepository(BaseRepository[UserDTO])
 │   │   └── di/                  # UserContainer
 │   └── interface/
 │       ├── server/              # routers/, schemas/, bootstrap/
-│       ├── worker/              # tasks/, bootstrap/
-│       └── admin/               # SQLAdmin views
+│       ├── worker/              # payloads/, tasks/, bootstrap/
+│       └── admin/               # configs/, pages/ (NiceGUI)
 │
 ├── migrations/                   # Alembic
 ├── _env/                         # 환경변수
@@ -453,10 +516,10 @@ src/
 | 보일러플레이트 제로 CRUD (7개 메서드) | **Yes** | No | No | No |
 | 도메인 자동 발견 | **Yes** | No | No | No |
 | 아키텍처 자동 강제 (pre-commit) | **Yes** | No | No | No |
-| AI 개발 스킬 | **13** | 0 | 0 | 0 |
+| AI 개발 스킬 | **14** | 0 | 0 | 0 |
 | 적응형 온보딩 (`/onboard`) | **Yes** | No | No | No |
 | 멀티 인터페이스 (API+Worker+Admin+MCP) | **4종** | 2 | 1 | 1 |
-| Architecture Decision Records | **14** | 0 | 0 | 0 |
+| Architecture Decision Records | **32** | 0 | 0 | 0 |
 | 전 계층 타입 안전 제네릭 | **Yes** | 부분 | 부분 | No |
 | IoC Container DI | **Yes** | No | No | No |
 
@@ -475,7 +538,7 @@ src/
 | [012](../docs/history/012-ruff-migration.md) | Ruff 도입 |
 | [013](../docs/history/013-why-ioc-container.md) | 상속 대신 IoC Container를 선택한 이유 |
 
-[전체 14개 ADR 보기](../docs/history/README.md)
+[ADR 인덱스 보기](../docs/history/README.md)
 
 ---
 
@@ -505,7 +568,8 @@ src/
 - [x] 헬스 체크 엔드포인트
 - [x] 도메인 자동 발견
 - [x] 아키텍처 강제 (pre-commit)
-- [x] 13개 AI 개발 스킬
+- [x] 14개 Claude Code 스킬
+- [x] Codex CLI workflow layer (`.codex/config.toml`, `.codex/hooks.json`, `.agents/skills/`)
 
 스타를 눌러 진행 상황을 팔로우하세요!
 

@@ -43,18 +43,18 @@
 
 ### Production-Ready Architecture
 
-- **4 interface types** — HTTP API (FastAPI) + Async Worker (Taskiq) + Admin UI (SQLAdmin) + MCP Server (planned)
-- **Zero-boilerplate CRUD** — Inherit `BaseRepository[DTO]` + `BaseService[DTO]`, get 7 async CRUD methods instantly
+- **4 interface types** — HTTP API (FastAPI) + Async Worker (Taskiq) + Admin UI (NiceGUI) + MCP Server (planned)
+- **Zero-boilerplate CRUD** — Inherit `BaseRepository[DTO]` + `BaseService[CreateRequest, UpdateRequest, DTO]` for core async CRUD and pagination helpers
 - **Auto domain discovery** — Add a domain folder, it auto-registers. No container or bootstrap changes needed
 - **Async-first** — Genuine async from DB (asyncpg) to HTTP (aiohttp) to task queue (Taskiq)
 
 ### Developer Experience
 
-- **13 AI development skills** — Claude Code slash commands for scaffolding, testing, architecture review, and more
+- **Shared AI rules + tool-specific harnesses** — `AGENTS.md` for common rules, plus Claude and Codex entrypoints
 - **Architecture enforcement** — Pre-commit hooks block `Domain -> Infrastructure` imports at commit time
-- **Type-safe generics** — `BaseRepository[ProductDTO]`, `BaseService[ProductDTO]`, `SuccessResponse[ProductResponse]`
+- **Type-safe generics** — `BaseRepository[ProductDTO]`, `BaseService[CreateProductRequest, UpdateProductRequest, ProductDTO]`, `SuccessResponse[ProductResponse]`
 - **DDD layered structure** — Each domain is fully independent with its own layers (Domain / Infrastructure / Interface / Application)
-- **14 Architecture Decision Records** — Every major design choice documented with rationale
+- **Architecture Decision Records** — Major design choices documented with rationale
 
 ---
 
@@ -66,7 +66,9 @@ Write business logic once. Expose it as a REST API, background job, admin view, 
 
 ```python
 # 1. Define your service
-class DocumentService(BaseService[DocumentDTO]):
+class DocumentService(
+    BaseService[CreateDocumentRequest, UpdateDocumentRequest, DocumentDTO]
+):
     async def analyze(self, document_id: int) -> AnalysisDTO:
         ...  # your business logic
 
@@ -114,11 +116,11 @@ class ProductRepository(BaseRepository[ProductDTO]):
     def __init__(self, database: Database):
         super().__init__(database=database, model=ProductModel, return_entity=ProductDTO)
 
-class ProductService(BaseService[ProductDTO]):
+class ProductService(BaseService[CreateProductRequest, UpdateProductRequest, ProductDTO]):
     def __init__(self, product_repository: ProductRepositoryProtocol):
         super().__init__(repository=product_repository)
 
-# 7 CRUD methods provided automatically -- just add your custom logic
+# Core CRUD methods and pagination helpers are provided automatically
 ```
 
 ---
@@ -138,7 +140,7 @@ Router -> UseCase -> Service -> Repository -> DB
 | Layer | Role | Base Class |
 |-------|------|-----------|
 | **Interface** | Router, Request/Response, Admin, Worker Task, MCP Tool | - |
-| **Domain** | Service (business logic), Protocol, DTO, Event | `BaseService[ReturnDTO]` |
+| **Domain** | Service (business logic), Protocol, DTO, Exceptions | `BaseService[CreateDTO, UpdateDTO, ReturnDTO]` |
 | **Infrastructure** | Repository (DB access), Model, DI Container | `BaseRepository[ReturnDTO]` |
 | **Application** | UseCase (orchestration) -- **optional** | - |
 
@@ -165,9 +167,33 @@ Read:  Response <-- Service <-- Repository <-- DTO <-- Model
 
 ## AI-Native Development (AIDD)
 
-This template works great on its own. **With [Claude Code](https://docs.anthropic.com/en/docs/claude-code), it's magic.**
+This template works great on its own. For AI-native development, the repository uses a **shared rules + shared references + tool-specific harness** structure:
 
-### Zero Learning Curve
+| File | Role |
+|------|------|
+| `AGENTS.md` | Canonical shared rules for all AI tools |
+| `docs/ai/shared/` | Shared workflow references and checklists used by Claude and Codex |
+| `CLAUDE.md` | Claude-specific hooks, plugins, slash skills, and workflow notes |
+| `.mcp.json` | Claude-only MCP server configuration |
+| `.codex/config.toml` | Codex CLI project settings, profiles, features, and MCP configuration |
+| `.codex/hooks.json` | Codex command-hook configuration |
+| `.agents/skills/` | Repo-local Codex workflow skills |
+
+### Shared Rules First
+
+All tools should follow `AGENTS.md` for:
+- project scale assumptions
+- absolute prohibitions
+- layer terminology and conversion patterns
+- DTO creation criteria
+- baseline run/test/lint/migration commands
+- documentation drift management principles
+
+Use `docs/ai/shared/` for the deeper workflow references that are too detailed for root `AGENTS.md`, such as `project-dna.md`, planning checklists, review checklists, and test patterns.
+
+### Claude Code
+
+#### Zero Learning Curve
 
 Complex architecture? Type `/onboard` -- it explains everything at your level.
 
@@ -177,7 +203,7 @@ The `/onboard` skill adapts to your experience and learning style:
 - **Q&A** -- topic maps provided, explore by asking questions
 - **Explore** -- point at any code freely, uncovered essentials flagged at the end
 
-### 13 Built-in Skills
+#### 14 Built-in Skills
 
 | Command | What it does |
 |---------|------------|
@@ -185,6 +211,7 @@ The `/onboard` skill adapts to your experience and learning style:
 | `/new-domain {name}` | Scaffold an entire domain (21+ source files + tests) |
 | `/add-api {description}` | Add API endpoint to existing domain |
 | `/add-worker-task {domain} {task}` | Add async Taskiq background task |
+| `/add-admin-page {domain}` | Add a NiceGUI admin page to an existing domain |
 | `/add-cross-domain from:{a} to:{b}` | Wire cross-domain dependency via Protocol DIP |
 | `/plan-feature {description}` | Requirements interview -> architecture -> security -> task breakdown |
 | `/review-architecture {domain}` | Architecture compliance audit (20+ checks) |
@@ -195,7 +222,7 @@ The `/onboard` skill adapts to your experience and learning style:
 | `/sync-guidelines` | Sync docs after design changes |
 | `/migrate-domain {command}` | Alembic migration management |
 
-### Plugin Setup (Required)
+#### Plugin Setup (Required)
 
 Install the pyright-lsp plugin for code intelligence (symbol navigation, references, diagnostics):
 
@@ -206,21 +233,56 @@ claude plugin install pyright-lsp    # installs Claude Code plugin
 
 > `enabledPlugins` in `.claude/settings.json` will prompt installation automatically on first run.
 
-### MCP Server Setup
+#### MCP Server Setup (`.mcp.json`)
 
 **context7** -- Up-to-date library documentation
 ```json
 {
   "mcpServers": {
     "context7": {
-      "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp@latest"]
+      "url": "https://mcp.context7.com/mcp"
     }
   }
 }
 ```
 
-> The project works without MCP servers. AIDD skills require MCP server configuration.
+> `.mcp.json` is the Claude-side MCP entrypoint. The project works without MCP servers, but Claude skills expect this configuration.
+
+### Codex CLI
+
+Codex uses the committed project config in `.codex/config.toml`:
+
+```toml
+sandbox_mode = "workspace-write"
+approval_policy = "on-request"
+web_search = "disabled"
+
+[features]
+codex_hooks = true
+
+[profiles.research]
+web_search = "live"
+
+[mcp_servers.context7]
+url = "https://mcp.context7.com/mcp"
+```
+
+> Codex uses the remote Context7 MCP endpoint so documentation lookups are not blocked by the sandboxed network restrictions that apply to locally spawned stdio servers.
+
+Codex's repository workflow layer is split across:
+- `.codex/config.toml` for base config and profiles
+- `.codex/hooks.json` plus `.codex/hooks/` for command hooks
+- `.agents/skills/` for repo-local workflows such as `$onboard`, `$plan-feature`, `$review-pr`
+- `docs/ai/shared/` for shared references that both Claude and Codex consume
+
+Recommended verification flow:
+1. Trust the project in Codex.
+2. Run `codex mcp list` and `codex mcp get context7`.
+3. Run `codex debug prompt-input -c 'project_doc_max_bytes=400' "healthcheck" | rg "Shared Collaboration Rules|AGENTS\\.md"` and confirm `AGENTS.md` is included in the prompt input.
+4. Use `codex -p research` or `codex --search` only when live web search is actually required.
+5. Treat Codex memories as personal/session optimization only, not as team-shared governance.
+
+> `.codex/config.toml` is the Codex-side harness entrypoint. Web search is disabled by default; enable it explicitly only when you need live external information.
 
 ---
 
@@ -286,7 +348,9 @@ class ProductRepositoryProtocol(BaseRepositoryProtocol[ProductDTO]):
     pass
 
 # src/product/domain/services/product_service.py
-class ProductService(BaseService[ProductDTO]):
+class ProductService(
+    BaseService[CreateProductRequest, UpdateProductRequest, ProductDTO]
+):
     def __init__(self, product_repository: ProductRepositoryProtocol):
         super().__init__(repository=product_repository)
     # CRUD provided automatically. Just add custom logic.
@@ -350,8 +414,8 @@ Each domain can expose functionality through multiple interfaces:
 | Interface | Technology | Status | Purpose |
 |-----------|-----------|--------|---------|
 | **HTTP API** | FastAPI | Stable | REST API endpoints |
-| **Async Worker** | Taskiq + SQS | Stable | Background task processing |
-| **Admin UI** | SQLAdmin | Stable | Database management dashboard |
+| **Async Worker** | Taskiq + SQS/RabbitMQ/InMemory | Stable | Background task processing |
+| **Admin UI** | NiceGUI | Stable | Auto-discovered admin CRUD dashboard |
 | **MCP Server** | FastMCP | Planned | AI agent tool interface |
 
 All interfaces share the same Domain and Infrastructure layers -- write your business logic once, expose it everywhere.
@@ -394,7 +458,7 @@ All interfaces share the same Domain and Infrastructure layers -- write your bus
 | **Ruff** | Linting + formatting ([replaces 6 tools](docs/history/012-ruff-migration.md)) |
 | **pre-commit** | Git hook automation + architecture enforcement |
 | **UV** | Python package management ([why not Poetry?](docs/history/005-poetry-to-uv.md)) |
-| **SQLAdmin** | DB admin UI |
+| **NiceGUI** | Admin dashboard UI |
 
 ---
 
@@ -405,16 +469,16 @@ src/
 ├── _apps/                        # App entry points
 │   ├── server/                  # FastAPI HTTP server
 │   ├── worker/                  # Taskiq async worker
-│   └── admin/                   # SQLAdmin dashboard
+│   └── admin/                   # NiceGUI admin app
 │
 ├── _core/                        # Shared infrastructure
 │   ├── domain/
 │   │   ├── protocols/           # BaseRepositoryProtocol[ReturnDTO]
-│   │   └── services/            # BaseService[ReturnDTO]
+│   │   └── services/            # BaseService[CreateDTO, UpdateDTO, ReturnDTO]
 │   ├── infrastructure/
 │   │   ├── database/            # Database, BaseRepository[ReturnDTO]
 │   │   ├── http/                # HttpClient, BaseHttpGateway
-│   │   ├── taskiq/              # SQS Broker, TaskiqManager
+│   │   ├── taskiq/              # Broker adapters, TaskiqManager
 │   │   ├── storage/             # S3/MinIO
 │   │   ├── di/                  # CoreContainer
 │   │   └── discovery.py         # Auto domain discovery
@@ -426,17 +490,16 @@ src/
 │   ├── domain/
 │   │   ├── dtos/                # UserDTO
 │   │   ├── protocols/           # UserRepositoryProtocol
-│   │   ├── services/            # UserService(BaseService[UserDTO])
+│   │   ├── services/            # UserService(BaseService[CreateUserRequest, UpdateUserRequest, UserDTO])
 │   │   ├── exceptions/          # UserNotFoundException
-│   │   └── events/              # UserCreated, UserUpdated
 │   ├── infrastructure/
 │   │   ├── database/models/     # UserModel
 │   │   ├── repositories/        # UserRepository(BaseRepository[UserDTO])
 │   │   └── di/                  # UserContainer
 │   └── interface/
 │       ├── server/              # routers/, schemas/, bootstrap/
-│       ├── worker/              # tasks/, bootstrap/
-│       └── admin/               # SQLAdmin views
+│       ├── worker/              # payloads/, tasks/, bootstrap/
+│       └── admin/               # configs/, pages/ (NiceGUI)
 │
 ├── migrations/                   # Alembic
 ├── _env/                         # Environment variables
@@ -455,10 +518,10 @@ src/
 | Zero-boilerplate CRUD (7 methods) | **Yes** | No | No | No |
 | Auto domain discovery | **Yes** | No | No | No |
 | Architecture enforcement (pre-commit) | **Yes** | No | No | No |
-| AI development skills | **13** | 0 | 0 | 0 |
+| AI workflow skills | **14** | 0 | 0 | 0 |
 | Adaptive onboarding (`/onboard`) | **Yes** | No | No | No |
 | Multi-interface (API+Worker+Admin+MCP) | **4 types** | 2 | 1 | 1 |
-| Architecture Decision Records | **14** | 0 | 0 | 0 |
+| Architecture Decision Records | **32** | 0 | 0 | 0 |
 | Type-safe generics across layers | **Yes** | Partial | Partial | No |
 | DI with IoC Container | **Yes** | No | No | No |
 
@@ -477,7 +540,7 @@ Every technical choice in this project is documented as an ADR (Architecture Dec
 | [012](docs/history/012-ruff-migration.md) | Ruff adoption |
 | [013](docs/history/013-why-ioc-container.md) | Why IoC Container over inheritance |
 
-[View all 14 ADRs](docs/history/README.md)
+[View ADR index](docs/history/README.md)
 
 ---
 
@@ -507,7 +570,8 @@ Every technical choice in this project is documented as an ADR (Architecture Dec
 - [x] Health check endpoint
 - [x] Auto domain discovery
 - [x] Architecture enforcement (pre-commit)
-- [x] 13 AI development skills
+- [x] 14 Claude Code skills
+- [x] Codex CLI workflow layer (`.codex/config.toml`, `.codex/hooks.json`, `.agents/skills/`)
 
 Star this repo to follow our progress!
 
