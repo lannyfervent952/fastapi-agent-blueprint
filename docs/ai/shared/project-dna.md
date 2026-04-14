@@ -496,7 +496,7 @@ class {Name}Container(containers.DeclarativeContainer):
 | SQLAlchemy 2.0+ | Active | Mapped[T] + mapped_column() |
 | Pydantic 2.x | Active | model_validate, model_dump, ConfigDict |
 | dependency-injector | Active | DeclarativeContainer, @inject + Provide |
-| AWS S3 (aioboto3) | Active | ObjectStorage + ObjectStorageClient |
+| Object Storage (aioboto3) | Active | S3/MinIO switchable via STORAGE_TYPE, ObjectStorage + ObjectStorageClient |
 | AWS DynamoDB (aioboto3) | Active | BaseDynamoRepository + DynamoDBClient (optional infra) |
 | NiceGUI (BaseAdminPage) | Active | Admin dashboard (AG Grid, auto-discovery, Template Method rendering) |
 | alembic (migrations) | Active | DB migrations |

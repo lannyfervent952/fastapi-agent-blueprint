@@ -1,6 +1,6 @@
 # Suggested Commands
 
-> Last synced: 2026-04-14 via /sync-guidelines
+> Last synced: 2026-04-15 via /sync-guidelines
 > Purpose: Quick reference for Claude Code when executing shell commands.
 > Also referenced when running Skills.
 > Makefile targets (`make dev`, `make test`, etc.) are available as shortcuts — see `AGENTS.md` Common Commands.
@@ -75,6 +75,15 @@ BROKER_TYPE=inmemory python run_worker_local.py --env local
 
 # RabbitMQ
 BROKER_TYPE=rabbitmq RABBITMQ_URL=amqp://guest:guest@localhost:5672/ python run_worker_local.py --env local
+```
+
+## Storage
+```bash
+# MinIO (local development)
+STORAGE_TYPE=minio python run_server_local.py --env local
+
+# AWS S3
+STORAGE_TYPE=s3 python run_server_local.py --env local
 ```
 
 ## Admin Dashboard

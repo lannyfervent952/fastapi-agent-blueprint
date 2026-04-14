@@ -1,6 +1,6 @@
 # Architecture Conventions
 
-> Last synced: 2026-04-14 via /sync-guidelines
+> Last synced: 2026-04-15 via /sync-guidelines
 > For Absolute Prohibitions, Conversion Patterns, Write DTO criteria, and common commands, refer to AGENTS.md.
 > This file only contains **structural context** that supplements AGENTS.md for Claude.
 
@@ -51,6 +51,13 @@ Key differences from RDB/DynamoDB:
 - providers.Selector in CoreContainer: SQS/RabbitMQ/InMemory by BROKER_TYPE env var
 - Task code: `from src._apps.worker.broker import broker` — no conditional logic
 - stg/prod require explicit BROKER_TYPE setting
+
+## Storage Selection
+- Parameter switching in CoreContainer: S3/MinIO by STORAGE_TYPE env var
+- Both use the same `ObjectStorageClient` class — only constructor parameters differ
+- S3: `region_name`, MinIO: `endpoint_url` + dummy `region_name="us-east-1"`
+- No `providers.Selector` needed (same class, different params — contrast with Broker/Embedding)
+- Settings computed properties (`storage_access_key`, etc.) resolve to S3/MinIO fields based on STORAGE_TYPE
 
 ## Embedding Selection
 - providers.Selector in CoreContainer: OpenAI/Bedrock by EMBEDDING_PROVIDER env var
