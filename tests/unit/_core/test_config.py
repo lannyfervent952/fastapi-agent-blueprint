@@ -216,6 +216,129 @@ class TestPartialConfigGroups:
             assert s.s3vectors_region is None
 
 
+class TestStorageTypeConfig:
+    def test_no_storage_type_accepted(self):
+        env = {"ENV": "local", **_REQUIRED_VARS}
+        with patch.dict(os.environ, env, clear=True):
+            s = _create_settings()
+            assert s.storage_type is None
+
+    def test_unknown_storage_type_rejected(self):
+        env = {"ENV": "local", "STORAGE_TYPE": "gcs", **_REQUIRED_VARS}
+        with patch.dict(os.environ, env, clear=True):
+            with pytest.raises(ValidationError, match="Unknown storage type"):
+                _create_settings()
+
+    def test_s3_without_config_rejected(self):
+        env = {"ENV": "local", "STORAGE_TYPE": "s3", **_REQUIRED_VARS}
+        with patch.dict(os.environ, env, clear=True):
+            with pytest.raises(
+                ValidationError, match=r"Storage.*STORAGE_TYPE=s3.*missing"
+            ):
+                _create_settings()
+
+    def test_s3_with_complete_config_accepted(self):
+        env = {
+            "ENV": "local",
+            "STORAGE_TYPE": "s3",
+            "S3_ACCESS_KEY": "s3-key",
+            "S3_SECRET_KEY": "s3-secret",
+            "S3_REGION": "ap-northeast-2",
+            "S3_BUCKET_NAME": "my-bucket",
+            **_REQUIRED_VARS,
+        }
+        with patch.dict(os.environ, env, clear=True):
+            s = _create_settings()
+            assert s.storage_type == "s3"
+            assert s.storage_access_key == "s3-key"
+            assert s.storage_secret_key == "s3-secret"
+            assert s.storage_bucket_name == "my-bucket"
+
+    def test_minio_without_config_rejected(self):
+        env = {"ENV": "local", "STORAGE_TYPE": "minio", **_REQUIRED_VARS}
+        with patch.dict(os.environ, env, clear=True):
+            with pytest.raises(
+                ValidationError, match=r"Storage.*STORAGE_TYPE=minio.*missing"
+            ):
+                _create_settings()
+
+    def test_minio_with_complete_config_accepted(self):
+        env = {
+            "ENV": "local",
+            "STORAGE_TYPE": "minio",
+            "MINIO_HOST": "localhost",
+            "MINIO_PORT": "9000",
+            "MINIO_ACCESS_KEY": "minio-key",
+            "MINIO_SECRET_KEY": "minio-secret",
+            "MINIO_BUCKET_NAME": "minio-bucket",
+            **_REQUIRED_VARS,
+        }
+        with patch.dict(os.environ, env, clear=True):
+            s = _create_settings()
+            assert s.storage_type == "minio"
+            assert s.storage_access_key == "minio-key"
+            assert s.storage_secret_key == "minio-secret"
+            assert s.storage_bucket_name == "minio-bucket"
+
+    def test_minio_endpoint_url_resolved(self):
+        env = {
+            "ENV": "local",
+            "STORAGE_TYPE": "minio",
+            "MINIO_HOST": "localhost",
+            "MINIO_PORT": "9000",
+            "MINIO_ACCESS_KEY": "key",
+            "MINIO_SECRET_KEY": "secret",
+            "MINIO_BUCKET_NAME": "bucket",
+            **_REQUIRED_VARS,
+        }
+        with patch.dict(os.environ, env, clear=True):
+            s = _create_settings()
+            assert s.storage_endpoint_url == "localhost:9000"
+
+    def test_s3_endpoint_url_is_none(self):
+        env = {
+            "ENV": "local",
+            "STORAGE_TYPE": "s3",
+            "S3_ACCESS_KEY": "key",
+            "S3_SECRET_KEY": "secret",
+            "S3_REGION": "us-east-1",
+            "S3_BUCKET_NAME": "bucket",
+            **_REQUIRED_VARS,
+        }
+        with patch.dict(os.environ, env, clear=True):
+            s = _create_settings()
+            assert s.storage_endpoint_url is None
+
+    def test_minio_region_is_us_east_1(self):
+        env = {
+            "ENV": "local",
+            "STORAGE_TYPE": "minio",
+            "MINIO_HOST": "localhost",
+            "MINIO_PORT": "9000",
+            "MINIO_ACCESS_KEY": "key",
+            "MINIO_SECRET_KEY": "secret",
+            "MINIO_BUCKET_NAME": "bucket",
+            **_REQUIRED_VARS,
+        }
+        with patch.dict(os.environ, env, clear=True):
+            s = _create_settings()
+            assert s.storage_region == "us-east-1"
+
+    def test_s3_region_resolved(self):
+        env = {
+            "ENV": "local",
+            "STORAGE_TYPE": "s3",
+            "S3_ACCESS_KEY": "key",
+            "S3_SECRET_KEY": "secret",
+            "S3_REGION": "ap-northeast-2",
+            "S3_BUCKET_NAME": "bucket",
+            **_REQUIRED_VARS,
+        }
+        with patch.dict(os.environ, env, clear=True):
+            s = _create_settings()
+            assert s.storage_region == "ap-northeast-2"
+
+
 class TestBrokerConfig:
     def test_local_no_broker_type_accepted(self):
         env = {"ENV": "local", **_REQUIRED_VARS}

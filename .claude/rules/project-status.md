@@ -1,11 +1,11 @@
 # Project Status
 
-> Last synced: 2026-04-14 via /sync-guidelines
+> Last synced: 2026-04-15 via /sync-guidelines
 
 ## Current Version Context
 - Latest release: v0.3.0 (2026-04-10)
 - Active domains: user (reference domain)
-- Infrastructure: RDB (PostgreSQL/MySQL/SQLite), DynamoDB, S3, S3 Vectors, Embedding, Broker (SQS/RabbitMQ/InMemory)
+- Infrastructure: RDB (PostgreSQL/MySQL/SQLite), DynamoDB, Storage (S3/MinIO), S3 Vectors, Embedding, Broker (SQS/RabbitMQ/InMemory)
 
 ## Recent Major Changes (since v0.3.0)
 | Feature | Issue | Impact |
@@ -23,6 +23,7 @@
 | Embedding Service Abstraction | #69 | Selector pattern (OpenAI/Bedrock), BaseEmbeddingProtocol, auto-dimension |
 | Text Chunking | #69 | semantic-text-splitter, chunk_text/chunk_text_by_tokens |
 | ADR 035/036 | #69 | Embedding abstraction + text chunking design decisions |
+| Storage Abstraction | #58 | STORAGE_TYPE env var, S3/MinIO parameter switching, Settings computed properties |
 
 ## Architecture Violation Status
 - Domain → Infrastructure import: CLEAN

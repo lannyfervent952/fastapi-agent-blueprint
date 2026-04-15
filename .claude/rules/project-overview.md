@@ -1,6 +1,6 @@
 # Project Overview
 
-> Last synced: 2026-04-14 via /sync-guidelines
+> Last synced: 2026-04-15 via /sync-guidelines
 > For tech stack, refer to project-dna.md §8; for layer structure, refer to §1.
 > This file only contains **project-level context** not covered in project-dna.md.
 
@@ -18,7 +18,7 @@ Interface → Application → Domain ← Infrastructure
 ## Infrastructure Options
 - RDB: PostgreSQL, MySQL, SQLite (DATABASE_ENGINE env var)
 - DynamoDB: Optional (DYNAMODB_* env vars, BaseDynamoRepository)
-- Object Storage: S3/MinIO (S3_*/MINIO_* env vars)
+- Object Storage: S3/MinIO (STORAGE_TYPE env var, parameter switching)
 - S3 Vectors: Optional (S3VECTORS_* env vars, BaseS3VectorStore)
 - Embedding: Optional (EMBEDDING_PROVIDER env var, OpenAI/Bedrock Selector)
 - Message Broker: SQS/RabbitMQ/InMemory (BROKER_TYPE env var)
@@ -26,6 +26,7 @@ Interface → Application → Domain ← Infrastructure
 ## Environment Config Validation
 - Settings (pydantic-settings) with model_validator
 - stg/prod: unsafe defaults blocked, broker required, partial config groups rejected
+- STORAGE_TYPE-driven validation: S3/MinIO config group required when set
 - Partial config group validation: S3, MinIO, DynamoDB, S3Vectors, SQS, OpenAI, Bedrock
 
 ## Key Value Objects
