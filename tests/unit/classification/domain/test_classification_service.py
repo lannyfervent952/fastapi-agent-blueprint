@@ -1,5 +1,5 @@
 import importlib.util
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -20,33 +20,32 @@ class TestClassificationServiceImportError:
                 ClassificationService,
             )
 
-            ClassificationService(llm_config=LLMConfig(model_name="openai:gpt-4o"))
+            ClassificationService(llm_model="openai:gpt-4o")
 
 
 @pytest.mark.skipif(not _has_pydantic_ai, reason="pydantic-ai not installed")
 class TestClassificationServiceWithPydanticAI:
     """pydantic-ai 설치 시 서비스 동작 테스트."""
 
-    def test_agent_created_on_init(self):
+    def _make_service(self):
         from src.classification.domain.services.classification_service import (
             ClassificationService,
         )
 
-        config = LLMConfig(model_name="test:model-name", api_key="test-key")
-        service = ClassificationService(llm_config=config)
-        assert service._model_name == "test:model-name"
+        with patch("pydantic_ai.Agent") as mock_agent_cls:
+            mock_agent = MagicMock()
+            mock_agent_cls.return_value = mock_agent
+            service = ClassificationService(llm_model="openai:gpt-4o")
+            service._agent = mock_agent
+        return service
 
     @pytest.mark.asyncio
     async def test_classify_returns_dto(self):
         from src.classification.domain.dtos.classification_dto import (
             ClassificationDTO,
         )
-        from src.classification.domain.services.classification_service import (
-            ClassificationService,
-        )
 
-        config = LLMConfig(model_name="test:model-name")
-        service = ClassificationService(llm_config=config)
+        service = self._make_service()
 
         mock_result = MagicMock()
         mock_result.output = ClassificationDTO(
@@ -55,7 +54,9 @@ class TestClassificationServiceWithPydanticAI:
             reasoning="The text expresses positive sentiment.",
         )
 
-        with patch.object(service._agent, "run", return_value=mock_result) as mock_run:
+        with patch.object(
+            service._agent, "run", new_callable=AsyncMock, return_value=mock_result
+        ) as mock_run:
             result = await service.classify(
                 text="This is great!", categories=["positive", "negative"]
             )
@@ -72,12 +73,8 @@ class TestClassificationServiceWithPydanticAI:
         from src.classification.domain.dtos.classification_dto import (
             ClassificationDTO,
         )
-        from src.classification.domain.services.classification_service import (
-            ClassificationService,
-        )
 
-        config = LLMConfig(model_name="test:model-name")
-        service = ClassificationService(llm_config=config)
+        service = self._make_service()
 
         mock_result = MagicMock()
         mock_result.output = ClassificationDTO(
@@ -86,7 +83,9 @@ class TestClassificationServiceWithPydanticAI:
             reasoning="Technical topic.",
         )
 
-        with patch.object(service._agent, "run", return_value=mock_result) as mock_run:
+        with patch.object(
+            service._agent, "run", new_callable=AsyncMock, return_value=mock_result
+        ) as mock_run:
             result = await service.classify(text="Python is a programming language")
 
             assert result.category == "tech"
@@ -97,15 +96,14 @@ class TestClassificationServiceWithPydanticAI:
         from src.classification.domain.exceptions.classification_exceptions import (
             ClassificationFailedException,
         )
-        from src.classification.domain.services.classification_service import (
-            ClassificationService,
-        )
 
-        config = LLMConfig(model_name="test:model-name")
-        service = ClassificationService(llm_config=config)
+        service = self._make_service()
 
         with patch.object(
-            service._agent, "run", side_effect=RuntimeError("API timeout")
+            service._agent,
+            "run",
+            new_callable=AsyncMock,
+            side_effect=RuntimeError("API timeout"),
         ):
             with pytest.raises(ClassificationFailedException, match="API timeout"):
                 await service.classify(text="test input")
@@ -123,3 +121,13 @@ class TestLLMConfig:
     def test_api_key_defaults_to_none(self):
         config = LLMConfig(model_name="anthropic:claude-sonnet-4-20250514")
         assert config.api_key is None
+
+    def test_bedrock_credentials(self):
+        config = LLMConfig(
+            model_name="bedrock:anthropic.claude-v2",
+            aws_access_key_id="AKIA...",
+            aws_secret_access_key="secret",
+            aws_region="us-west-2",
+        )
+        assert config.aws_access_key_id == "AKIA..."
+        assert config.aws_region == "us-west-2"

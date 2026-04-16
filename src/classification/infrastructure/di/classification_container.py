@@ -10,5 +10,5 @@ class ClassificationContainer(containers.DeclarativeContainer):
 
     classification_service = providers.Factory(
         ClassificationService,
-        llm_config=core_container.llm_config,
+        llm_model=core_container.llm_model,
     )

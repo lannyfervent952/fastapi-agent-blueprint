@@ -1,14 +1,11 @@
 from __future__ import annotations
 
-import logging
+from typing import Any
 
-from src._core.domain.value_objects.llm_config import LLMConfig
 from src.classification.domain.dtos.classification_dto import ClassificationDTO
 from src.classification.domain.exceptions.classification_exceptions import (
     ClassificationFailedException,
 )
-
-logger = logging.getLogger(__name__)
 
 
 class ClassificationService:
@@ -16,9 +13,12 @@ class ClassificationService:
 
     The Agent instance is created once in ``__init__`` (PydanticAI agents are
     designed to be reused across requests) and shared across all calls.
+
+    ``llm_model`` is a PydanticAI Model object or model string, built by
+    ``build_llm_model()`` in the infrastructure layer and injected via DI.
     """
 
-    def __init__(self, llm_config: LLMConfig) -> None:
+    def __init__(self, llm_model: Any) -> None:
         try:
             from pydantic_ai import Agent
         except ImportError:
@@ -28,7 +28,7 @@ class ClassificationService:
             )
 
         self._agent: Agent[None, ClassificationDTO] = Agent(
-            model=llm_config.model_name,
+            model=llm_model,
             output_type=ClassificationDTO,
             system_prompt=(
                 "You are a precise text classifier. "
@@ -36,7 +36,6 @@ class ClassificationService:
                 "Return your confidence score (0 to 1) and a brief reasoning."
             ),
         )
-        self._model_name = llm_config.model_name
 
     async def classify(
         self,
@@ -62,5 +61,4 @@ class ClassificationService:
             result = await self._agent.run(prompt)
             return result.output
         except Exception as exc:
-            logger.exception("Classification failed for text: %s...", text[:80])
             raise ClassificationFailedException(str(exc)) from exc
